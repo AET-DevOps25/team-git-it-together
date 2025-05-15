@@ -1,0 +1,5 @@
+spring:
+  profiles:
+    active: no-mongo # Set the active profile to 'dev' for development
+
+# To run application in production, use the environment variable SPRING_PROFILES_ACTIVE=prod

@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: skill-forge-server
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/skillforge_dev
+
+logging:
+  level:
+    root: DEBUG
