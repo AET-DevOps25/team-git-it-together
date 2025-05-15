@@ -10,11 +10,11 @@ Our application solves this by creating a smart platform focused on making it ea
 
 ### Main Functionality
 
-* **Content Aggregation:** Automatically collect and classify technical tutorials, in-depth articles, and relevant documentation from a curated list of trustworthy sources. This content forms the basis for our learning materials.
+* **Content Aggregation:** Automatically gather and organize technical articles, blog posts, and tutorials from trusted sources to create learning materials.
 * **Personalized Learning Path Generation:** Create structured, goal-oriented learning paths tailored to a user's existing knowledge, stated learning goals, and preferred learning style. These paths will use AI (including RAG techniques with a vector database) to select, sequence, and present relevant content modules. Paths will include clear steps, learning objectives, and suggest milestones.
 * **Personalized Learning Recommendations:** Show users specific learning materials (tutorials, articles, documentation) that match their active learning paths, current skill level, and identified knowledge gaps.
-* **AI Summarization:** Use generative AI to produce concise summaries of aggregated content. This helps users quickly understand the key points of a learning resource and decide if it's relevant to their current learning objective within a path.
-* **Structured Progression and Milestones:** The learning paths will incorporate progress tracking. We aim to guide users through modules, allowing them to mark progress and understand their journey towards achieving specific skill milestones. (Future enhancements could include quizzes or suggested mini-projects).
+* **AI Summarization:** Use generative AI to produce concise summaries of aggregated content. This helps users quickly understand the key points of a learning resource and decide if it's relevant to their current learning objective.
+**Structured Progression and Milestones**: Learning paths will include progress tracking to help users move through modules, mark their progress, and see how they're advancing toward key skill milestones.
 
 ### Who are the intended users?
 
@@ -23,12 +23,12 @@ Our application solves this by creating a smart platform focused on making it ea
 * Lifelong learners or any person interested in efficiently learning specific technologies.
 * Beginners or individuals new to a technology who want a clear roadmap and curated resources to learn it effectively without getting lost in scattered information.
 
-### How will you integrate GenAI meaningfully?
+### How will we integrate GenAI meaningfully?
 
-We will use Generative AI (using LangChain and a vector database) as a key part of the application to provide real value:
+We’ll use Generative AI, powered by LangChain and a vector database, to deliver meaningful and valuable features within the application such as:
 
-* **AI-Powered Learning Path Generation:** This is a core GenAI feature. By understanding user profiles (background, existing skills, learning goals) and using Retrieval Augmented Generation (RAG) to semantically retrieve and sequence relevant content from our aggregated resources (which are chunked, embedded, and stored in a vector database), GenAI will construct logical, step-by-step learning plans. This ensures paths are customized and built from the most appropriate materials for each user.
-* **AI-Driven Personalization for Recommendations:** To find the right learning content for each user. AI will analyze user profiles, their progress within learning paths, and the topics of the learning materials more effectively than simple keyword matching to suggest relevant tutorials and articles.
+* **AI-Powered Learning Paths:** Generative AI will create personalized, step-by-step learning plans by analyzing user profiles (background, skills, goals) and using Retrieval Augmented Generation (RAG) to find and organize the most relevant content from our collected resources.
+* **AI-Driven Personalization and Recommendations:**: AI will suggest the right tutorials and articles by analyzing each user's profile, learning progress, and interests.
 * **AI Summaries:** To save users time by quickly summarizing learning materials, helping them decide if a resource fits their immediate needs within a learning path.
 
 ### Challenges and Considerations
