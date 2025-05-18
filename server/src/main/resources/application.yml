@@ -1,11 +1,17 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080} # default fallback to 8080
 
 spring:
   application:
-    name: ${APP_NAME:skill-forge-server} # default fallback to skill-forge-server
+    name: ${SERVER_APP_NAME:skill-forge-server} # default fallback to skill-forge-server
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:no-mongo} # default fallback to no-mongo
+    active: ${SPRING_PROFILES_ACTIVE:dev} # default fallback to dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
 
 logging:
   level:
