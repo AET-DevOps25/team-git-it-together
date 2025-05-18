@@ -1,10 +1,10 @@
 # Build stage:
-FROM gradle:8.14-jdk-21 AS build
+FROM gradle:8.14-jdk21 as build
 
 WORKDIR /app
 
 # ARG to pass app name into the build (optional fallback)
-ARG APP_NAME=skill-forge-server
+ARG SERVER_APP_NAME=skill-forge-server
 
 # Copy gradle files
 COPY build.gradle settings.gradle gradle.properties ./
@@ -22,11 +22,11 @@ FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 
 # Reuse the same ARG in runtime stage
-ARG APP_NAME=skill-forge-server
-ENV APP_NAME=${APP_NAME}
+ARG SERVER_APP_NAME=skill-forge-server
+ENV SERVER_APP_NAME=${SERVER_APP_NAME}
 
 # Copy the jar file from the build stage
-COPY --from=build /app/build/libs/${APP_NAME}.jar app.jar
+COPY --from=build /app/build/libs/${SERVER_APP_NAME}.jar app.jar
 
 # Expose the application port
 EXPOSE 8080
