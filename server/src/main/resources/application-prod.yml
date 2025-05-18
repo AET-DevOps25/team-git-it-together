@@ -1,13 +1,10 @@
-server:
-  port: 8080
-
 spring:
-  application:
-    name: skill-forge-server
   data:
     mongodb:
-      uri: mongodb://mongo:27017/skillforge
+      uri: mongodb://root:root@localhost:27017/skill_forge_dev?authSource=admin # This will be updated to point to the production database in the future
 
 logging:
   level:
     root: INFO
+
+# Used when spring.profiles.active=prod

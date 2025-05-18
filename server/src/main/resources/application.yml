@@ -1,5 +1,12 @@
-spring:
-  profiles:
-    active: no-mongo # Set the active profile to 'dev' for development
+server:
+  port: 8080
 
-# To run application in production, use the environment variable SPRING_PROFILES_ACTIVE=prod
+spring:
+  application:
+    name: ${APP_NAME:skill-forge-server} # default fallback to skill-forge-server
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:no-mongo} # default fallback to no-mongo
+
+logging:
+  level:
+    root: INFO
