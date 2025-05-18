@@ -19,6 +19,8 @@ if defined CID (
   docker run -d --name %CONTAINER_NAME% ^
     -p 27017:27017 ^
     -e MONGO_INITDB_DATABASE=%DB_NAME% ^
+    -e MONGO_INITDB_ROOT_USERNAME=root ^
+    -e MONGO_INITDB_ROOT_PASSWORD=root ^
     -v %VOLUME_NAME%:/data/db ^
     %IMAGE_NAME%
 )
