@@ -1,0 +1,20 @@
+openapi: "3.1.0"
+info:
+  title: "SkillForge API"
+  description: "Backend API for the SkillForge learning platform."
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:8080"
+paths:
+  /api/v1/health:
+    get:
+      summary: "GET api/v1/health"
+      operationId: "getHealth"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            'text/plain':
+              schema:
+                type: "string"
+                example: "Server is up and running!"

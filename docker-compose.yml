@@ -1,0 +1,98 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: mongo
+    restart: unless-stopped
+    ports:
+      # Host MONGO_PORT (default 27018) → Container 27017
+      - "${MONGODB_PORT:-27018}:27017"
+    env_file:
+      - .env
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" > /dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+      args:
+        SERVER_APP_NAME: ${SERVER_APP_NAME}
+    image: ${SERVER_APP_NAME}:latest
+    container_name: ${SERVER_APP_NAME}
+    restart: unless-stopped
+    ports:
+      # Host SERVER_PORT (default 8081) → Container 8081
+      - "${SERVER_PORT:-8081}:8081"
+    env_file:
+      - .env
+    environment:
+      - SERVER_APP_NAME=${SERVER_APP_NAME:-skill-forge-server}
+      - SPRING_PROFILES_ACTIVE=${SERVER_SPRING_PROFILES_ACTIVE:-dev}
+      - SERVER_PORT=${SERVER_PORT:-8081}
+      - MONGODB_HOST=${MONGODB_HOST:-mongo}
+      - MONGODB_PORT=${MONGODB_PORT:-27017}
+      - MONGODB_USERNAME=${MONGODB_USERNAME:-root}
+      - MONGODB_PASSWORD=${MONGODB_PASSWORD:-root}
+      - MONGODB_DATABASE=${MONGODB_DATABASE:-skill_forge_dev}
+      - MONGODB_URI=mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}?authSource=admin
+
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8081/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: ${CLIENT_APP_NAME}:latest
+    container_name: ${CLIENT_APP_NAME}
+    restart: unless-stopped
+    ports:
+      # Host CLIENT_PORT (default 3000) → Container 3000
+      - "${CLIENT_PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      - CLIENT_APP_NAME=${CLIENT_APP_NAME:-skill-forge-client}
+      - CLIENT_PORT=${CLIENT_PORT:-3000}
+
+    depends_on:
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+
+    
+
+volumes:
+  mongo-data:
+
+networks:
+  app-network:
+    driver: bridge

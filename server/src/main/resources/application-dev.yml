@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:27017/${MONGODB_DATABASE}?authSource=admin
+      database: ${MONGODB_DATABASE:skill_forge_dev}
+      username: ${MONGODB_USERNAME:root}
+      password: ${MONGODB_PASSWORD:root}
+
+# Used when spring.profiles.active=dev
