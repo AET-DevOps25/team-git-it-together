@@ -14,18 +14,6 @@ This guide walks you through setting up MongoDB for local development, with cros
 - (Optional) gradle installed (if you want to run the app without the wrapper)
 ---
 
-## 📁 Project Structure (Relevant Parts)
-
-```
-
-├── server/
-│   ├── start-mongo.sh / start-mongo.bat
-│   ├── stop-mongo.sh  / stop-mongo.bat
-│   └── .env.dev
-
-````
-
----
 
 ## ⚙️ Environment Variables
 
