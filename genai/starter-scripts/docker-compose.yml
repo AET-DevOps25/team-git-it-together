@@ -1,0 +1,27 @@
+services:
+  weaviate-genai-dev:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
+    container_name: weaviate-genai-dev
+    restart: on-failure:0
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - --scheme
+      - http
+    ports:
+      - "1234:8080"    # Map host port 1234 → container HTTP port 8080
+      - "50051:50051"  # gRPC
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
+      ENABLE_API_BASED_MODULES: 'true'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate-genai-dev-data:/var/lib/weaviate
+
+volumes:
+  weaviate-genai-dev-data:

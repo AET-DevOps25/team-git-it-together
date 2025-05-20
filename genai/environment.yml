@@ -1,0 +1,14 @@
+name: genai-devops25
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - langchain
+      - openai
+      - weaviate-client
+      - python-dotenv
+      - fastapi
+      - uvicorn

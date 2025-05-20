@@ -1,0 +1,4 @@
+llm_provider: openai  # or "llmstudio"
+openai_api_key: ${OPENAI_API_KEY}
+local_model_path: /path/to/your/model.bin
+temperature: 0.7
