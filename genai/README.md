@@ -47,12 +47,12 @@ This will:
 If you choose to use `conda`, and the environment is not activated automatically, you can activate it manually using:
 
 ```bash
-conda deactivate
 conda activate genai-devops25
 ```
 
 To reset the environment, you can delete the `genai-devops25` environment using:
 ```bash
+conda deactivate
 conda env remove -n genai-devops25
 ```
 Or
