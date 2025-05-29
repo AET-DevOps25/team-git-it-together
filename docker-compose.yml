@@ -46,7 +46,7 @@ services:
       MONGODB_DATABASE: ${MONGODB_DATABASE}
       MONGODB_USERNAME: ${MONGODB_USERNAME}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
-      MONGODB_HOST: mongo # We should use the service name of mongo defined above
+      MONGODB_HOST: mongo
     depends_on:
       mongo:
         condition: service_healthy
