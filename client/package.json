@@ -3,18 +3,31 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "license": "MIT",
+  "description": "Skill Forge Client",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0",
-    "format": "prettier --write .",
-    "check": "tsc --noEmit && eslint . --ext .ts,.tsx && prettier --check .",
-    "preview": "npm run build && vite preview"
-  },
+  "dev": "vite --mode development",
+  "dev:test": "vite --mode test",
+  "dev:prod": "vite --mode production",
+
+  "build": "tsc -b && vite build --mode production",
+  "build:dev": "tsc -b && vite build --mode development",
+  "build:test": "tsc -b && vite build --mode test",
+
+  "preview": "npm run build && vite preview",
+  "preview:dev": "npm run build:dev && vite preview --port 3000",
+  "preview:test": "npm run build:test && vite preview --port 3001",
+  "preview:prod": "npm run build && vite preview --port 3002",
+
+  "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings=0",
+  "format": "prettier --write .",
+  "check": "tsc --noEmit && eslint . --ext .ts,.tsx && prettier --check ."
+},
   "dependencies": {
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
