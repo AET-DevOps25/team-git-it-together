@@ -24,6 +24,7 @@ def test_weaviate_connection():
         http_secure=False,
         grpc_secure=False,
     )
+    print(f"Connecting to Weaviate at {WEAVIATE_HOST}:{WEAVIATE_HTTP_PORT} (HTTP) and {WEAVIATE_HOST}:{WEAVIATE_GRPC_PORT} (gRPC)")
     client = weaviate.WeaviateClient(connection_params=params)
 
     try:
