@@ -1,17 +1,17 @@
 services:
+  # ─── MongoDB ──────────────────────────────────────
   mongo:
     image: mongo:7.0
-    container_name: mongo
+    container_name: ${MONGODB_CONTAINER_NAME}
     restart: unless-stopped
     ports:
-      # Host MONGO_PORT (default 27018) → Container 27017
-      - "${MONGODB_PORT:-27018}:27017"
+      - "${MONGODB_EXPOSED_PORT}:27017"
     env_file:
       - .env
     environment:
-      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
-      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
     volumes:
       - mongo-data:/data/db
     healthcheck:
@@ -20,61 +20,68 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    logging:
+      driver: "none"
     networks:
       - app-network
 
+  # ─── Spring Boot Server ──────────────────────────────
   server:
     build:
       context: ./server
       dockerfile: Dockerfile
       args:
         SERVER_APP_NAME: ${SERVER_APP_NAME}
-    image: ${SERVER_APP_NAME}:latest
-    container_name: ${SERVER_APP_NAME}
+    image: ${SERVER_CONTAINER_NAME}:latest
+    container_name: ${SERVER_CONTAINER_NAME}
     restart: unless-stopped
     ports:
-      # Host SERVER_PORT (default 8081) → Container 8081
-      - "${SERVER_PORT:-8081}:8081"
+      - "${SERVER_PORT}:${SERVER_PORT}"
     env_file:
       - .env
     environment:
-      - SERVER_APP_NAME=${SERVER_APP_NAME:-skill-forge-server}
-      - SPRING_PROFILES_ACTIVE=${SERVER_SPRING_PROFILES_ACTIVE:-dev}
-      - SERVER_PORT=${SERVER_PORT:-8081}
-      - MONGODB_HOST=${MONGODB_HOST:-mongo}
-      - MONGODB_PORT=${MONGODB_PORT:-27017}
-      - MONGODB_USERNAME=${MONGODB_USERNAME:-root}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD:-root}
-      - MONGODB_DATABASE=${MONGODB_DATABASE:-skill_forge_dev}
-      - MONGODB_URI=mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:${MONGODB_PORT}/${MONGODB_DATABASE}?authSource=admin
-
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SERVER_PORT: ${SERVER_PORT}
+      SERVER_APP_NAME: ${SERVER_APP_NAME}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD}
+      MONGODB_HOST: mongo # We should use the service name of mongo defined above
     depends_on:
       mongo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:8081/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT}/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
       - app-network
-
+  
   client:
     build:
       context: ./client
       dockerfile: Dockerfile
-    image: ${CLIENT_APP_NAME}:latest
-    container_name: ${CLIENT_APP_NAME}
+      args:
+        VITE_APP_NAME: ${VITE_APP_NAME}
+        VITE_APP_VERSION: ${VITE_APP_VERSION}
+        VITE_SERVER_API_URL: ${VITE_SERVER_API_URL}
+        VITE_API_VERSION: ${VITE_API_VERSION}
+        BUILD_MODE: ${BUILD_MODE}
+    # Use the latest tag for the client image
+    image: ${CLIENT_CONTAINER_NAME}:latest
+    container_name: ${CLIENT_CONTAINER_NAME}
     restart: unless-stopped
     ports:
-      # Host CLIENT_PORT (default 3000) → Container 3000
-      - "${CLIENT_PORT:-3000}:3000"
+      - "${VITE_PORT}:3000"
     env_file:
       - .env
     environment:
-      - CLIENT_APP_NAME=${CLIENT_APP_NAME:-skill-forge-client}
-      - CLIENT_PORT=${CLIENT_PORT:-3000}
+      - VITE_APP_NAME=${VITE_APP_NAME}
+      - VITE_APP_VERSION=${VITE_APP_VERSION}
+      - VITE_SERVER_API_URL=${VITE_SERVER_API_URL}
+      - VITE_API_VERSION=${VITE_API_VERSION}
 
     depends_on:
       server:
@@ -87,10 +94,9 @@ services:
       start_period: 40s
     networks:
       - app-network
-
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
-      container_name: weaviate-genai-dev
+      container_name: ${WEAVIATE_HOST}
       restart: on-failure:0
       command:
         - --host
@@ -100,8 +106,8 @@ services:
         - --scheme
         - http
       ports:
-        - "1234:8080"
-        - "50051:50051"
+        - "${WEAVIATE_EXPOSED_HTTP_PORT}:8080"
+        - "${WEAVIATE_EXPOSED_GRPC_PORT}:50051"
       environment:
         QUERY_DEFAULTS_LIMIT: 25
         AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
@@ -110,9 +116,9 @@ services:
         ENABLE_API_BASED_MODULES: 'true'
         CLUSTER_HOSTNAME: 'node1'
       volumes:
-        - weaviate-genai-dev-data:/var/lib/weaviate
+        - weaviate-genai-data:/var/lib/weaviate
       healthcheck:
-        test: ["CMD-SHELL", "curl -f http://localhost:8080/v1/.well-known/ready || exit 1"]
+        test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/v1/.well-known/ready || exit 1"]
         interval: 10s
         timeout: 5s
         retries: 10
@@ -124,16 +130,17 @@ services:
     build:
       context: ./genai
       dockerfile: Dockerfile
-    image: ${GEMAI_APP_NAME}:latest
-    container_name: ${GEMAI_APP_NAME}
+    image: ${GENAI_CONTAINER_NAME}:latest
+    container_name: ${GENAI_CONTAINER_NAME}
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      - WEAVIATE_HOST=${WEAVIATE_HOST:-weaviate-genai-dev}
-      - WEAVIATE_HTTP_PORT=${WEAVIATE_HTTP_PORT:-8080}
-      - WEAVIATE_GRPC_PORT=${WEAVIATE_GRPC_PORT:-50051}
-      - PORT=${GENAI_PORT:-8082}
+      - WEAVIATE_HOST=${WEAVIATE_HOST}
+      - WEAVIATE_HTTP_PORT=8080
+      - WEAVIATE_GRPC_PORT=50051
+      - GEMAI_PORT=${GEMAI_PORT}
+      - GEMAI_APP_NAME=${GEMAI_APP_NAME}
     ports:
       - "${GENAI_PORT:-8082}:${GENAI_PORT:-8082}"
     depends_on:
@@ -144,7 +151,7 @@ services:
 
 volumes:
   mongo-data:
-  weaviate-genai-dev-data:
+  weaviate-genai-data:
 
 networks:
   app-network:
