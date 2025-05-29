@@ -6,6 +6,7 @@ CONTAINER_NAME="mongo-dev"
 VOLUME_NAME="mongo-dev-data"
 IMAGE_NAME="mongo:7.0"
 DB_NAME="skill_forge_dev"
+DB_PORT=27017
 # ──────────────────────────────────────────────────
 
 # If container exists, start it; otherwise create + start with volume
@@ -16,12 +17,12 @@ else
   echo "🚀 Creating & starting container ${CONTAINER_NAME}..."
   docker run -d \
     --name "${CONTAINER_NAME}" \
-    -p 27017:27017 \
+    -p "${DB_PORT}":27017 \
     -e MONGO_INITDB_DATABASE="${DB_NAME}" \
     -e MONGO_INITDB_ROOT_USERNAME="root" \
-    -e MONGO_INITDB_ROOT_PASSWORD="root" \
+    -e MONGO_INITDB_ROOT_PASSWORD="password" \
     -v "${VOLUME_NAME}":/data/db \
     "${IMAGE_NAME}"
 fi
 
-echo "✅ MongoDB is running at mongodb://localhost:27017/${DB_NAME}"
+echo "✅ MongoDB is running at mongodb://localhost:${DB_PORT}/${DB_NAME}"

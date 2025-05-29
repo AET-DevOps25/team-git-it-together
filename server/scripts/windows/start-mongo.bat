@@ -6,6 +6,7 @@ set "CONTAINER_NAME=mongo-dev"
 set "VOLUME_NAME=mongo-dev-data"
 set "IMAGE_NAME=mongo:7.0"
 set "DB_NAME=skillforge_dev"
+set "DB_PORT=27017"
 REM ─────────────────────────────────────────────────
 
 REM Check if container exists
@@ -17,7 +18,7 @@ if defined CID (
 ) else (
   echo 🚀 Creating & starting container %CONTAINER_NAME%...
   docker run -d --name %CONTAINER_NAME% ^
-    -p 27017:27017 ^
+    -p %DB_PORT%:27017 ^
     -e MONGO_INITDB_DATABASE=%DB_NAME% ^
     -e MONGO_INITDB_ROOT_USERNAME=root ^
     -e MONGO_INITDB_ROOT_PASSWORD=root ^
@@ -26,5 +27,5 @@ if defined CID (
 )
 
 echo.
-echo ✅ MongoDB is running at mongodb://localhost:27017/%DB_NAME%
+echo ✅ MongoDB is running at mongodb://localhost:%DB_PORT%/%DB_NAME%
 endlocal
