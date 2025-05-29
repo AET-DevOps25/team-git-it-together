@@ -1,35 +1,36 @@
-# Build stage:
+# ─── Build Stage ──────────────────
 FROM gradle:8.14-jdk21 AS build
 
 WORKDIR /app
 
-# ARG to pass app name into the build (optional fallback)
+# Use ARG to allow setting the application name at build time
 ARG SERVER_APP_NAME=skill-forge-server
 
-# Copy gradle files
+# Avoid re-downloading dependencies on code change
 COPY build.gradle settings.gradle gradle.properties ./
 COPY gradle ./gradle
+RUN gradle dependencies --no-daemon || true # Run once to cache dependencies
 
 # Copy source files
 COPY src ./src
 
-# Build the application
+# Build the JAR
 RUN gradle bootJar --no-daemon
 
-# Run stage:
-FROM eclipse-temurin:21-jdk-jammy
+# ─── Run Stage ──────────────────────────────
+FROM eclipse-temurin:21-jdk-jammy AS runner
 
 WORKDIR /app
 
-# Reuse the same ARG in runtime stage
+# Use same ARG and make it available in container
 ARG SERVER_APP_NAME=skill-forge-server
 ENV SERVER_APP_NAME=${SERVER_APP_NAME}
 
-# Copy the jar file from the build stage
-COPY --from=build /app/build/libs/${SERVER_APP_NAME}.jar app.jar
+# Copy only the built jar
+COPY --from=build /app/build/libs/*.jar app.jar
 
-# Expose the application port
+# Expose the port defined in application.yml
 EXPOSE 8080
 
-# Command to run the application
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]

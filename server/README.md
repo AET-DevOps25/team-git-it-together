@@ -20,15 +20,15 @@ This guide walks you through setting up MongoDB for local development, with cros
 Create a file named `.env.dev` in the `server/` directory:
 
 ```env
-APP_NAME=skill-forge-server
+SERVER_APP_NAME=skill-forge-server-dev
 SPRING_PROFILES_ACTIVE=dev
 SERVER_PORT=8080
 
 # MongoDB
-MONGO_PORT=27017
-MONGO_INITDB_ROOT_USERNAME=root
-MONGO_INITDB_ROOT_PASSWORD=root
-MONGODB_URI=mongodb://root:root@localhost:27017/skill_forge_dev?authSource=admin
+MONGODB_HOST=localhost
+MONGODB_PORT=27017
+MONGODB_USERNAME=root
+MONGODB_PASSWORD=root
 MONGODB_DATABASE=skill_forge_dev
 ```
 
