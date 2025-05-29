@@ -27,7 +27,7 @@ if defined CONTAINER_ID (
         echo 🚀 Creating & starting container '%CONTAINER_NAME%'...
         docker run -d ^
             --name "%CONTAINER_NAME%" ^
-            -p "%HTTP_PORT%:%SERVICE_PORT%" ^
+            -p "%HTTP_PORT%:8080" ^
             -p "%GRPC_PORT%:50051" ^
             -e QUERY_DEFAULTS_LIMIT=25 ^
             -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true ^
