@@ -21,7 +21,7 @@ if defined CID (
     -p %DB_PORT%:27017 ^
     -e MONGO_INITDB_DATABASE=%DB_NAME% ^
     -e MONGO_INITDB_ROOT_USERNAME=root ^
-    -e MONGO_INITDB_ROOT_PASSWORD=root ^
+    -e MONGO_INITDB_ROOT_PASSWORD=password ^
     -v %VOLUME_NAME%:/data/db ^
     %IMAGE_NAME%
 )
