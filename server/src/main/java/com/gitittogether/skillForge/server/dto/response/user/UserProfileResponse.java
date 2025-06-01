@@ -28,4 +28,5 @@ public class UserProfileResponse {
     private List<SkillResponse> skillsInProgress;
     private List<EnrolledCourseResponse> enrolledCourses;
     private List<CourseResponse> bookmarkedCourses;
+    private List<EnrolledCourseResponse> completedCourses;
 }

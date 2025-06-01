@@ -26,5 +26,6 @@ public class UserProfileUpdateRequest {
 
     private List<EnrolledCourseRequest> enrolledCourses;
     private List<CourseRequest> bookmarkedCourses;
+    private List<EnrolledCourseRequest> completedCourses;
 
 }

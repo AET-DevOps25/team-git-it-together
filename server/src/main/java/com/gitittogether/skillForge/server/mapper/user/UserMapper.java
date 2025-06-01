@@ -95,6 +95,9 @@ public class UserMapper {
                                 .map(CourseMapper::toCourseResponse)
                                 .collect(Collectors.toList())
                 )
+                .completedCourses(model.getCompletedCourses().stream()
+                        .map(EnrolledCourseMapper::toEnrolledCourseResponse)
+                        .collect(Collectors.toList()))
                 .build();
     }
 }

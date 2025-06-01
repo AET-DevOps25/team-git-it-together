@@ -56,4 +56,7 @@ public class User {
 
     @Builder.Default
     private List<Course> bookmarkedCourses = new ArrayList<>();
+
+    @Builder.Default
+    private List<EnrolledCourse> completedCourses = new ArrayList<>(); // List of courses the user has completed
 }
