@@ -1,4 +1,4 @@
-package com.gitittogether.skillForge.server.dto.request;
+package com.gitittogether.skillForge.server.dto.request.course;
 
 import lombok.*;
 

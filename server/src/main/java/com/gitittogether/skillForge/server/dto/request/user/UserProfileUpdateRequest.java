@@ -1,8 +1,12 @@
-package com.gitittogether.skillForge.server.dto.request;
+package com.gitittogether.skillForge.server.dto.request.user;
 
+import com.gitittogether.skillForge.server.dto.request.course.CategoryRequest;
+import com.gitittogether.skillForge.server.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.dto.request.course.EnrolledCourseRequest;
+import com.gitittogether.skillForge.server.dto.request.skill.SkillRequest;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Data
@@ -13,7 +17,7 @@ public class UserProfileUpdateRequest {
     private String profilePictureUrl;
 
     @Size(max = 50)
-    private String passwordHash;
+    private String password;
 
     private List<CategoryRequest> interests;
 

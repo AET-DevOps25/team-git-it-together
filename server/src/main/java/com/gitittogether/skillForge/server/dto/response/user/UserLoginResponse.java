@@ -1,9 +1,14 @@
-package com.gitittogether.skillForge.server.dto.response;
+package com.gitittogether.skillForge.server.dto.response.user;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserLoginResponse {
     private String id;
     private String firstName;

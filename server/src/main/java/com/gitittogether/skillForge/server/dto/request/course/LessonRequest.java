@@ -1,13 +1,12 @@
-package com.gitittogether.skillForge.server.dto.request;
+package com.gitittogether.skillForge.server.dto.request.course;
 
-import com.gitittogether.skillForge.server.model.courses.LessonContent;
+import com.gitittogether.skillForge.server.model.course.LessonContent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 
 @Data
 @NoArgsConstructor

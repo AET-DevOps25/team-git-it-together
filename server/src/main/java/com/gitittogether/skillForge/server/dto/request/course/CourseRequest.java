@@ -1,14 +1,15 @@
-package com.gitittogether.skillForge.server.dto.request;
+package com.gitittogether.skillForge.server.dto.request.course;
 
-import com.gitittogether.skillForge.server.model.courses.Level;
+import com.gitittogether.skillForge.server.dto.request.skill.SkillRequest;
+import com.gitittogether.skillForge.server.model.course.Level;
 import com.gitittogether.skillForge.server.model.utils.Language;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,7 @@ import java.util.List;
 public class CourseRequest {
     @NotNull
     private String id;
-    
+
     @NotBlank
     private String title;
 
