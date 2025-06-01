@@ -25,7 +25,6 @@ public class JwtUserDetailsService implements UserDetailsService {
                 .build();
     }
 
-    // Optional, if needed elsewhere (Spring Security default)
     @Override
     public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username)

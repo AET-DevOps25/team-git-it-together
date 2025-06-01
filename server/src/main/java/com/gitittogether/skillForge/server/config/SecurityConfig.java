@@ -36,13 +36,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1) Enable CSRF, store CSRF token in a cookie (HttpOnly = false so JS can read if needed)
-                .csrf(AbstractHttpConfigurer::disable) // <-- this line is crucial!
+                .csrf(AbstractHttpConfigurer::disable)
                 // 2) We’re stateless (no HTTP session); we rely on JWT in cookies
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                // 3) Configure which endpoints are public vs. protected
+                // 3) Configure which endpoints are public and which are protected
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints: user registration, login, health checks, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
