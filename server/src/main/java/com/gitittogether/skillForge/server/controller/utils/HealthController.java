@@ -1,4 +1,4 @@
-package com.gitittogether.skillForge.server.controller;
+package com.gitittogether.skillForge.server.controller.utils;
 
 import com.mongodb.client.MongoClient;
 import lombok.extern.slf4j.Slf4j;
