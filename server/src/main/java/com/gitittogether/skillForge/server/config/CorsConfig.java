@@ -1,5 +1,14 @@
 package com.gitittogether.skillForge.server.config;
 
+/*
+ * CORS configuration for the SkillForge server.
+ * This configuration allows cross-origin requests from any origin,
+ * supports common HTTP methods, and allows all headers.
+ * * It is used to enable CORS for the entire application,
+ * allowing it to handle requests from different origins.
+ * * This is particularly useful for frontend applications that need to interact with the backend API,
+ */
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;

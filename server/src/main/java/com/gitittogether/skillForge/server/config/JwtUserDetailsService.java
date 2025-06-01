@@ -14,7 +14,13 @@ public class JwtUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    // For JWT, load user by ID
+    /**
+     * Load user details by user ID.
+     * This is used for JWT authentication where we need to fetch user details based on the user ID extracted from the token.
+     *
+     * @param userId The ID of the user to load.
+     * @return UserDetails object containing user information.
+     */
     public UserDetails loadUserById(String userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -25,6 +31,13 @@ public class JwtUserDetailsService implements UserDetailsService {
                 .build();
     }
 
+    /**
+     * Load user details by username.
+     * This is used for standard authentication where we need to fetch user details based on the username.
+     *
+     * @param username The username of the user to load.
+     * @return UserDetails object containing user information.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username)

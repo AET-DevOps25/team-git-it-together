@@ -23,6 +23,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
+    /**
+     * User registration endpoint.
+     * Accepts a UserRegisterRequest and returns a UserRegisterResponse.
+     *
+     * @param request The registration request containing user details.
+     * @return ResponseEntity with the registration response.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterRequest request) {
         log.info("🔑 Registering user with username: {} and email: {}", request.getUsername(), request.getEmail());
@@ -30,6 +37,13 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    /**
+     * User login endpoint.
+     * Accepts a UserLoginRequest and returns a UserLoginResponse.
+     *
+     * @param request The login request containing username/email and password.
+     * @return ResponseEntity with the login response.
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request) {
         log.info("🔑 Logging in user with username: {} or email: {}", request.getUsername(), request.getEmail());
@@ -37,18 +51,37 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Fetches the profile of a user by their ID.
+     *
+     * @param userId The ID of the user whose profile is to be fetched.
+     * @return ResponseEntity with the user's profile information.
+     */
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
         log.info("🔍 Fetching profile for user ID: {}", userId);
         return ResponseEntity.ok(userService.getUserProfile(userId));
     }
 
+    /**
+     * Updates the profile of a user.
+     *
+     * @param userId  The ID of the user whose profile is to be updated.
+     * @param request The update request containing new profile details.
+     * @return ResponseEntity with the updated user's profile information.
+     */
     @PutMapping("/{userId}/profile")
     public ResponseEntity<?> updateUserProfile(@PathVariable String userId, @Valid @RequestBody UserProfileUpdateRequest request) {
         log.info("🔄 Updating profile for user ID: {}", userId);
         return ResponseEntity.ok(userService.updateUserProfile(userId, request));
     }
 
+    /**
+     * Deletes a user profile by their ID.
+     *
+     * @param userId The ID of the user to be deleted.
+     * @return ResponseEntity indicating the result of the deletion operation.
+     */
     @DeleteMapping("/{userId}/profile")
     public ResponseEntity<?> deleteUserProfile(@PathVariable String userId) {
         log.info("🗑️ Deleting profile for user ID: {}", userId);

@@ -25,6 +25,13 @@ public class JwtUtils {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Generates a JWT token for a given user.
+     *
+     * @param userId   The unique identifier of the user for whom the token is being generated.
+     * @param username The username of the user, included as a claim in the token.
+     * @return A signed JWT token as a String.
+     */
     public String generateToken(String userId, String username) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
@@ -38,7 +45,13 @@ public class JwtUtils {
                 .compact();
     }
 
-    // Extract all claims (parsed and validated)
+    /**
+     * Extracts all claims from the JWT token.
+     *
+     * @param token The JWT token from which to extract claims.
+     * @return A Claims object containing all the claims in the token.
+     * @throws JwtException if the token is invalid or expired.
+     */
     public Claims extractAllClaims(String token) throws JwtException {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -48,15 +61,35 @@ public class JwtUtils {
     }
 
 
+    /**
+     * Extracts a specific claim from the JWT token using a claims resolver function.
+     *
+     * @param token          The JWT token from which to extract the claim.
+     * @param claimsResolver A function that takes Claims and returns the desired claim.
+     * @param <T>            The type of the claim to be extracted.
+     * @return The extracted claim of type T.
+     */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
+    /**
+     * Extracts the user ID (subject) from the JWT token.
+     *
+     * @param token The JWT token from which to extract the user ID.
+     * @return The user ID as a String.
+     */
     public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    /**
+     * Extracts the username from the JWT token.
+     *
+     * @param token The JWT token from which to extract the username.
+     * @return The username as a String.
+     */
     public boolean isTokenValid(String token, String userId) {
         try {
             final String subject = extractUserId(token);

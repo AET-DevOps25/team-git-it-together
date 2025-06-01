@@ -22,8 +22,9 @@ public class SecurityConfig {
 
 
     /**
-     * Defines a PasswordEncoder bean so that we can inject it anywhere.
-     * We use BCryptPasswordEncoder for hashing passwords.
+     * Defines a PasswordEncoder bean for encoding passwords.
+     * This uses BCrypt, which is a strong hashing algorithm.
+     * * @return a PasswordEncoder instance
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -31,7 +32,12 @@ public class SecurityConfig {
     }
 
     /**
-     * Main security filter configuration.
+     * Configures the security filter chain for our application.
+     * This includes:
+     * 1) Disabling CSRF protection (not needed for stateless APIs).
+     * 2) Setting session management to stateless (we use JWT).
+     * 3) Configuring public and protected endpoints.
+     * 4) Adding the JWT filter to the chain.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
