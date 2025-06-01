@@ -1,8 +1,9 @@
-package com.gitittogether.skillForge.server.mapper.course;
+package com.gitittogether.skillForge.server.mapper.skill;
 
-import com.gitittogether.skillForge.server.dto.request.SkillRequest;
-import com.gitittogether.skillForge.server.dto.response.course.SkillResponse;
-import com.gitittogether.skillForge.server.model.skills.Skill;
+import com.gitittogether.skillForge.server.dto.request.skill.SkillRequest;
+import com.gitittogether.skillForge.server.dto.response.skill.SkillResponse;
+import com.gitittogether.skillForge.server.mapper.course.CategoryMapper;
+import com.gitittogether.skillForge.server.model.skill.Skill;
 
 public class SkillMapper {
 

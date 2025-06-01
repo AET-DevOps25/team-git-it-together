@@ -1,7 +1,8 @@
-package com.gitittogether.skillForge.server.mapper;
+package com.gitittogether.skillForge.server.mapper.course;
 
+import com.gitittogether.skillForge.server.dto.request.course.ModuleRequest;
 import com.gitittogether.skillForge.server.dto.response.course.ModuleResponse;
-import com.gitittogether.skillForge.server.model.courses.Module;
+import com.gitittogether.skillForge.server.model.course.Module;
 
 import java.util.stream.Collectors;
 
@@ -15,9 +16,51 @@ public class ModuleMapper {
                 .courseId(model.getCourseId())
                 .lessons(model.getLessons() == null ? null :
                         model.getLessons().stream()
-                                .map(LessonMapper::toResponse)
+                                .map(LessonMapper::toLessonResponse)
                                 .collect(Collectors.toList()))
                 .order(model.getOrder())
+                .build();
+    }
+
+    public static ModuleRequest toModuleRequest(Module model) {
+        if (model == null) return null;
+        return ModuleRequest.builder()
+                .title(model.getTitle())
+                .description(model.getDescription())
+                .courseId(model.getCourseId())
+                .lessons(model.getLessons() == null ? null :
+                        model.getLessons().stream()
+                                .map(LessonMapper::toLessonRequest)
+                                .collect(Collectors.toList()))
+                .order(model.getOrder())
+                .build();
+    }
+
+    public static Module requestToModule(ModuleRequest request) {
+        if (request == null) return null;
+        return Module.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .courseId(request.getCourseId())
+                .lessons(request.getLessons() == null ? null :
+                        request.getLessons().stream()
+                                .map(LessonMapper::requestToLesson)
+                                .collect(Collectors.toList()))
+                .order(request.getOrder())
+                .build();
+    }
+
+    public static Module responseToModule(ModuleResponse response) {
+        if (response == null) return null;
+        return Module.builder()
+                .title(response.getTitle())
+                .description(response.getDescription())
+                .courseId(response.getCourseId())
+                .lessons(response.getLessons() == null ? null :
+                        response.getLessons().stream()
+                                .map(LessonMapper::respnseToLesson)
+                                .collect(Collectors.toList()))
+                .order(response.getOrder())
                 .build();
     }
 
