@@ -17,9 +17,11 @@ import com.gitittogether.skillForge.server.mapper.user.UserMapper;
 import com.gitittogether.skillForge.server.model.user.User;
 import com.gitittogether.skillForge.server.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -152,5 +154,14 @@ public class UserServiceImpl implements UserService {
         // Return the updated user profile response
         return UserMapper.toUserProfileResponse(updatedUser);
     }
+
+    @Override
+    public boolean deleteUser(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        userRepository.delete(user);
+        log.info("Deleted user with ID: {}", userId);
+        return true;
+    }
+
 
 }

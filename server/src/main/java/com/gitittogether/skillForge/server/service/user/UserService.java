@@ -15,4 +15,6 @@ public interface UserService {
     UserProfileResponse getUserProfile(String userId);
 
     UserProfileResponse updateUserProfile(String userId, UserProfileUpdateRequest request);
+
+    boolean deleteUser(String userId);
 }
