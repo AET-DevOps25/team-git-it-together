@@ -4,6 +4,8 @@ import com.gitittogether.skillForge.server.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.mapper.skill.SkillMapper;
 import com.gitittogether.skillForge.server.model.course.Course;
+import com.gitittogether.skillForge.server.model.course.CourseProgress;
+import com.gitittogether.skillForge.server.model.course.EnrolledCourse;
 
 import java.util.stream.Collectors;
 
@@ -82,6 +84,17 @@ public class CourseMapper {
                 .published(response.isPublished())
                 .language(response.getLanguage())
                 .rating(response.getRating())
+                .build();
+    }
+
+    public static EnrolledCourse toNewEnrolledCourse(CourseResponse response, String userId) {
+        if (response == null) return null;
+        return EnrolledCourse.builder()
+                .course(responseToCourse(response))
+                .progress(CourseProgress.builder()
+                        .courseId(response.getId())
+                        .userId(userId)
+                        .build())
                 .build();
     }
 

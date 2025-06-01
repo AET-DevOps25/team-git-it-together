@@ -4,6 +4,9 @@ import com.gitittogether.skillForge.server.config.JwtUtils;
 import com.gitittogether.skillForge.server.dto.request.user.UserLoginRequest;
 import com.gitittogether.skillForge.server.dto.request.user.UserProfileUpdateRequest;
 import com.gitittogether.skillForge.server.dto.request.user.UserRegisterRequest;
+import com.gitittogether.skillForge.server.dto.response.course.CourseResponse;
+import com.gitittogether.skillForge.server.dto.response.course.EnrolledCourseResponse;
+import com.gitittogether.skillForge.server.dto.response.skill.SkillResponse;
 import com.gitittogether.skillForge.server.dto.response.user.UserLoginResponse;
 import com.gitittogether.skillForge.server.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.dto.response.user.UserRegisterResponse;
@@ -20,6 +23,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -161,6 +166,116 @@ public class UserServiceImpl implements UserService {
         userRepository.delete(user);
         log.info("Deleted user with ID: {}", userId);
         return true;
+    }
+
+    public void bookmarkCourse(String userId, CourseResponse courseResponse) {
+        if (courseResponse == null) {
+            throw new IllegalArgumentException("Course response cannot be null");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getBookmarkedCourses() == null) {
+            user.setBookmarkedCourses(new ArrayList<>());
+        }
+        user.getBookmarkedCourses().add(CourseMapper.responseToCourse(courseResponse));
+        userRepository.save(user);
+        log.info("Bookmarked course {} for user {}", courseResponse.getId(), userId);
+    }
+
+    public void unbookmarkCourse(String userId, CourseResponse courseResponse) {
+        if (courseResponse == null) {
+            throw new IllegalArgumentException("Course response cannot be null");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getBookmarkedCourses() != null) {
+            user.getBookmarkedCourses().removeIf(course -> course.getId().equals(courseResponse.getId()));
+            userRepository.save(user);
+            log.info("Unbookmarked course {} for user {}", courseResponse.getId(), userId);
+        } else {
+            log.warn("No bookmarked courses found for user {}", userId);
+        }
+    }
+
+    public void enrollInCourse(String userId, CourseResponse courseResponse) {
+        if (courseResponse == null) {
+            throw new IllegalArgumentException("Course response cannot be null");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getEnrolledCourses() == null) {
+            user.setEnrolledCourses(new ArrayList<>());
+        }
+        user.getEnrolledCourses().add(CourseMapper.toNewEnrolledCourse(courseResponse, userId));
+        userRepository.save(user);
+        log.info("Enrolled user {} in course {}", userId, courseResponse.getId());
+    }
+
+    public void unenrollFromCourse(String userId, EnrolledCourseResponse enrolledCourseResponse) {
+        if (enrolledCourseResponse == null) {
+            throw new IllegalArgumentException("Course response cannot be null");
+        }
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getEnrolledCourses() != null) {
+            user.getEnrolledCourses().removeIf(course -> course.getCourse().getId().equals(enrolledCourseResponse.getCourse().getId()));
+            userRepository.save(user);
+            log.info("Unenrolled user {} from course {}", userId, enrolledCourseResponse.getCourse().getId());
+        } else {
+            log.warn("No enrolled courses found for user {}", userId);
+        }
+    }
+
+    public void addSkillToUser(String userId, SkillResponse skill) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getSkills() == null) {
+            user.setSkills(new ArrayList<>());
+        }
+        user.getSkills().add(SkillMapper.responseToSkill(skill));
+        userRepository.save(user);
+        log.info("Added skill {} to user {}", skill.getId(), userId);
+    }
+
+    public void removeSkillFromUser(String userId, SkillResponse skill) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getSkills() != null) {
+            user.getSkills().removeIf(s -> s.getId().equals(skill.getId()));
+            userRepository.save(user);
+            log.info("Removed skill {} from user {}", skill.getId(), userId);
+        } else {
+            log.warn("No skills found for user {}", userId);
+        }
+    }
+
+    public void addSkillInProgress(String userId, SkillResponse skill) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getSkillsInProgress() == null) {
+            user.setSkillsInProgress(new ArrayList<>());
+        }
+        user.getSkillsInProgress().add(SkillMapper.responseToSkill(skill));
+        userRepository.save(user);
+        log.info("Added skill in progress {} to user {}", skill.getId(), userId);
+    }
+
+    public void removeSkillInProgress(String userId, SkillResponse skill) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getSkillsInProgress() != null) {
+            user.getSkillsInProgress().removeIf(s -> s.getId().equals(skill.getId()));
+            userRepository.save(user);
+            log.info("Removed skill in progress {} from user {}", skill.getId(), userId);
+        } else {
+            log.warn("No skills in progress found for user {}", userId);
+        }
+    }
+
+    public void completeCourse(String userId, EnrolledCourseResponse enrolledCourseResponse) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getEnrolledCourses() != null) {
+            user.getEnrolledCourses().removeIf(course -> course.getCourse().getId().equals(enrolledCourseResponse.getCourse().getId()));
+            // ensure complete is set to true
+            enrolledCourseResponse.getProgress().setCompleted(true);
+            user.getCompletedCourses().add(EnrolledCourseMapper.responseToEnrolledCourse(enrolledCourseResponse));
+            userRepository.save(user);
+            log.info("Completed course {} for user {}", enrolledCourseResponse.getCourse().getId(), userId);
+        } else {
+            log.warn("No enrolled courses found for user {}", userId);
+        }
     }
 
 
