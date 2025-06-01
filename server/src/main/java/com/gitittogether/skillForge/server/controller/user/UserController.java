@@ -52,7 +52,13 @@ public class UserController {
     @DeleteMapping("/{userId}/profile")
     public ResponseEntity<?> deleteUserProfile(@PathVariable String userId) {
         log.info("🗑️ Deleting profile for user ID: {}", userId);
-        userService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+        boolean deleted = userService.deleteUser(userId);
+        if (!deleted) {
+            log.warn("❌ Failed to delete user profile for ID: {}", userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        } else {
+            log.info("✅ Successfully deleted user profile for ID: {}", userId);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
     }
 }
