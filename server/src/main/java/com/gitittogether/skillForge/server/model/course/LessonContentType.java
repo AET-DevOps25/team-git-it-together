@@ -5,5 +5,6 @@ public enum LessonContentType {
     HTML,
     URL,    // URL to an external resource
     VIDEO,   // URL to a video (YouTube, Vimeo, etc.)
+    AUDIO,   // URL to an audio file or podcast
     IMAGE,   // URL to an image or infographic
 }
