@@ -1,4 +1,51 @@
 package com.gitittogether.skillForge.server.controller.user;
 
+import com.gitittogether.skillForge.server.dto.request.user.UserLoginRequest;
+import com.gitittogether.skillForge.server.dto.request.user.UserProfileUpdateRequest;
+import com.gitittogether.skillForge.server.dto.request.user.UserRegisterRequest;
+import com.gitittogether.skillForge.server.dto.response.user.UserLoginResponse;
+import com.gitittogether.skillForge.server.dto.response.user.UserRegisterResponse;
+import com.gitittogether.skillForge.server.service.user.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+
+@RestController
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+@Validated
+@Log4j2
 public class UserController {
+    private final UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody UserRegisterRequest request) {
+        log.info("🔑 Registering user with username: {} and email: {}", request.getUsername(), request.getEmail());
+        UserRegisterResponse response = userService.registerUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@Valid @RequestBody UserLoginRequest request) {
+        log.info("🔑 Logging in user with username: {} or email: {}", request.getUsername(), request.getEmail());
+        UserLoginResponse response = userService.authenticateUser(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
+        log.info("🔍 Fetching profile for user ID: {}", userId);
+        return ResponseEntity.ok(userService.getUserProfile(userId));
+    }
+
+    @PutMapping("/{userId}/profile")
+    public ResponseEntity<?> updateUserProfile(@PathVariable String userId, @Valid @RequestBody UserProfileUpdateRequest request) {
+        log.info("🔄 Updating profile for user ID: {}", userId);
+        return ResponseEntity.ok(userService.updateUserProfile(userId, request));
+    }
 }
