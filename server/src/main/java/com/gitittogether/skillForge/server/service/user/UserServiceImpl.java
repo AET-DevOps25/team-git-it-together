@@ -1,19 +1,21 @@
-package com.gitittogether.skillForge.server.service.user.impl;
+package com.gitittogether.skillForge.server.service.user;
 
-import com.gitittogether.skillForge.server.dto.request.UserLoginRequest;
-import com.gitittogether.skillForge.server.dto.request.UserProfileUpdateRequest;
-import com.gitittogether.skillForge.server.dto.request.UserRegisterRequest;
+import com.gitittogether.skillForge.server.config.JwtUtils;
+import com.gitittogether.skillForge.server.dto.request.user.UserLoginRequest;
+import com.gitittogether.skillForge.server.dto.request.user.UserProfileUpdateRequest;
+import com.gitittogether.skillForge.server.dto.request.user.UserRegisterRequest;
 import com.gitittogether.skillForge.server.dto.response.user.UserLoginResponse;
 import com.gitittogether.skillForge.server.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.dto.response.user.UserRegisterResponse;
+import com.gitittogether.skillForge.server.exception.ResourceNotFoundException;
+import com.gitittogether.skillForge.server.exception.WrongPasswordException;
 import com.gitittogether.skillForge.server.mapper.course.CategoryMapper;
 import com.gitittogether.skillForge.server.mapper.course.CourseMapper;
 import com.gitittogether.skillForge.server.mapper.course.EnrolledCourseMapper;
-import com.gitittogether.skillForge.server.mapper.course.SkillMapper;
+import com.gitittogether.skillForge.server.mapper.skill.SkillMapper;
 import com.gitittogether.skillForge.server.mapper.user.UserMapper;
 import com.gitittogether.skillForge.server.model.user.User;
 import com.gitittogether.skillForge.server.repository.user.UserRepository;
-import com.gitittogether.skillForge.server.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
 
     @Override
@@ -55,51 +58,62 @@ public class UserServiceImpl implements UserService {
         if (request == null || (request.getEmail() == null && request.getUsername() == null) || request.getPassword() == null) {
             throw new IllegalArgumentException("Invalid login request");
         }
-        User user;
-        if (request.getUsername() != null) {
+        User user = null;
+        if (request.getUsername() != null && !request.getUsername().isEmpty()) {
             // Find the user by username
             user = userRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with the provided username"));
-        } else {
+                    .orElse(null);
+        } else if (request.getEmail() != null && !request.getEmail().isEmpty()) {
             // Find the user by email
             user = userRepository.findByEmail(request.getEmail())
-                    .orElseThrow(() -> new IllegalArgumentException("User not found with the provided email"));
+                    .orElse(null);
         }
+
+        // If user is not found, throw an exception
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with the provided username or email");
+        }
+
         // Verify the password
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Invalid password");
+            throw new WrongPasswordException("Invalid password! Please try again.");
         }
-        // if all fine we generate a jwt token and return the user login response
-        // TODO: Implement JWT token generation
-        // For now, we will return a dummy token
-        String dummyToken = "dummy-jwt-token";
+        // Generate JWT token
+        String jwtToken = jwtUtils.generateToken(user.getId(), user.getUsername());
 
-        return new UserLoginResponse(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getProfilePictureUrl(),
-                dummyToken
-        );
+        return UserLoginResponse.builder()
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .jwtToken(jwtToken)
+                .build();
     }
 
     @Override
     public UserProfileResponse getUserProfile(String userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return UserMapper.toUserProfileResponse(user);
     }
 
     @Override
     public UserProfileResponse updateUserProfile(String userId, UserProfileUpdateRequest request) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (request.getProfilePictureUrl() != null) {
             user.setProfilePictureUrl(request.getProfilePictureUrl());
         }
+
         if (request.getBio() != null) {
             user.setBio(request.getBio());
         }
+
+        if (request.getPassword() != null) {
+            String hashedPassword = passwordEncoder.encode(request.getPassword());
+            user.setPasswordHash(hashedPassword);
+        }
+
         if (request.getInterests() != null) {
             user.setInterests(
                     request.getInterests().stream()
