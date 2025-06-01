@@ -48,4 +48,11 @@ public class UserController {
         log.info("🔄 Updating profile for user ID: {}", userId);
         return ResponseEntity.ok(userService.updateUserProfile(userId, request));
     }
+
+    @DeleteMapping("/{userId}/profile")
+    public ResponseEntity<?> deleteUserProfile(@PathVariable String userId) {
+        log.info("🗑️ Deleting profile for user ID: {}", userId);
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
 }
