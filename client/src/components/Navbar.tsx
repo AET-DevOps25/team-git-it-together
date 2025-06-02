@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Menu, X } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
@@ -28,17 +29,24 @@ const Navbar = () => {
             <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
               About
             </Link>
+
             <div className="flex items-center space-x-4">
-              <Link to="/login">
-                <Button variant="outline" size="sm">
-                  Login
+              {user ? (
+                <Button variant="destructive" size="sm" onClick={logout}>
+                  Logout
                 </Button>
-              </Link>
-              <Link to="/signup">
-                <Button size="sm">
-                  Get Started
-                </Button>
-              </Link>
+              ) : (
+                <>
+                  <Link to="/login">
+                    <Button variant="outline" size="sm">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup">
+                    <Button size="sm">Get Started</Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -67,17 +75,34 @@ const Navbar = () => {
               <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
                 About
               </Link>
+
               <div className="flex flex-col space-y-2 pt-4">
-                <Link to="/login">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Login
+                {user ? (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      logout();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Logout
                   </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button size="sm" className="w-full">
-                    Get Started
-                  </Button>
-                </Link>
+                ) : (
+                  <>
+                    <Link to="/login">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Login
+                      </Button>
+                    </Link>
+                    <Link to="/signup">
+                      <Button size="sm" className="w-full">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
