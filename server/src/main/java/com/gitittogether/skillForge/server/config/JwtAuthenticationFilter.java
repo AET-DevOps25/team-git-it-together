@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ import java.io.IOException;
  * 2) Validates the token.
  * 3) If valid, sets an authenticated Principal in SecurityContext.
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -43,7 +45,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = authHeader.substring(7);
             try {
                 userId = jwtUtils.extractUserId(jwt);
-            } catch (Exception ignored) {
+            } catch (Exception exception) {
+                // Log the exception if needed, but do not throw it
+                // This allows the filter chain to continue even if token extraction fails
+                log.error("Failed to extract user ID from JWT", exception);
             }
         }
 
