@@ -19,9 +19,9 @@ import java.io.IOException;
 
 /**
  * This filter:
- * 1) Reads a JWT from a named cookie (e.g. "AuthToken").
- * 2) Validates the token.
- * 3) If valid, sets an authenticated Principal in SecurityContext.
+ * 1) Checks for the presence of a JWT in the Authorization header.
+ * 2) Validates the JWT.
+ * 3) If valid, retrieves user details and sets the authentication in the SecurityContext.
  */
 @Slf4j
 @Component
