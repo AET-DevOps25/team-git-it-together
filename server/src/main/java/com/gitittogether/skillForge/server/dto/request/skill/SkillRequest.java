@@ -4,14 +4,17 @@ import com.gitittogether.skillForge.server.dto.request.course.CategoryRequest;
 import com.gitittogether.skillForge.server.model.course.Level;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SkillRequest {
-    @NonNull
+    @NotNull
     private String id;
 
     @NotBlank

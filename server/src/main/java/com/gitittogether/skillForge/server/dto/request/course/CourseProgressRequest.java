@@ -1,6 +1,10 @@
 package com.gitittogether.skillForge.server.dto.request.course;
 
-import lombok.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -9,9 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CourseProgressRequest {
-    @NonNull
+    @NotNull
     private String courseId;
-    @NonNull
+    @NotNull
     private String userId; // User who is enrolled in the course
     @Builder.Default
     private double progress = 0.0; // Percentage of course completed (0.0 to 100.0)
