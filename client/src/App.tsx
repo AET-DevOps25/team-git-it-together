@@ -13,7 +13,7 @@ import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
 import Courses from '@/pages/Courses';
 
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthProvider';
 import { RequireAuth, RequireGuest } from '@/components/RouteGuards.tsx';
 
 const queryClient = new QueryClient();

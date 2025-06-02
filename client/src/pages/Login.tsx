@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BookOpen, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/constants/app.ts';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { ApiError } from '@/types';
 
 const Login = () => {

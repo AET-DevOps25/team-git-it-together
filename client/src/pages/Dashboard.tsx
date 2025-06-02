@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Award, BookOpen, Clock, Target, Trophy } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { useAuth } from '@/contexts/AuthContext.tsx';
+import { useAuth } from '@/hooks/useAuth';
 
 const Dashboard = () => {
   const { user } = useAuth();
