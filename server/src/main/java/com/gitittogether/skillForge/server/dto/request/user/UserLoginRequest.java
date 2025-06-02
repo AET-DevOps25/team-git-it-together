@@ -12,12 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class UserLoginRequest {
-    @NotNull
     private String username;
 
-    @NotNull
     private String email;
 
+    @NotNull
     @NotBlank
     private String password;
 }
