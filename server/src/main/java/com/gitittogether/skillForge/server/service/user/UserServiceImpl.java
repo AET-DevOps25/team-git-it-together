@@ -38,7 +38,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserRegisterResponse registerUser(UserRegisterRequest request) {
-        if (request == null || request.getUsername() == null || request.getPassword() == null) {
+        if (request == null ||
+                isBlank(request.getFirstName()) ||
+                isBlank(request.getLastName()) ||
+                isBlank(request.getUsername()) ||
+                isBlank(request.getEmail()) ||
+                isBlank(request.getPassword())) {
             throw new IllegalArgumentException("Invalid registration request");
         }
         // Check if the user already exists
@@ -62,8 +67,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLoginResponse authenticateUser(UserLoginRequest request) {
-        if (request == null || (request.getEmail() == null && request.getUsername() == null) || request.getPassword() == null) {
-            throw new IllegalArgumentException("Invalid login request");
+        if (request == null
+                || (isBlank(request.getEmail()) && isBlank(request.getUsername()))
+                || isBlank(request.getPassword())) {
+            throw new IllegalArgumentException("Invalid login request: Provide email or username, and a password.");
         }
         User user = null;
         if (request.getUsername() != null && !request.getUsername().isEmpty()) {
@@ -101,22 +108,29 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserProfileResponse getUserProfile(String userId) {
+        if (isBlank(userId)) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return UserMapper.toUserProfileResponse(user);
     }
 
     @Override
     public UserProfileResponse updateUserProfile(String userId, UserProfileUpdateRequest request) {
+        if (isBlank(userId) || request == null) {
+            throw new IllegalArgumentException("User ID and update request cannot be null or empty");
+        }
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (request.getProfilePictureUrl() != null) {
+
+        if (request.getProfilePictureUrl() != null) { // profile picture URL can be blank (empty string -> no picture)
             user.setProfilePictureUrl(request.getProfilePictureUrl());
         }
 
-        if (request.getBio() != null) {
+        if (request.getBio() != null) { // bio can be blank (empty string)
             user.setBio(request.getBio());
         }
 
-        if (request.getPassword() != null) {
+        if (!isBlank(request.getPassword())) { //if password is provided, in the request, then it should not be blank (null or empty)
             String hashedPassword = passwordEncoder.encode(request.getPassword());
             user.setPasswordHash(hashedPassword);
         }
@@ -276,6 +290,10 @@ public class UserServiceImpl implements UserService {
         } else {
             log.warn("No enrolled courses found for user {}", userId);
         }
+    }
+
+    private boolean isBlank(String str) {
+        return str == null || str.trim().isEmpty();
     }
 
 
