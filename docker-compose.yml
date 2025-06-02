@@ -47,6 +47,8 @@ services:
       MONGODB_USERNAME: ${MONGODB_USERNAME}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
       MONGODB_HOST: mongo
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
       mongo:
         condition: service_healthy
@@ -80,7 +82,7 @@ services:
     environment:
       - VITE_APP_NAME=${VITE_APP_NAME}
       - VITE_APP_VERSION=${VITE_APP_VERSION}
-      - VITE_SERVER_API_URL=${VITE_SERVER_API_URL}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
       - VITE_API_VERSION=${VITE_API_VERSION}
 
     depends_on:

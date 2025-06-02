@@ -1,6 +1,7 @@
 # 🛠 Local Development Setup Guide
 
-This guide walks you through setting up MongoDB for local development, with cross-platform scripts for Windows, macOS, and Linux.
+This guide walks you through setting up MongoDB for local development, with cross-platform scripts for Windows, macOS,
+and Linux.
 
 ---
 
@@ -12,8 +13,8 @@ This guide walks you through setting up MongoDB for local development, with cros
 - (Optional) MongoDB Compass or Studio 3T for database management
 - (Optional) Postman or Insomnia for API testing
 - (Optional) gradle installed (if you want to run the app without the wrapper)
----
 
+---
 
 ## ⚙️ Environment Variables
 
@@ -30,6 +31,11 @@ MONGODB_PORT=27017
 MONGODB_USERNAME=root
 MONGODB_PASSWORD=root
 MONGODB_DATABASE=skill_forge_dev
+
+# JWT
+JWT_SECRET=<Generate a secure secret>
+JWT_EXPIRATION_MS=864000000
+
 ```
 
 ---
@@ -64,29 +70,33 @@ This will:
 ### ▶️ Running the Spring Boot App
 
 To run the Spring Boot app locally, there are two options:
+
 1. **Using IntelliJ IDEA**:
-   1. Open the project in your IDE.
-   2. (Optional) Make sure the profile is set to `dev` in your IDE run configuration.
-   3. Add the same configuration variables as in `.env.dev` to your IDE run configuration.
-   4Run the application.
+    1. Open the project in your IDE.
+    2. (Optional) Make sure the profile is set to `dev` in your IDE run configuration.
+    3. Add the same configuration variables as in `.env.dev` to your IDE run configuration.
+       4Run the application.
 
 2. **Using Command Line**:
-    #### macOS / Linux
+   #### macOS / Linux
     ```bash
     # ensure you are in the server directory
     cd server
     # run the app
    ./scripts/macos-linux/run-dev.sh
     ````
-    #### Windows
+   #### Windows
     ```cmd
     cd server
     scripts\windows\run-dev.bat
     ```
 
 ---
+
 ## 🛑 Stopping MongoDB
+
 ### macOS / Linux
+
 ```bash
 ./stop-mongo.sh
 ```
@@ -112,24 +122,31 @@ docker volume prune
 
 ## 🧪 Verifying MongoDB Connection
 
-You can connect via a Mongo GUI like [MongoDB Compass](https://www.mongodb.com/try/download/compass) or [Studio 3T](https://studio3t.com/download/) to:
+You can connect via a Mongo GUI like [MongoDB Compass](https://www.mongodb.com/try/download/compass)
+or [Studio 3T](https://studio3t.com/download/) to:
+
 ```
 mongodb://root:root@localhost:27017/skill_forge_dev?authSource=admin
 ```
+
 This will allow you to view the database and collections.
 
 ## 🧪 Testing the Spring Boot Server
 
-You can use [Postman](https://www.postman.com/downloads/) or [Insomnia](https://insomnia.rest/download) to test the API endpoints. Or directly in IntelliJ IDEA using the built-in HTTP client.
+You can use [Postman](https://www.postman.com/downloads/) or [Insomnia](https://insomnia.rest/download) to test the API
+endpoints. Or directly in IntelliJ IDEA using the built-in HTTP client.
 
 ### ✅ Expected Response (when MongoDB is connected)
+
 ```http
 HTTP/1.1 200 OK
 Content-Type: text/plain
 
 Server is up — MongoDB ping OK: { "ok" : 1.0 }
 ```
+
 ### ❌ Expected Response (when MongoDB is down or unreachable)
+
 ```http
 HTTP/1.1 503 Service Unavailable
 Content-Type: text/plain

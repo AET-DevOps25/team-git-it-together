@@ -6,12 +6,19 @@ spring:
     name: ${SERVER_APP_NAME}
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
+  web:
+    resources:
+      add-mappings: false
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+jwt:
+  secret: ${JWT_SECRET}
+  expirationMs: ${JWT_EXPIRATION_MS}
 
 logging:
   level:
