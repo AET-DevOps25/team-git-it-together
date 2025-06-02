@@ -1,30 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, LayoutDashboard, User, Users, Trophy, Calendar, Clock, Star, TrendingUp, Award, Target } from 'lucide-react';
+import { Award, BookOpen, Clock, Target, Trophy } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import { useAuth } from '@/contexts/AuthContext.tsx';
 
 const Dashboard = () => {
-  const [user, setUser] = useState<any>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const userData = localStorage.getItem('user');
-
-    if (!isLoggedIn || !userData) {
-      navigate('/login');
-      return;
-    }
-
-    setUser(JSON.parse(userData));
-  }, [navigate]);
+  const { user } = useAuth();
 
   if (!user) {
+    // This is just a fallback. Normally, the RequireAuth guard prevents rendering if not logged in.
     return <div>Loading...</div>;
   }
 
@@ -92,7 +79,9 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, {user.name}!</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {user.firstName || user.username || user.email}!
+          </h1>
           <p className="text-gray-600">Continue your learning journey and track your progress.</p>
         </div>
 
