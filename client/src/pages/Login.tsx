@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/pages/Login.tsx
+import React, { FormEvent, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,44 +8,90 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BookOpen, LogIn } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/constants/app.ts';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/types';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { login } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Simple email regex to distinguish email vs. username
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Type guard for ApiError
+  function isApiError(obj: unknown): obj is ApiError {
+    return (
+      typeof obj === 'object' &&
+      obj !== null &&
+      'status' in obj &&
+      'message' in obj
+    );
+  }
+
+  // On mount, check if we previously saved a "remembered identifier"
+  useEffect(() => {
+    const savedIdentifier = localStorage.getItem('rememberedIdentifier');
+    if (savedIdentifier) {
+      setIdentifier(savedIdentifier);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Dummy authentication - check for demo credentials
-    if (email === 'demo@example.com' && password === 'demo123') {
-      // Store login state
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('user', JSON.stringify({
-        name: 'John Doe',
-        email: 'demo@example.com',
-        joinDate: '2024-01-15'
-      }));
-
+    // Basic front-end validation
+    if (!identifier.trim() || !password.trim()) {
       toast({
-        title: "Login Successful",
-        description: 'Welcome back to '+ {APP_NAME} + '!',
+        title: 'Validation Error',
+        description: 'Username / e-mail and password are required.',
+        variant: 'error',
       });
-
-      // Redirect to dashboard
-      navigate('/dashboard');
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Please use: demo@example.com / demo123",
-        variant: "destructive",
-      });
+      return;
     }
 
-    setIsLoading(false);
+    setIsLoading(true);
+
+    // Build login payload: exactly one of email/username must be a non-empty string
+    const email = emailRegex.test(identifier) ? identifier.trim() : '';
+    const username = email ? '' : identifier.trim();
+
+    try {
+      await login({ email, username, password: password.trim(), rememberMe });
+      toast({
+        title: 'Login Successful',
+        description: `Welcome back ${username}!`,
+        variant: 'success',
+      });
+      // AuthContext.login(...) will handle setting storage, token, user and navigation
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        const { status, message } = err;
+        toast({
+          title: status === 401 ? 'Invalid Credentials' : 'Login Failed',
+          description: message,
+          variant: 'destructive',
+        });
+      } else if (err instanceof Error) {
+        toast({
+          title: 'Network Error',
+          description: err.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Unexpected Error',
+          description: 'Something went wrong. Please try again later.',
+          variant: 'destructive',
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -66,54 +113,85 @@ const Login = () => {
               <span>Sign In</span>
             </CardTitle>
             <CardDescription>
-              Use demo@example.com / demo123 to login
+              Demo: FoulenBenFoulen, foulen.benFoulen@mail.com, easyPassword123
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Username / Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="identifier">Username or Email</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  id="identifier"
+                  name="identifier"
+                  type="text"
+                  placeholder="Enter your username or email"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  disabled={isLoading}
                   className="h-11"
+                  autoComplete="username"
+                  required
                 />
               </div>
 
+              {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
+                  name="password"
                   type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  disabled={isLoading}
                   className="h-11"
+                  autoComplete="current-password"
+                  required
                 />
               </div>
 
+              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded border-gray-300" />
+                <label htmlFor="rememberMe" className="flex items-center space-x-2">
+                  <input
+                    id="rememberMe"
+                    name="rememberMe"
+                    type="checkbox"
+                    className="rounded border-gray-300"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isLoading}
+                  />
                   <span className="text-gray-600">Remember me</span>
                 </label>
-                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700">
+
+                <Link
+                  to="/forgot-password"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full h-11 text-lg" disabled={isLoading}>
-                {isLoading ? "Signing In..." : "Sign In"}
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full h-11 text-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing In...' : 'Sign In'}
               </Button>
 
+              {/* Sign-Up Link */}
               <div className="text-center text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                Don’t have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
                   Sign up
                 </Link>
               </div>
