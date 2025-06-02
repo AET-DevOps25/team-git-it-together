@@ -19,6 +19,7 @@ public class ModuleRequest {
     @NotBlank
     private String title;
 
+    @NotNull
     private String description; // Optional
 
     @NotBlank
@@ -29,5 +30,6 @@ public class ModuleRequest {
     private List<LessonRequest> lessons = new ArrayList<>(); // Lessons in this module
 
     @Builder.Default
+    @NotNull
     private int order = 0; // Position in the course
 }

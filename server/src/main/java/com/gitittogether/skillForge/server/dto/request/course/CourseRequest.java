@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CourseRequest {
-    @NotNull
+    @NotBlank
     private String id;
 
     @NotBlank

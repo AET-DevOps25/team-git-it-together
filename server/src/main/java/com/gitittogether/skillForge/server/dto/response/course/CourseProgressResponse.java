@@ -1,5 +1,6 @@
 package com.gitittogether.skillForge.server.dto.response.course;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,7 +13,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class CourseProgressResponse {
+    @NotBlank
     private String courseId;
+    @NotBlank
     private String userId;
     private double progress;
     private LocalDateTime enrolledAt;

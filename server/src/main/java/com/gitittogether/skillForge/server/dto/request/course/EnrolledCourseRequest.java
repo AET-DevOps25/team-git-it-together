@@ -1,6 +1,6 @@
 package com.gitittogether.skillForge.server.dto.request.course;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class EnrolledCourseRequest {
-    @NotNull
+    @NotBlank
     private CourseRequest course;
 
-    @NotNull
+    @NotBlank
     private CourseProgressRequest progress;
 }

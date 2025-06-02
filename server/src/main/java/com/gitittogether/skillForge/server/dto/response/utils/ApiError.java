@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.dto.response.utils;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +18,11 @@ import java.util.List;
 public class ApiError {
     @Builder.Default
     private Instant timestamp = Instant.now(); // Timestamp of the error occurrence
+    @NotBlank
     private int status;           // HTTP status code
+    @NotBlank
     private String error;         // HTTP error reason
+    @NotBlank
     private String message;       // Detailed error message
     private String path;          // Request path
     private List<String> details; // For validation errors, field-specific messages

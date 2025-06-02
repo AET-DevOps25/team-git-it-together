@@ -1,7 +1,6 @@
 package com.gitittogether.skillForge.server.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +15,6 @@ public class UserLoginRequest {
 
     private String email;
 
-    @NotNull
     @NotBlank
     private String password;
 }

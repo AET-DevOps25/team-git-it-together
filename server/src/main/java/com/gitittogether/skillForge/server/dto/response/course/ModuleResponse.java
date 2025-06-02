@@ -1,5 +1,7 @@
 package com.gitittogether.skillForge.server.dto.response.course;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,9 +14,14 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ModuleResponse {
+    @NotBlank
     private String title;
+    @NotBlank
     private String description;
+    @NotBlank
     private String courseId;
+    @NotNull
     private List<LessonResponse> lessons;
+    @NotBlank
     private int order;
 }

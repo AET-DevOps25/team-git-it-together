@@ -4,6 +4,7 @@ import com.gitittogether.skillForge.server.dto.response.course.CategoryResponse;
 import com.gitittogether.skillForge.server.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.dto.response.course.EnrolledCourseResponse;
 import com.gitittogether.skillForge.server.dto.response.skill.SkillResponse;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,10 +17,15 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UserProfileResponse {
+    @NotBlank
     private String id;
+    @NotBlank
     private String firstName;
+    @NotBlank
     private String lastName;
+    @NotBlank
     private String username;
+    @NotBlank
     private String email;
     private String profilePictureUrl;
     private String bio;

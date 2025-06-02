@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class SkillRequest {
-    @NotNull
+    @NotBlank
     private String id;
 
     @NotBlank
@@ -25,7 +25,8 @@ public class SkillRequest {
 
     @NotNull
     private CategoryRequest category;
-    @NotBlank
+
+    @NotNull
     private String iconUrl;
 
     @NotNull
