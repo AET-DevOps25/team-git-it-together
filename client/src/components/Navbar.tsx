@@ -1,13 +1,33 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Menu, X } from 'lucide-react';
+import { BookOpen, LogOut, Menu, X } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast.ts';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { toast } = useToast();
+
+
+  const handleLogout = () => {
+    toast({
+      // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+      title: (
+        <span className="flex items-center gap-2 text-green-700">
+          <LogOut className="w-5 h-5 text-green-500" />
+          Logged out
+        </span>
+      ),
+      description: (
+        <span className="text-green-700">You have been successfully logged out. See you soon!</span>
+      ),
+      variant: "success",
+    });
+    logout();
+  };
 
   return (
     <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
@@ -32,7 +52,7 @@ const Navbar = () => {
 
             <div className="flex items-center space-x-4">
               {user ? (
-                <Button variant="destructive" size="sm" onClick={logout}>
+                <Button variant="destructive" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
               ) : (
