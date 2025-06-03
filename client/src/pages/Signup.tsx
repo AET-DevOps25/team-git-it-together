@@ -42,8 +42,6 @@ const Signup = () => {
         return;
       }
     }
-
-
     // 2. Email format
     if (!validator.isEmail(formData.email.trim())) {
       toast({
@@ -53,7 +51,6 @@ const Signup = () => {
       });
       return;
     }
-
     // 3. Username format
     if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username.trim())) {
       toast({
@@ -63,7 +60,6 @@ const Signup = () => {
       });
       return;
     }
-
     // 4. Password strength (zxcvbn)
     const passwordStrength = zxcvbn(formData.password);
     if (passwordStrength.score < 2) {
@@ -74,7 +70,6 @@ const Signup = () => {
       });
       return;
     }
-
     // 5. Password match
     if (formData.password !== formData.confirmPassword) {
       toast({
@@ -84,8 +79,6 @@ const Signup = () => {
       });
       return;
     }
-
-
     setIsLoading(true);
     try {
       await userService.register({
@@ -95,17 +88,13 @@ const Signup = () => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
       });
-
       await login({
         username: formData.username.trim(),
         password: formData.password.trim(),
         rememberMe: true,
       });
-
-
       toast({
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
         title: (
           <span className="flex items-center gap-2 text-green-700">
           <UserPlus className="w-5 h-5 text-green-500" />
