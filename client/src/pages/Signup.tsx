@@ -1,3 +1,5 @@
+import validator from "validator";
+import zxcvbn from "zxcvbn";
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,24 +8,134 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, UserPlus } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
+import { useAuth } from '@/hooks/useAuth';
+import * as userService from '@/services/user.service';
+import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    username: '',   // <-- new field
     email: '',
     password: '',
     confirmPassword: ''
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle signup logic here
-    console.log('Signup attempt:', formData);
+    // 1. Required fields
+    for (const [key, value] of Object.entries(formData)) {
+      if (!value.trim()) {
+        toast({
+          title: "Validation Error",
+          description: `The ${key} field is required.`,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+
+    // 2. Email format
+    if (!validator.isEmail(formData.email.trim())) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 3. Username format
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(formData.username.trim())) {
+      toast({
+        title: "Invalid Username",
+        description: "Username must be 3-20 characters, letters/numbers/underscores only.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 4. Password strength (zxcvbn)
+    const passwordStrength = zxcvbn(formData.password);
+    if (passwordStrength.score < 2) {
+      toast({
+        title: "Weak Password",
+        description: passwordStrength.feedback.suggestions.join(" ") || "Please choose a stronger password.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 5. Password match
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Passwords do not match",
+        description: "Please ensure both passwords are identical.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+
+    setIsLoading(true);
+    try {
+      await userService.register({
+        email: formData.email.trim(),
+        username: formData.username.trim(),
+        password: formData.password.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+      });
+
+      await login({
+        username: formData.username.trim(),
+        password: formData.password.trim(),
+        rememberMe: true,
+      });
+
+
+      toast({
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error
+        title: (
+          <span className="flex items-center gap-2 text-green-700">
+          <UserPlus className="w-5 h-5 text-green-500" />
+          Account Created!
+        </span>
+        ),
+        description: (
+          <span className="text-green-600">
+          Welcome to {APP_NAME}, {formData.firstName.trim()}! The journey of learning begins now.
+        </span>
+        ),
+        variant: "success",
+      });
+
+    } catch (err: any) {
+    let message = "Please check your input or try again later.";
+    if (err && typeof err === "object" && "message" in err && typeof (err as any).message === "string") {
+      message = (err as { message: string }).message;
+    }
+    toast({
+      title: "Registration Failed",
+      description:
+        message === "username is already used"
+          ? "Username is already in use. Please choose another one."
+          : message,
+      variant: "destructive"
+    });
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   return (
@@ -61,6 +173,7 @@ const Signup = () => {
                     onChange={handleChange}
                     required
                     className="h-11"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -73,10 +186,25 @@ const Signup = () => {
                     onChange={handleChange}
                     required
                     className="h-11"
+                    disabled={isLoading}
                   />
                 </div>
               </div>
-              
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  placeholder="yourusername"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                  className="h-11"
+                  disabled={isLoading}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -88,9 +216,10 @@ const Signup = () => {
                   onChange={handleChange}
                   required
                   className="h-11"
+                  disabled={isLoading}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -102,6 +231,7 @@ const Signup = () => {
                   onChange={handleChange}
                   required
                   className="h-11"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -116,12 +246,13 @@ const Signup = () => {
                   onChange={handleChange}
                   required
                   className="h-11"
+                  disabled={isLoading}
                 />
               </div>
 
               <div className="text-sm">
                 <label className="flex items-start space-x-2">
-                  <input type="checkbox" className="mt-1 rounded border-gray-300" required />
+                  <input type="checkbox" className="mt-1 rounded border-gray-300" required disabled={isLoading} />
                   <span className="text-gray-600">
                     I agree to the{' '}
                     <Link to="/terms" className="text-blue-600 hover:text-blue-700">
@@ -135,8 +266,8 @@ const Signup = () => {
                 </label>
               </div>
 
-              <Button type="submit" className="w-full h-11 text-lg">
-                Create Account
+              <Button type="submit" className="w-full h-11 text-lg" disabled={isLoading}>
+                {isLoading ? "Creating..." : "Create Account"}
               </Button>
 
               <div className="text-center text-sm text-gray-600">
