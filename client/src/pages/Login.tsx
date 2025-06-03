@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, LogIn } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, HelpCircle, LogIn, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,10 +46,28 @@ const Login = () => {
 
     // Basic front-end validation
     if (!identifier.trim() || !password.trim()) {
+      let message = "";
+      if (!identifier.trim() && !password.trim()) {
+        message = "Both your username (or e-mail) and password are required.";
+      } else if (!identifier.trim()) {
+        message = "Please enter your username or e-mail.";
+      } else {
+        message = "Please enter your password.";
+      }
       toast({
-        title: 'Validation Error',
-        description: 'Username / e-mail and password are required.',
-        variant: 'error',
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+        Missing credentials
+      </span>
+        ),
+        description: (
+          <span className="text-red-700">
+        {message}
+      </span>
+        ),
+        variant: "error",
       });
       return;
     }
@@ -61,37 +79,68 @@ const Login = () => {
     const username = email ? '' : identifier.trim();
 
     try {
+      // AuthContext.login(...) will handle setting storage, token, user and navigation
       await login({ email, username, password: password.trim(), rememberMe });
       toast({
-        title: 'Login Successful',
-        description: `Welcome back ${username}!`,
-        variant: 'success',
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-green-700">
+            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            Login Successful
+          </span>
+        ),
+        description: (<span className="text-green-700">{`Welcome back, ${username}!`}</span>),
+        variant: "success",
       });
-      // AuthContext.login(...) will handle setting storage, token, user and navigation
+
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        const { status, message } = err;
-        toast({
-          title: status === 401 ? 'Invalid Credentials' : 'Login Failed',
-          description: message,
-          variant: 'destructive',
-        });
-      } else if (err instanceof Error) {
-        toast({
-          title: 'Network Error',
-          description: err.message,
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Unexpected Error',
-          description: 'Something went wrong. Please try again later.',
-          variant: 'destructive',
-        });
-      }
-    } finally {
-      setIsLoading(false);
+    if (isApiError(err)) {
+      const { status, message } = err;
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+            {status === 401 ? "Invalid Credentials" : "Login Failed"}
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">{message}</span>
+        ),
+        variant: "error",
+      });
+    } else if (err instanceof Error) {
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <WifiOff className="w-5 h-5 text-red-500" />
+          Network Error
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">{err.message}</span>
+        ),
+        variant: "error",
+      });
+    } else {
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <HelpCircle className="w-5 h-5 text-red-500" />
+          Unexpected Error
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">Something went wrong. Please try again later.</span>
+        ),
+        variant: "error",
+      });
     }
+  } finally {
+    setIsLoading(false);
+  }
   };
 
   return (
