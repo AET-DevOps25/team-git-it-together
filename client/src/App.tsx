@@ -15,6 +15,7 @@ import Courses from '@/pages/Courses';
 
 import { AuthProvider } from '@/contexts/AuthProvider';
 import { RequireAuth, RequireGuest } from '@/components/RouteGuards.tsx';
+import Profile from '@/pages/Profile.tsx';
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,12 @@ const AppRoutes = () => (
     <Route path="/courses" element={
       <RequireAuth>
         <Courses />
+      </RequireAuth>
+    } />
+
+    <Route path="/profile" element={
+      <RequireAuth>
+        <Profile />
       </RequireAuth>
     } />
 

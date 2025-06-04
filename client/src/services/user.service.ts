@@ -1,5 +1,3 @@
-// src/services/user.service.ts
-
 import { API_BASE_URL } from '@/constants/app.ts';
 import type {
   LoginPayload,
