@@ -4,4 +4,3 @@ export interface LessonContent {
   type: LessonContentType;
   content: string;
 }
-

@@ -20,7 +20,8 @@ import {
   Trophy,
   Target,
   Award,
-  Star, Trash,
+  Star,
+  Trash,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
@@ -32,22 +33,24 @@ import {
   mockEnrolledCourses,
   mockBookmarkedCourses,
   mockSkillsInProgress,
-  mockUserSkills, UpdatePayload, mockCategories, CategoryResponse,
+  mockUserSkills,
+  UpdatePayload,
+  mockCategories,
 } from '@/types';
 import { useAuth } from '@/hooks/useAuth.ts';
 import _ from 'lodash';
 import * as userService from '@/services/user.service.ts';
-import {validatePassword} from '@/utils/passwordValidation.ts';
+import { validatePassword } from '@/utils/passwordValidation.ts';
 import { Switch } from '@/components/ui/switch.tsx';
 import { PasswordStrengthBar } from '@/components/ui';
 import { EditableInterests } from '@/components/EditableInterests.tsx';
 import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog.tsx';
 
 const achievements = [
-  { title: "First Course Completed", date: "2024-01-20", icon: Trophy },
-  { title: "Week Streak", date: "2024-01-18", icon: Target },
-  { title: "React Expert", date: "2024-01-15", icon: Award },
-  { title: "JavaScript Master", date: "2024-01-10", icon: Star }
+  { title: 'First Course Completed', date: '2024-01-20', icon: Trophy },
+  { title: 'Week Streak', date: '2024-01-18', icon: Target },
+  { title: 'React Expert', date: '2024-01-15', icon: Award },
+  { title: 'JavaScript Master', date: '2024-01-10', icon: Star },
 ];
 
 const Profile = () => {
@@ -67,7 +70,7 @@ const Profile = () => {
     confirmPassword: '',
     bio: '',
     interests: [] as CategoryPayload[],
-    profilePictureUrl: ''
+    profilePictureUrl: '',
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -76,9 +79,9 @@ const Profile = () => {
   useEffect(() => {
     if (!authUser) {
       toast({
-        title: "You have been logged out",
-        description: "Please log in again to access your profile.",
-        variant: "destructive"
+        title: 'You have been logged out',
+        description: 'Please log in again to access your profile.',
+        variant: 'destructive',
       });
       navigate('/login');
       return;
@@ -95,15 +98,18 @@ const Profile = () => {
           password: '',
           confirmPassword: '',
           bio: profile.bio || '',
-          interests: (_.isNil(profile.interests) || _.isEmpty(profile.interests)) ? mockInterests : profile.interests,
-          profilePictureUrl: profile.profilePictureUrl || 'https://i.pravatar.cc/300' // Default to a random avatar.
+          interests:
+            _.isNil(profile.interests) || _.isEmpty(profile.interests)
+              ? mockInterests
+              : profile.interests,
+          profilePictureUrl: profile.profilePictureUrl || 'https://i.pravatar.cc/300', // Default to a random avatar.
         });
       } catch (e) {
-        console.error("Error loading profile:", e);
+        console.error('Error loading profile:', e);
         toast({
           title: e.message,
-          description: "Error Loading your Profile. Please contact support if this issue persists.",
-          variant: "destructive"
+          description: 'Error Loading your Profile. Please contact support if this issue persists.',
+          variant: 'destructive',
         });
         navigate('/dashboard');
       } finally {
@@ -112,11 +118,10 @@ const Profile = () => {
     })();
   }, [authUser, navigate, toast]);
 
-
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
@@ -124,39 +129,37 @@ const Profile = () => {
     // 1) check if the user is logged in
     if (!authUser) {
       toast({
-        title: "You are not logged in",
-        description: "Please log in to update your profile.",
-        variant: "destructive"
+        title: 'You are not logged in',
+        description: 'Please log in to update your profile.',
+        variant: 'destructive',
       });
       navigate('/login');
       return;
     }
 
     // Define the updated user data
-    const update : UpdatePayload = {
-
-    }
+    const update: UpdatePayload = {};
     // 2) validate form data
     // 2.1) Check if pasword is being changed
     if (changePassword) {
       const result = validatePassword(formData.password, formData.confirmPassword);
       if (!result.valid) {
         toast({
-          title: result.errorType === "mismatch" ? "Passwords do not match" : "Weak Password",
+          title: result.errorType === 'mismatch' ? 'Passwords do not match' : 'Weak Password',
           description: result.message,
-          variant: "destructive"
+          variant: 'destructive',
         });
         return;
       }
       update.password = formData.password;
     }
     // 2.2) Check if bio have changed
-    if(formData.bio !== user.bio) {
+    if (formData.bio !== user.bio) {
       if (formData.bio.trim().length > 500) {
         toast({
-          title: "Bio is too long",
-          description: "Please limit your bio to 500 characters.",
-          variant: "destructive"
+          title: 'Bio is too long',
+          description: 'Please limit your bio to 500 characters.',
+          variant: 'destructive',
         });
         return;
       } else {
@@ -167,65 +170,65 @@ const Profile = () => {
 
     // 2.3) Check if profile picture has changed
     if (formData.profilePictureUrl !== user.profilePictureUrl) {
-      console.log(formData.profilePictureUrl)
-      console.log(user.profilePictureUrl)
+      console.log(formData.profilePictureUrl);
+      console.log(user.profilePictureUrl);
       // Currently, we are not validating the image size or type as we use url
       update.profilePictureUrl = formData.profilePictureUrl;
     }
 
-    const interestsFormIds = formData.interests.map(i => i.id).sort();
-    const interestsUserIds = user.interests.map(i => i.id).sort();
+    const interestsFormIds = formData.interests.map((i) => i.id).sort();
+    const interestsUserIds = user.interests.map((i) => i.id).sort();
     if (!_.isEqual(interestsFormIds, interestsUserIds)) {
-      update.interests = formData.interests.map(interest => ({
+      update.interests = formData.interests.map((interest) => ({
         id: interest.id,
-        name: interest.name
+        name: interest.name,
       }));
     }
     // 2.4) Check if we have any update
     if (_.isEmpty(update)) {
       toast({
-        title: "No changes detected",
-        description: "Please make some changes before saving.",
-        variant: "info"
+        title: 'No changes detected',
+        description: 'Please make some changes before saving.',
+        variant: 'info',
       });
       return;
     }
-    console.log("Updating user profile with data:", update);
+    console.log('Updating user profile with data:', update);
     // 3) Update the user profile
-    userService.updateUserProfile(authUser.id, update)
-      .then(updatedUser => {
+    userService
+      .updateUserProfile(authUser.id, update)
+      .then((updatedUser) => {
         setUser(updatedUser);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           firstName: updatedUser.firstName || '',
           lastName: updatedUser.lastName || '',
           email: updatedUser.email || '',
           bio: updatedUser.bio || '',
-          profilePicture: updatedUser.profilePictureUrl || 'https://i.pravatar.cc/300'
+          profilePicture: updatedUser.profilePictureUrl || 'https://i.pravatar.cc/300',
         }));
         toast({
-          title: "Profile Updated",
-          description: "Your profile has been successfully updated.",
-          variant: "success"
+          title: 'Profile Updated',
+          description: 'Your profile has been successfully updated.',
+          variant: 'success',
         });
       })
-      .catch(error => {
-        console.error("Error updating profile:", error);
+      .catch((error) => {
+        console.error('Error updating profile:', error);
         toast({
-          title: "Update Failed",
-          description: error.message || "An error occurred while updating your profile.",
-          variant: "destructive"
+          title: 'Update Failed',
+          description: error.message || 'An error occurred while updating your profile.',
+          variant: 'destructive',
         });
       });
-
   };
 
   const handleDeleteAccount = async () => {
     if (!authUser) {
       toast({
-        title: "You are not logged in",
-        description: "Please log in to delete your account.",
-        variant: "destructive"
+        title: 'You are not logged in',
+        description: 'Please log in to delete your account.',
+        variant: 'destructive',
       });
       navigate('/login');
       return;
@@ -234,21 +237,21 @@ const Profile = () => {
     try {
       await userService.deleteUserAccount(authUser.id);
       toast({
-        title: "Account Deleted",
-        description: "Your account has been successfully deleted.",
-        variant: "success"
+        title: 'Account Deleted',
+        description: 'Your account has been successfully deleted.',
+        variant: 'success',
       });
       // log out the user
-      logout()
+      logout();
     } catch (error) {
-      console.error("Error deleting account:", error);
+      console.error('Error deleting account:', error);
       toast({
-        title: "Deletion Failed",
-        description: error.message || "An error occurred while deleting your account.",
-        variant: "destructive"
+        title: 'Deletion Failed',
+        description: error.message || 'An error occurred while deleting your account.',
+        variant: 'destructive',
       });
     }
-  }
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -256,7 +259,7 @@ const Profile = () => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
-        setFormData(prev => ({ ...prev, profilePicture: result }));
+        setFormData((prev) => ({ ...prev, profilePicture: result }));
       };
       reader.readAsDataURL(file);
     }
@@ -271,9 +274,9 @@ const Profile = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Profile Settings</h1>
           <p className="text-gray-600">Manage your account settings and preferences.</p>
         </div>
 
@@ -285,13 +288,15 @@ const Profile = () => {
             <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
-          { /* Personal Information Tab */}
+          {/* Personal Information Tab */}
           <TabsContent value="personal" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 lg:grid-cols-3">
               <Card className="lg:col-span-2">
                 <CardHeader>
                   <CardTitle>Personal Information</CardTitle>
-                  <CardDescription>Update your personal details and account settings.</CardDescription>
+                  <CardDescription>
+                    Update your personal details and account settings.
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -349,7 +354,7 @@ const Profile = () => {
                       <div className="relative">
                         <Input
                           id="password"
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           value={formData.password}
                           onChange={(e) => handleInputChange('password', e.target.value)}
                           placeholder="Enter new password"
@@ -364,7 +369,11 @@ const Profile = () => {
                           tabIndex={-1}
                           disabled={!changePassword}
                         >
-                          {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                          {showPassword ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                       {/* Password Strength Bar */}
@@ -375,7 +384,7 @@ const Profile = () => {
                       <div className="relative">
                         <Input
                           id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
+                          type={showConfirmPassword ? 'text' : 'password'}
                           value={formData.confirmPassword}
                           onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                           placeholder="Confirm new password"
@@ -390,7 +399,11 @@ const Profile = () => {
                           tabIndex={-1}
                           disabled={!changePassword}
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -402,7 +415,7 @@ const Profile = () => {
                       id="bio"
                       value={formData.bio}
                       onChange={(e) => handleInputChange('bio', e.target.value)}
-                      placeholder={formData.bio || "Tell us more about yourself..."}
+                      placeholder={formData.bio || 'Tell us more about yourself...'}
                       rows={4}
                     />
                   </div>
@@ -410,8 +423,8 @@ const Profile = () => {
                   <EditableInterests
                     allCategories={mockCategories}
                     selected={formData.interests}
-                    onChange={newInterests =>
-                      setFormData(prev => ({ ...prev, interests: newInterests }))
+                    onChange={(newInterests) =>
+                      setFormData((prev) => ({ ...prev, interests: newInterests }))
                     }
                   />
 
@@ -428,16 +441,16 @@ const Profile = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex flex-col items-center space-y-4">
-                    <Avatar className="w-32 h-32">
+                    <Avatar className="h-32 w-32">
                       <AvatarImage src={formData.profilePictureUrl} alt="Profile" />
                       <AvatarFallback>
-                        <User className="w-16 h-16" />
+                        <User className="h-16 w-16" />
                       </AvatarFallback>
                     </Avatar>
                     <div className="w-full">
                       <Label htmlFor="picture" className="cursor-pointer">
-                        <div className="flex items-center justify-center space-x-2 w-full p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
-                          <Camera className="w-5 h-5" />
+                        <div className="flex w-full items-center justify-center space-x-2 rounded-lg border-2 border-dashed border-gray-300 p-2 transition-colors hover:border-gray-400">
+                          <Camera className="h-5 w-5" />
                           <span>Upload Picture</span>
                         </div>
                         <Input
@@ -454,14 +467,14 @@ const Profile = () => {
               </Card>
             </div>
             {/* Delete Account Button */}
-            <div className="flex justify-center mt-4">
+            <div className="mt-4 flex justify-center">
               <Button
                 variant="destructive"
                 size="sm"
                 className="gap-2"
                 onClick={() => setDeleteDialogOpen(true)}
               >
-                <Trash className="w-4 h-4" />
+                <Trash className="h-4 w-4" />
                 Delete Account
               </Button>
             </div>
@@ -472,10 +485,9 @@ const Profile = () => {
               onConfirm={handleDeleteAccount}
             />
           </TabsContent>
-          { /* Courses Tab */}
+          {/* Courses Tab */}
           <TabsContent value="courses" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-
+            <div className="grid gap-6 md:grid-cols-2">
               {/* Courses in Progress */}
               <Card>
                 <CardHeader>
@@ -483,23 +495,32 @@ const Profile = () => {
                   <CardDescription>Courses you're currently taking</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {( (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
-                      .filter((enrolled) => !enrolled.progress.completed)
-                  ).length === 0 ? (
+                  {(_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
+                    ? mockEnrolledCourses
+                    : user.enrolledCourses
+                  ).filter((enrolled) => !enrolled.progress.completed).length === 0 ? (
                     <div className="text-center text-gray-500">No courses in progress.</div>
                   ) : (
-                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
+                      ? mockEnrolledCourses
+                      : user.enrolledCourses
+                    )
                       .filter((enrolled) => !enrolled.progress.completed)
                       .map((enrolled) => (
-                        <div key={enrolled.course.id} className="border rounded-lg p-4 flex items-start gap-3">
-                          <BookOpen className="w-6 h-6 text-blue-600 mt-1" />
+                        <div
+                          key={enrolled.course.id}
+                          className="flex items-start gap-3 rounded-lg border p-4"
+                        >
+                          <BookOpen className="mt-1 h-6 w-6 text-blue-600" />
                           <div className="flex-1">
-                            <div className="flex justify-between items-start mb-3">
+                            <div className="mb-3 flex items-start justify-between">
                               <div>
                                 <h3 className="font-semibold">{enrolled.course.title}</h3>
                                 <Badge variant="secondary">In Progress</Badge>
                               </div>
-                              <span className="text-sm text-gray-600">{enrolled.progress.progress}%</span>
+                              <span className="text-sm text-gray-600">
+                                {enrolled.progress.progress}%
+                              </span>
                             </div>
                             <Progress value={enrolled.progress.progress} className="h-2" />
                           </div>
@@ -516,23 +537,32 @@ const Profile = () => {
                   <CardDescription>Courses you've finished</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {( (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
-                      .filter((enrolled) => enrolled.progress.completed)
-                  ).length === 0 ? (
+                  {(_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
+                    ? mockEnrolledCourses
+                    : user.enrolledCourses
+                  ).filter((enrolled) => enrolled.progress.completed).length === 0 ? (
                     <div className="text-center text-gray-500">No completed courses yet.</div>
                   ) : (
-                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
+                      ? mockEnrolledCourses
+                      : user.enrolledCourses
+                    )
                       .filter((enrolled) => enrolled.progress.completed)
                       .map((enrolled) => (
-                        <div key={enrolled.course.id} className="border rounded-lg p-4 flex items-start gap-3">
-                          <Book className="w-6 h-6 text-green-600 mt-1" />
+                        <div
+                          key={enrolled.course.id}
+                          className="flex items-start gap-3 rounded-lg border p-4"
+                        >
+                          <Book className="mt-1 h-6 w-6 text-green-600" />
                           <div className="flex-1">
-                            <div className="flex justify-between items-start mb-3">
+                            <div className="mb-3 flex items-start justify-between">
                               <div>
                                 <h3 className="font-semibold">{enrolled.course.title}</h3>
                                 <Badge variant="default">Completed</Badge>
                               </div>
-                              <span className="text-sm text-gray-600">{enrolled.progress.progress}%</span>
+                              <span className="text-sm text-gray-600">
+                                {enrolled.progress.progress}%
+                              </span>
                             </div>
                             <Progress value={enrolled.progress.progress} className="h-2" />
                           </div>
@@ -541,10 +571,9 @@ const Profile = () => {
                   )}
                 </CardContent>
               </Card>
-
             </div>
           </TabsContent>
-          { /* Bookmarks Tab */}
+          {/* Bookmarks Tab */}
           <TabsContent value="bookmarks" className="space-y-6">
             <Card>
               <CardHeader>
@@ -552,41 +581,44 @@ const Profile = () => {
                 <CardDescription>Courses you've saved for later</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {_.isNil(user.bookmarkedCourses) || _.isEmpty(user.bookmarkedCourses) ? (
-                  // Show mock bookmarks if user has none
-                  mockBookmarkedCourses.map((course) => (
-                    <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Bookmark className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h3 className="font-medium">{course.title}</h3>
-                          <p className="text-sm text-gray-600">by {course.instructor}</p>
+                {_.isNil(user.bookmarkedCourses) || _.isEmpty(user.bookmarkedCourses)
+                  ? // Show mock bookmarks if user has none
+                    mockBookmarkedCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="flex items-center justify-between rounded-lg border p-4"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Bookmark className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <h3 className="font-medium">{course.title}</h3>
+                            <p className="text-sm text-gray-600">by {course.instructor}</p>
+                          </div>
                         </div>
+                        <Button size="sm">Enroll</Button>
                       </div>
-                      <Button size="sm">Enroll</Button>
-                    </div>
-                  ))
-                ) : (
-                  user.bookmarkedCourses.map((course) => (
-                    <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <Bookmark className="w-5 h-5 text-blue-600" />
-                        <div>
-                          <h3 className="font-medium">{course.title}</h3>
-                          <p className="text-sm text-gray-600">by {course.instructor}</p>
+                    ))
+                  : user.bookmarkedCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="flex items-center justify-between rounded-lg border p-4"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Bookmark className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <h3 className="font-medium">{course.title}</h3>
+                            <p className="text-sm text-gray-600">by {course.instructor}</p>
+                          </div>
                         </div>
+                        <Button size="sm">Enroll</Button>
                       </div>
-                      <Button size="sm">Enroll</Button>
-                    </div>
-                  ))
-                )}
+                    ))}
               </CardContent>
             </Card>
           </TabsContent>
-          { /* Skills Tab */}
+          {/* Skills Tab */}
           <TabsContent value="skills" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-
+            <div className="grid gap-6 md:grid-cols-2">
               {/* Skills in Progress */}
               <Card>
                 <CardHeader>
@@ -594,7 +626,10 @@ const Profile = () => {
                   <CardDescription>Skills you're currently learning</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {(_.isNil(user.skillsInProgress) || _.isEmpty(user.skillsInProgress) ? mockSkillsInProgress : user.skillsInProgress).map((skill) => (
+                  {(_.isNil(user.skillsInProgress) || _.isEmpty(user.skillsInProgress)
+                    ? mockSkillsInProgress
+                    : user.skillsInProgress
+                  ).map((skill) => (
                     <div key={skill.id} className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-sm font-medium">{skill.name}</span>
@@ -612,29 +647,34 @@ const Profile = () => {
                   <CardDescription>Skills you've mastered</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {(_.isNil(user.skills) || _.isEmpty(user.skills) ? mockUserSkills : user.skills).map((skill) => (
-                    <div key={skill.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                  {(_.isNil(user.skills) || _.isEmpty(user.skills)
+                    ? mockUserSkills
+                    : user.skills
+                  ).map((skill) => (
+                    <div
+                      key={skill.id}
+                      className="flex items-center justify-between rounded-lg bg-green-50 p-3"
+                    >
                       <span className="font-medium text-green-800">{skill.name}</span>
                       <Badge className="bg-green-600">Mastered</Badge>
                     </div>
                   ))}
                 </CardContent>
               </Card>
-
             </div>
           </TabsContent>
-          { /* Achievements Tab */}
+          {/* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {achievements.map((achievement, index) => {
                 const Icon = achievement.icon;
                 return (
                   <Card key={index} className="text-center">
                     <CardContent className="p-6">
-                      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
                         <Icon className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">{achievement.title}</h3>
+                      <h3 className="mb-2 font-semibold text-gray-900">{achievement.title}</h3>
                       <p className="text-xs text-gray-500">{achievement.date}</p>
                     </CardContent>
                   </Card>

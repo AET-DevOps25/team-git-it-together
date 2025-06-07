@@ -26,9 +26,7 @@ export function setAuthToken(token: string | null) {
  * Register a new user.
  * @throws ApiError object { status: number, message: string } on 4xx/5xx
  */
-export async function register(
-  payload: RegisterPayload,
-): Promise<UserRegisterResponse> {
+export async function register(payload: RegisterPayload): Promise<UserRegisterResponse> {
   const resp = await fetch(`${BASE_URL}/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -46,9 +44,7 @@ export async function register(
  * Log in a user and receive a JWT token in the response.
  * @throws ApiError object { status: number, message: string } on 4xx/5xx
  */
-export async function login(
-  payload: LoginPayload,
-): Promise<UserLoginResponse> {
+export async function login(payload: LoginPayload): Promise<UserLoginResponse> {
   const resp = await fetch(`${BASE_URL}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -68,9 +64,7 @@ export async function login(
  * @param userId  ID of the user whose profile to fetch
  * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
  */
-export async function getUserProfile(
-  userId: string,
-): Promise<UserProfileResponse> {
+export async function getUserProfile(userId: string): Promise<UserProfileResponse> {
   if (!authToken) {
     throw { status: 401, message: 'No authentication token provided' };
   }
@@ -78,7 +72,7 @@ export async function getUserProfile(
   const resp = await fetch(`${BASE_URL}/${userId}/profile`, {
     method: 'GET',
     headers: {
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 
@@ -108,7 +102,7 @@ export async function updateUserProfile(
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
     body: JSON.stringify(payload),
   });
@@ -134,7 +128,7 @@ export async function deleteUserAccount(userId: string): Promise<void> {
   const resp = await fetch(`${BASE_URL}/${userId}/profile`, {
     method: 'DELETE',
     headers: {
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 

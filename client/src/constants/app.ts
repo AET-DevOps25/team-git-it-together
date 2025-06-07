@@ -6,8 +6,6 @@ const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/${im
 console.info(`🚀 Application Name: ${appName} started - Version: ${appVersion}`);
 console.info(`📡 API Base URL: ${apiBaseUrl}`);
 
-
-export const APP_NAME = appName || "My App";
-export const APP_VERSION = appVersion || "1.0.0";
+export const APP_NAME = appName || 'My App';
+export const APP_VERSION = appVersion || '1.0.0';
 export const API_BASE_URL = apiBaseUrl || 'http://localhost:9000/api/v1';
-

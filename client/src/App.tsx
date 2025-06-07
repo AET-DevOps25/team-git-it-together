@@ -22,36 +22,51 @@ const AppRoutes = () => (
     {/* PUBLIC */}
     <Route path="/" element={<Index />} />
 
-    <Route path="/login" element={
-      <RequireGuest>
-        <Login />
-      </RequireGuest>
-    } />
+    <Route
+      path="/login"
+      element={
+        <RequireGuest>
+          <Login />
+        </RequireGuest>
+      }
+    />
 
-    <Route path="/signup" element={
-      <RequireGuest>
-        <Signup />
-      </RequireGuest>
-    } />
+    <Route
+      path="/signup"
+      element={
+        <RequireGuest>
+          <Signup />
+        </RequireGuest>
+      }
+    />
 
     {/* PROTECTED */}
-    <Route path="/dashboard" element={
-      <RequireAuth>
-        <Dashboard />
-      </RequireAuth>
-    } />
+    <Route
+      path="/dashboard"
+      element={
+        <RequireAuth>
+          <Dashboard />
+        </RequireAuth>
+      }
+    />
 
-    <Route path="/courses" element={
-      <RequireAuth>
-        <Courses />
-      </RequireAuth>
-    } />
+    <Route
+      path="/courses"
+      element={
+        <RequireAuth>
+          <Courses />
+        </RequireAuth>
+      }
+    />
 
-    <Route path="/profile" element={
-      <RequireAuth>
-        <Profile />
-      </RequireAuth>
-    } />
+    <Route
+      path="/profile"
+      element={
+        <RequireAuth>
+          <Profile />
+        </RequireAuth>
+      }
+    />
 
     {/* CATCH-ALL */}
     <Route path="*" element={<NotFound />} />

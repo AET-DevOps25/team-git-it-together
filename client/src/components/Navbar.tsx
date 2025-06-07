@@ -23,53 +23,51 @@ const Navbar = () => {
   const fullName =
     user && user.firstName && user.lastName
       ? `${user.firstName} ${user.lastName}`
-      : user?.username || "User";
+      : user?.username || 'User';
 
   const profileInitial =
-    user?.firstName?.charAt(0)?.toUpperCase() ||
-    user?.username?.charAt(0)?.toUpperCase() ||
-    "U";
+    user?.firstName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'U';
 
   const handleLogout = () => {
     toast({
       // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
       title: (
         <span className="flex items-center gap-2 text-green-700">
-          <LogOut className="w-5 h-5 text-green-500" />
+          <LogOut className="h-5 w-5 text-green-500" />
           Logged out
         </span>
       ),
       description: (
         <span className="text-green-700">You have been successfully logged out. See you soon!</span>
       ),
-      variant: "success",
+      variant: 'success',
     });
     logout();
   };
 
   return (
-    <nav className="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+    <nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center space-x-2">
             <BookOpen className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold text-gray-900">{APP_NAME}</span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+          <div className="hidden items-center space-x-8 md:flex">
+            <Link to="/" className="text-gray-700 transition-colors hover:text-blue-600">
               Home
             </Link>
-            <Link to="/courses" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/courses" className="text-gray-700 transition-colors hover:text-blue-600">
               Courses
             </Link>
             {user && (
-              <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link to="/dashboard" className="text-gray-700 transition-colors hover:text-blue-600">
                 Dashboard
               </Link>
             )}
-            <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+            <Link to="/about" className="text-gray-700 transition-colors hover:text-blue-600">
               About
             </Link>
 
@@ -79,13 +77,8 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src={user.profilePictureUrl}
-                        alt={fullName}
-                      />
-                      <AvatarFallback>
-                        {profileInitial}
-                      </AvatarFallback>
+                      <AvatarImage src={user.profilePictureUrl} alt={fullName} />
+                      <AvatarFallback>{profileInitial}</AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -130,11 +123,7 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-            >
+            <Button variant="ghost" size="sm" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
@@ -142,20 +131,23 @@ const Navbar = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100">
+          <div className="border-t border-gray-100 py-4 md:hidden">
             <div className="flex flex-col space-y-4">
-              <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link to="/" className="text-gray-700 transition-colors hover:text-blue-600">
                 Home
               </Link>
-              <Link to="/courses" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link to="/courses" className="text-gray-700 transition-colors hover:text-blue-600">
                 Courses
               </Link>
               {user && (
-                <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 transition-colors">
+                <Link
+                  to="/dashboard"
+                  className="text-gray-700 transition-colors hover:text-blue-600"
+                >
                   Dashboard
                 </Link>
               )}
-              <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              <Link to="/about" className="text-gray-700 transition-colors hover:text-blue-600">
                 About
               </Link>
               <div className="flex flex-col space-y-2 pt-4">

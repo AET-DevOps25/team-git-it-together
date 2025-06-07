@@ -18,75 +18,85 @@ const Dashboard = () => {
   const courses = [
     {
       id: 1,
-      title: "React Development",
-      description: "Learn modern React development with hooks and context",
+      title: 'React Development',
+      description: 'Learn modern React development with hooks and context',
       progress: 75,
       totalLessons: 16,
       completedLessons: 12,
-      category: "Frontend",
-      difficulty: "Intermediate",
-      nextLesson: "State Management with Context",
-      timeSpent: "24 hours"
+      category: 'Frontend',
+      difficulty: 'Intermediate',
+      nextLesson: 'State Management with Context',
+      timeSpent: '24 hours',
     },
     {
       id: 2,
-      title: "JavaScript Fundamentals",
-      description: "Master the basics of JavaScript programming",
+      title: 'JavaScript Fundamentals',
+      description: 'Master the basics of JavaScript programming',
       progress: 100,
       totalLessons: 20,
       completedLessons: 20,
-      category: "Programming",
-      difficulty: "Beginner",
-      nextLesson: "Course Completed!",
-      timeSpent: "30 hours"
+      category: 'Programming',
+      difficulty: 'Beginner',
+      nextLesson: 'Course Completed!',
+      timeSpent: '30 hours',
     },
     {
       id: 3,
-      title: "UI/UX Design Principles",
-      description: "Learn design thinking and user experience principles",
+      title: 'UI/UX Design Principles',
+      description: 'Learn design thinking and user experience principles',
       progress: 30,
       totalLessons: 12,
       completedLessons: 4,
-      category: "Design",
-      difficulty: "Beginner",
-      nextLesson: "User Research Methods",
-      timeSpent: "8 hours"
-    }
+      category: 'Design',
+      difficulty: 'Beginner',
+      nextLesson: 'User Research Methods',
+      timeSpent: '8 hours',
+    },
   ];
 
   const skills = [
-    { name: "React", level: 75, color: "bg-blue-500", trend: "+5%" },
-    { name: "JavaScript", level: 90, color: "bg-yellow-500", trend: "+2%" },
-    { name: "CSS", level: 65, color: "bg-purple-500", trend: "+8%" },
-    { name: "Node.js", level: 45, color: "bg-green-500", trend: "+12%" }
+    { name: 'React', level: 75, color: 'bg-blue-500', trend: '+5%' },
+    { name: 'JavaScript', level: 90, color: 'bg-yellow-500', trend: '+2%' },
+    { name: 'CSS', level: 65, color: 'bg-purple-500', trend: '+8%' },
+    { name: 'Node.js', level: 45, color: 'bg-green-500', trend: '+12%' },
   ];
 
   const achievements = [
-    { title: "First Course Completed", description: "Completed JavaScript Fundamentals", date: "2024-01-20", icon: Trophy },
-    { title: "Week Streak", description: "7 days learning streak", date: "2024-01-18", icon: Target },
-    { title: "React Expert", description: "Mastered React Hooks", date: "2024-01-15", icon: Award },
+    {
+      title: 'First Course Completed',
+      description: 'Completed JavaScript Fundamentals',
+      date: '2024-01-20',
+      icon: Trophy,
+    },
+    {
+      title: 'Week Streak',
+      description: '7 days learning streak',
+      date: '2024-01-18',
+      icon: Target,
+    },
+    { title: 'React Expert', description: 'Mastered React Hooks', date: '2024-01-15', icon: Award },
   ];
 
   const upcomingDeadlines = [
-    { course: "React Development", task: "Project Submission", date: "2024-02-05", daysLeft: 3 },
-    { course: "UI/UX Design", task: "Design Challenge", date: "2024-02-10", daysLeft: 8 },
+    { course: 'React Development', task: 'Project Submission', date: '2024-02-05', daysLeft: 3 },
+    { course: 'UI/UX Design', task: 'Design Challenge', date: '2024-02-10', daysLeft: 8 },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">
             Welcome back, {user.firstName || user.username || user.email}!
           </h1>
           <p className="text-gray-600">Continue your learning journey and track your progress.</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
           <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -149,7 +159,7 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 lg:grid-cols-3">
               {/* Current Courses */}
               <div className="lg:col-span-2">
                 <Card>
@@ -159,11 +169,14 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {courses.slice(0, 2).map((course) => (
-                      <div key={course.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
+                      <div
+                        key={course.id}
+                        className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                      >
+                        <div className="mb-3 flex items-start justify-between">
                           <div>
                             <h3 className="font-semibold text-gray-900">{course.title}</h3>
-                            <p className="text-sm text-gray-600 mb-2">Next: {course.nextLesson}</p>
+                            <p className="mb-2 text-sm text-gray-600">Next: {course.nextLesson}</p>
                             <div className="flex items-center space-x-2">
                               <Badge variant="secondary">{course.category}</Badge>
                               <Badge variant="outline">{course.difficulty}</Badge>
@@ -172,8 +185,10 @@ const Dashboard = () => {
                           <Button size="sm">Continue</Button>
                         </div>
                         <Progress value={course.progress} className="h-2" />
-                        <div className="flex justify-between text-sm text-gray-600 mt-2">
-                          <span>{course.completedLessons}/{course.totalLessons} lessons</span>
+                        <div className="mt-2 flex justify-between text-sm text-gray-600">
+                          <span>
+                            {course.completedLessons}/{course.totalLessons} lessons
+                          </span>
                           <span>{course.progress}% complete</span>
                         </div>
                       </div>
@@ -190,11 +205,11 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center">
-                      <div className="text-4xl font-bold text-blue-600 mb-2">7</div>
+                      <div className="mb-2 text-4xl font-bold text-blue-600">7</div>
                       <p className="text-gray-600">Days in a row</p>
                       <div className="mt-4 flex justify-center space-x-1">
-                        {[1,2,3,4,5,6,7].map((day) => (
-                          <div key={day} className="w-6 h-6 bg-blue-500 rounded-full"></div>
+                        {[1, 2, 3, 4, 5, 6, 7].map((day) => (
+                          <div key={day} className="h-6 w-6 rounded-full bg-blue-500"></div>
                         ))}
                       </div>
                     </div>
@@ -207,12 +222,15 @@ const Dashboard = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {upcomingDeadlines.map((deadline, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-orange-50 p-3"
+                      >
                         <div>
-                          <p className="font-medium text-sm">{deadline.task}</p>
+                          <p className="text-sm font-medium">{deadline.task}</p>
                           <p className="text-xs text-gray-600">{deadline.course}</p>
                         </div>
-                        <Badge variant={deadline.daysLeft <= 3 ? "destructive" : "secondary"}>
+                        <Badge variant={deadline.daysLeft <= 3 ? 'destructive' : 'secondary'}>
                           {deadline.daysLeft}d left
                         </Badge>
                       </div>
@@ -228,13 +246,15 @@ const Dashboard = () => {
               {courses.map((course) => (
                 <Card key={course.id}>
                   <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="mb-4 flex items-start justify-between">
                       <div>
                         <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
-                        <p className="text-gray-600 mb-2">{course.description}</p>
+                        <p className="mb-2 text-gray-600">{course.description}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <span>{course.timeSpent}</span>
-                          <span>{course.completedLessons}/{course.totalLessons} lessons</span>
+                          <span>
+                            {course.completedLessons}/{course.totalLessons} lessons
+                          </span>
                           <Badge variant="secondary">{course.category}</Badge>
                         </div>
                       </div>
@@ -262,14 +282,14 @@ const Dashboard = () => {
               <CardContent className="space-y-6">
                 {skills.map((skill) => (
                   <div key={skill.name}>
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <span className="text-sm font-medium text-gray-900">{skill.name}</span>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-green-600 font-medium">{skill.trend}</span>
+                        <span className="text-sm font-medium text-green-600">{skill.trend}</span>
                         <span className="text-sm text-gray-600">{skill.level}%</span>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="h-3 w-full rounded-full bg-gray-200">
                       <div
                         className={`h-3 rounded-full ${skill.color} transition-all duration-500`}
                         style={{ width: `${skill.level}%` }}
@@ -282,17 +302,17 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {achievements.map((achievement, index) => {
                 const Icon = achievement.icon;
                 return (
                   <Card key={index} className="text-center">
                     <CardContent className="p-6">
-                      <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
                         <Icon className="h-8 w-8 text-yellow-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">{achievement.title}</h3>
-                      <p className="text-sm text-gray-600 mb-2">{achievement.description}</p>
+                      <h3 className="mb-2 font-semibold text-gray-900">{achievement.title}</h3>
+                      <p className="mb-2 text-sm text-gray-600">{achievement.description}</p>
                       <p className="text-xs text-gray-500">{achievement.date}</p>
                     </CardContent>
                   </Card>

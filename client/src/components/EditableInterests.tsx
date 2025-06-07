@@ -1,16 +1,16 @@
-import React from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { X, Plus } from "lucide-react";
+import React from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { X, Plus } from 'lucide-react';
 import { CategoryResponse } from '@/types';
 
 // Component
 export function EditableInterests({
-                                    allCategories,
-                                    selected,
-                                    onChange,
-                                  }: {
+  allCategories,
+  selected,
+  onChange,
+}: {
   allCategories: CategoryResponse[];
   selected: CategoryResponse[];
   onChange: (newInterests: CategoryResponse[]) => void;
@@ -32,26 +32,22 @@ export function EditableInterests({
             <Tooltip key={interest.id}>
               <TooltipTrigger asChild>
                 <div className="flex items-center">
-                  <Badge variant="secondary" className="pr-1 flex items-center gap-1">
+                  <Badge variant="secondary" className="flex items-center gap-1 pr-1">
                     <span>{interest.name}</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="p-0 h-4 w-4 ml-1 text-gray-400 hover:text-red-500"
+                      className="ml-1 h-4 w-4 p-0 text-gray-400 hover:text-red-500"
                       aria-label={`Remove ${interest.name}`}
-                      onClick={() =>
-                        onChange(selected.filter((c) => c.id !== interest.id))
-                      }
+                      onClick={() => onChange(selected.filter((c) => c.id !== interest.id))}
                     >
                       <X className="h-3 w-3" />
                     </Button>
                   </Badge>
                 </div>
               </TooltipTrigger>
-              {interest.description && (
-                <TooltipContent>{interest.description}</TooltipContent>
-              )}
+              {interest.description && <TooltipContent>{interest.description}</TooltipContent>}
             </Tooltip>
           ))}
         </div>
@@ -68,17 +64,15 @@ export function EditableInterests({
                 <div className="flex items-center">
                   <Badge
                     variant="outline"
-                    className="pr-1 flex items-center gap-1 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-1 pr-1"
                     onClick={() => onChange([...selected, category])}
                   >
                     <span>{category.name}</span>
-                    <Plus className="h-3 w-3 ml-1 text-blue-600" />
+                    <Plus className="ml-1 h-3 w-3 text-blue-600" />
                   </Badge>
                 </div>
               </TooltipTrigger>
-              {category.description && (
-                <TooltipContent>{category.description}</TooltipContent>
-              )}
+              {category.description && <TooltipContent>{category.description}</TooltipContent>}
             </Tooltip>
           ))}
         </div>

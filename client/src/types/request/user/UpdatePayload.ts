@@ -16,6 +16,4 @@ export interface UpdatePayload {
   bookmarkedCourses?: CoursePayload[];
 
   completedCourses?: CoursePayload[];
-
-
 }

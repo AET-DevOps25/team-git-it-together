@@ -11,11 +11,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   // Helper: persist token + user into chosen storage (localStorage if rememberMe, else sessionStorage)
-  function persistAuth(
-    jwtToken: string,
-    userData: UserLoginResponse,
-    rememberMe: boolean,
-  ) {
+  function persistAuth(jwtToken: string, userData: UserLoginResponse, rememberMe: boolean) {
     const storage = rememberMe ? localStorage : sessionStorage;
     storage.setItem('token', jwtToken);
     storage.setItem('user', JSON.stringify(userData));
@@ -32,7 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userService.setAuthToken(jwtToken);
     setToken(jwtToken);
     setUser(userData);
-
   }
 
   // Login function that accepts either email or username, plus password and rememberMe flag
@@ -54,13 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Register function to register a new user
-const register = async (opts: {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-}) => {
+  const register = async (opts: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    password: string;
+  }) => {
     const { firstName, lastName, username, email, password } = opts;
     // Call the userService.register method
     const response = await userService.register({
@@ -78,13 +73,13 @@ const register = async (opts: {
         email: response.email,
         username: response.username,
         password, // Use the same password for login
-      }
+      };
       await login({
         ...loginPayload,
         rememberMe: true,
       });
     }
-};
+  };
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -92,7 +87,7 @@ const register = async (opts: {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     localStorage.removeItem('rememberedIdentifier');
-    userService.setAuthToken(null) // Clear the auth token in userService
+    userService.setAuthToken(null); // Clear the auth token in userService
 
     setToken(null);
     setUser(null);
