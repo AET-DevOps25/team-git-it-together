@@ -1,50 +1,148 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// src/pages/Login.tsx
+import React, { FormEvent, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, LogIn } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, Eye, EyeOff, HelpCircle, LogIn, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/constants/app.ts';
+import { useAuth } from '@/hooks/useAuth';
+import { ApiError } from '@/types';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [identifier, setIdentifier] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const { login } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Simple email regex to distinguish email vs. username
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Type guard for ApiError
+  function isApiError(obj: unknown): obj is ApiError {
+    return (
+      typeof obj === 'object' &&
+      obj !== null &&
+      'status' in obj &&
+      'message' in obj
+    );
+  }
+
+  // On mount, check if we previously saved a "remembered identifier"
+  useEffect(() => {
+    const savedIdentifier = localStorage.getItem('rememberedIdentifier');
+    if (savedIdentifier) {
+      setIdentifier(savedIdentifier);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Dummy authentication - check for demo credentials
-    if (email === 'demo@example.com' && password === 'demo123') {
-      // Store login state
-      localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('user', JSON.stringify({
-        name: 'John Doe',
-        email: 'demo@example.com',
-        joinDate: '2024-01-15'
-      }));
-
+    // Basic front-end validation
+    if (!identifier.trim() || !password.trim()) {
+      let message = "";
+      if (!identifier.trim() && !password.trim()) {
+        message = "Both your username (or e-mail) and password are required.";
+      } else if (!identifier.trim()) {
+        message = "Please enter your username or e-mail.";
+      } else {
+        message = "Please enter your password.";
+      }
       toast({
-        title: "Login Successful",
-        description: 'Welcome back to '+ {APP_NAME} + '!',
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+        <AlertCircle className="w-5 h-5 text-red-500" />
+        Missing credentials
+      </span>
+        ),
+        description: (
+          <span className="text-red-700">
+        {message}
+      </span>
+        ),
+        variant: "error",
       });
-
-      // Redirect to dashboard
-      navigate('/dashboard');
-    } else {
-      toast({
-        title: "Login Failed",
-        description: "Please use: demo@example.com / demo123",
-        variant: "destructive",
-      });
+      return;
     }
 
+    setIsLoading(true);
+
+    // Build login payload: exactly one of email/username must be a non-empty string
+    const email = emailRegex.test(identifier) ? identifier.trim() : '';
+    const username = email ? '' : identifier.trim();
+
+    try {
+      // AuthContext.login(...) will handle setting storage, token, user and navigation
+      await login({ email, username, password: password.trim(), rememberMe });
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-green-700">
+            <CheckCircle2 className="w-5 h-5 text-green-500" />
+            Login Successful
+          </span>
+        ),
+        description: (<span className="text-green-700">{`Welcome back, ${username}!`}</span>),
+        variant: "success",
+      });
+
+    } catch (err: unknown) {
+    if (isApiError(err)) {
+      const { status, message } = err;
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <AlertCircle className="w-5 h-5 text-red-500" />
+            {status === 401 ? "Invalid Credentials" : "Login Failed"}
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">{message}</span>
+        ),
+        variant: "error",
+      });
+    } else if (err instanceof Error) {
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <WifiOff className="w-5 h-5 text-red-500" />
+          Network Error
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">{err.message}</span>
+        ),
+        variant: "error",
+      });
+    } else {
+      toast({
+        // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
+        title: (
+          <span className="flex items-center gap-2 text-red-700">
+          <HelpCircle className="w-5 h-5 text-red-500" />
+          Unexpected Error
+        </span>
+        ),
+        description: (
+          <span className="text-red-700">Something went wrong. Please try again later.</span>
+        ),
+        variant: "error",
+      });
+    }
+  } finally {
     setIsLoading(false);
+  }
   };
 
   return (
@@ -66,54 +164,96 @@ const Login = () => {
               <span>Sign In</span>
             </CardTitle>
             <CardDescription>
-              Use demo@example.com / demo123 to login
+              Demo: FoulenBenFoulen, foulen.benFoulen@mail.com, easyPassword123
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Username / Email Field */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="identifier">Username or Email</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  id="identifier"
+                  name="identifier"
+                  type="text"
+                  placeholder="Enter your username or email"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  disabled={isLoading}
                   className="h-11"
+                  autoComplete="username"
+                  required
                 />
               </div>
 
+              {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
+                <div className="relative">
                 <Input
                   id="password"
-                  type="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
+                  disabled={isLoading}
                   className="h-11"
+                  autoComplete="current-password"
+                  required
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+              </div>
               </div>
 
+              {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center space-x-2">
-                  <input type="checkbox" className="rounded border-gray-300" />
+                <label htmlFor="rememberMe" className="flex items-center space-x-2">
+                  <input
+                    id="rememberMe"
+                    name="rememberMe"
+                    type="checkbox"
+                    className="rounded border-gray-300"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isLoading}
+                  />
                   <span className="text-gray-600">Remember me</span>
                 </label>
-                <Link to="/forgot-password" className="text-blue-600 hover:text-blue-700">
+
+                <Link
+                  to="/forgot-password"
+                  className="text-blue-600 hover:text-blue-700"
+                >
                   Forgot password?
                 </Link>
               </div>
 
-              <Button type="submit" className="w-full h-11 text-lg" disabled={isLoading}>
-                {isLoading ? "Signing In..." : "Sign In"}
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full h-11 text-lg"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing In...' : 'Sign In'}
               </Button>
 
+              {/* Sign-Up Link */}
               <div className="text-center text-sm text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                Don’t have an account?{' '}
+                <Link
+                  to="/signup"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
                   Sign up
                 </Link>
               </div>
