@@ -72,6 +72,7 @@ const Profile = () => {
   });
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (!authUser) {
@@ -235,7 +236,8 @@ const Profile = () => {
         description: "Your account has been successfully deleted.",
         variant: "success"
       });
-      navigate('/dashboard');
+      // log out the user
+      logout()
     } catch (error) {
       console.error("Error deleting account:", error);
       toast({
