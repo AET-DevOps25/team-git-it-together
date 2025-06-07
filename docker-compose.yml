@@ -73,7 +73,6 @@ services:
         BUILD_MODE: ${BUILD_MODE}
         DOCKERIZED: 1
         
-    # Use the latest tag for the client image
     image: ${CLIENT_CONTAINER_NAME}:latest
     container_name: ${CLIENT_CONTAINER_NAME}
     restart: unless-stopped
