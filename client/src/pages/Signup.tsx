@@ -22,7 +22,7 @@ const Signup = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConirmationPassword, setShowConfirmationPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { register } = useAuth();
   const { toast } = useToast();
@@ -239,7 +239,7 @@ const Signup = () => {
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type={showConirmationPassword ? "text" : "password"}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -252,9 +252,9 @@ const Signup = () => {
                     variant="ghost"
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                    onClick={() => setShowConfirmationPassword(!showConirmationPassword)}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    {showConirmationPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                    {showConfirmPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                   </Button>
               </div>
               </div>
