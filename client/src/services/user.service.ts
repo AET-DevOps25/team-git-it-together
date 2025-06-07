@@ -131,7 +131,7 @@ export async function deleteUserAccount(userId: string): Promise<void> {
     throw { status: 401, message: 'No authentication token provided' };
   }
 
-  const resp = await fetch(`${BASE_URL}/${userId}/delete`, {
+  const resp = await fetch(`${BASE_URL}/${userId}/profile`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${authToken}`,
