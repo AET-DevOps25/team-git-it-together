@@ -10,6 +10,7 @@ import { BookOpen, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { PasswordStrengthBar } from '@/components/ui';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -230,6 +231,7 @@ const Signup = () => {
                   {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                 </Button>
               </div>
+                <PasswordStrengthBar password={formData.password} />
               </div>
 
               <div className="space-y-2">
