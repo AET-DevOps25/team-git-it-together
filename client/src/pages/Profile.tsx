@@ -57,7 +57,6 @@ const Profile = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
-  const [interests, setInterests] = React.useState<CategoryResponse[]>(mockInterests);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -173,7 +172,10 @@ const Profile = () => {
       // Currently, we are not validating the image size or type as we use url
       update.profilePictureUrl = formData.profilePictureUrl;
     }
-    if (!_.isEqual(formData.interests, user.interests)) {
+
+    const interestsFormIds = formData.interests.map(i => i.id).sort();
+    const interestsUserIds = user.interests.map(i => i.id).sort();
+    if (!_.isEqual(interestsFormIds, interestsUserIds)) {
       update.interests = formData.interests.map(interest => ({
         id: interest.id,
         name: interest.name
@@ -407,8 +409,10 @@ const Profile = () => {
 
                   <EditableInterests
                     allCategories={mockCategories}
-                    selected={interests}
-                    onChange={setInterests}
+                    selected={formData.interests}
+                    onChange={newInterests =>
+                      setFormData(prev => ({ ...prev, interests: newInterests }))
+                    }
                   />
 
                   <Button onClick={handleSaveProfile} className="w-full">
