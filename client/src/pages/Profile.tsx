@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   User,
   Camera,
@@ -33,11 +32,15 @@ import {
   mockEnrolledCourses,
   mockBookmarkedCourses,
   mockSkillsInProgress,
-  mockUserSkills,
+  mockUserSkills, UpdatePayload, mockCategories, CategoryResponse,
 } from '@/types';
 import { useAuth } from '@/hooks/useAuth.ts';
 import _ from 'lodash';
 import * as userService from '@/services/user.service.ts';
+import {validatePassword} from '@/utils/passwordValidation.ts';
+import { Switch } from '@/components/ui/switch.tsx';
+import { PasswordStrengthBar } from '@/components/ui';
+import { EditableInterests } from '@/components/EditableInterests.tsx';
 
 
 const achievements = [
@@ -53,6 +56,9 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changePassword, setChangePassword] = useState(false);
+  const [interests, setInterests] = React.useState<CategoryResponse[]>(mockInterests);
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -61,7 +67,7 @@ const Profile = () => {
     confirmPassword: '',
     bio: '',
     interests: [] as CategoryPayload[],
-    profilePicture: ''
+    profilePictureUrl: ''
   });
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -89,7 +95,7 @@ const Profile = () => {
           confirmPassword: '',
           bio: profile.bio || '',
           interests: (_.isNil(profile.interests) || _.isEmpty(profile.interests)) ? mockInterests : profile.interests,
-          profilePicture: profile.profilePictureUrl || 'https://i.pravatar.cc/300' // Default to a random avatar.
+          profilePictureUrl: profile.profilePictureUrl || 'https://i.pravatar.cc/300' // Default to a random avatar.
         });
       } catch (e) {
         console.error("Error loading profile:", e);
@@ -114,32 +120,100 @@ const Profile = () => {
   };
 
   const handleSaveProfile = () => {
-    if (formData.password && formData.password !== formData.confirmPassword) {
+    // 1) check if the user is logged in
+    if (!authUser) {
       toast({
-        title: "Password Mismatch",
-        description: "Password and confirm password do not match.",
-        variant: "destructive",
+        title: "You are not logged in",
+        description: "Please log in to update your profile.",
+        variant: "destructive"
       });
+      navigate('/login');
       return;
     }
 
-    // Update user in localStorage
-    const updatedUser = {
-      ...user,
-      name: `${formData.firstName} ${formData.lastName}`,
-      email: formData.email,
-      profilePicture: formData.profilePicture,
-      bio: formData.bio,
-      interests: formData.interests
-    };
+    // Define the updated user data
+    const update : UpdatePayload = {
 
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setUser(updatedUser);
+    }
+    // 2) validate form data
+    // 2.1) Check if pasword is being changed
+    if (changePassword) {
+      const result = validatePassword(formData.password, formData.confirmPassword);
+      if (!result.valid) {
+        toast({
+          title: result.errorType === "mismatch" ? "Passwords do not match" : "Weak Password",
+          description: result.message,
+          variant: "destructive"
+        });
+        return;
+      }
+      update.password = formData.password;
+    }
+    // 2.2) Check if bio have changed
+    if(formData.bio !== user.bio) {
+      if (formData.bio.trim().length > 500) {
+        toast({
+          title: "Bio is too long",
+          description: "Please limit your bio to 500 characters.",
+          variant: "destructive"
+        });
+        return;
+      } else {
+        formData.bio = formData.bio.trim();
+        update.bio = formData.bio;
+      }
+    }
 
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been successfully updated.",
-    });
+    // 2.3) Check if profile picture has changed
+    if (formData.profilePictureUrl !== user.profilePictureUrl) {
+      console.log(formData.profilePictureUrl)
+      console.log(user.profilePictureUrl)
+      // Currently, we are not validating the image size or type as we use url
+      update.profilePictureUrl = formData.profilePictureUrl;
+    }
+    if (!_.isEqual(formData.interests, user.interests)) {
+      update.interests = formData.interests.map(interest => ({
+        id: interest.id,
+        name: interest.name
+      }));
+    }
+    // 2.4) Check if we have any update
+    if (_.isEmpty(update)) {
+      toast({
+        title: "No changes detected",
+        description: "Please make some changes before saving.",
+        variant: "info"
+      });
+      return;
+    }
+    console.log("Updating user profile with data:", update);
+    // 3) Update the user profile
+    userService.updateUserProfile(authUser.id, update)
+      .then(updatedUser => {
+        setUser(updatedUser);
+        setFormData(prev => ({
+          ...prev,
+          firstName: updatedUser.firstName || '',
+          lastName: updatedUser.lastName || '',
+          email: updatedUser.email || '',
+          bio: updatedUser.bio || '',
+          profilePicture: updatedUser.profilePictureUrl || 'https://i.pravatar.cc/300'
+        }));
+        toast({
+          title: "Profile Updated",
+          description: "Your profile has been successfully updated.",
+          variant: "success"
+        });
+      })
+      .catch(error => {
+        console.error("Error updating profile:", error);
+        toast({
+          title: "Update Failed",
+          description: error.message || "An error occurred while updating your profile.",
+          variant: "destructive"
+        });
+      });
+
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,6 +269,7 @@ const Profile = () => {
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         className="bg-gray-100"
                         readOnly
+                        disabled={true}
                       />
                     </div>
                     <div className="space-y-2">
@@ -205,6 +280,7 @@ const Profile = () => {
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         className="bg-gray-100"
                         readOnly
+                        disabled={true}
                       />
                     </div>
                   </div>
@@ -218,7 +294,19 @@ const Profile = () => {
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className="bg-gray-100"
                       readOnly
+                      disabled={true}
                     />
+                  </div>
+
+                  <div className="mb-4 flex items-center gap-3">
+                    <Switch
+                      id="change-password-switch"
+                      checked={changePassword}
+                      onCheckedChange={setChangePassword}
+                    />
+                    <Label htmlFor="change-password-switch" className="cursor-pointer">
+                      Change Password
+                    </Label>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -231,6 +319,7 @@ const Profile = () => {
                           value={formData.password}
                           onChange={(e) => handleInputChange('password', e.target.value)}
                           placeholder="Enter new password"
+                          disabled={!changePassword}
                         />
                         <Button
                           type="button"
@@ -238,10 +327,14 @@ const Profile = () => {
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
+                          tabIndex={-1}
+                          disabled={!changePassword}
                         >
                           {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                         </Button>
                       </div>
+                      {/* Password Strength Bar */}
+                      {changePassword && <PasswordStrengthBar password={formData.password} />}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -252,6 +345,7 @@ const Profile = () => {
                           value={formData.confirmPassword}
                           onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                           placeholder="Confirm new password"
+                          disabled={!changePassword}
                         />
                         <Button
                           type="button"
@@ -259,6 +353,8 @@ const Profile = () => {
                           size="sm"
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          tabIndex={-1}
+                          disabled={!changePassword}
                         >
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
@@ -277,18 +373,11 @@ const Profile = () => {
                     />
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
-                    {formData.interests.map((interest) => (
-                      <Tooltip key={interest.id}>
-                        <TooltipTrigger asChild>
-                          <Badge variant="secondary">{interest.name}</Badge>
-                        </TooltipTrigger>
-                        {interest.description && (
-                          <TooltipContent>{interest.description}</TooltipContent>
-                        )}
-                      </Tooltip>
-                    ))}
-                  </div>
+                  <EditableInterests
+                    allCategories={mockCategories}
+                    selected={interests}
+                    onChange={setInterests}
+                  />
 
                   <Button onClick={handleSaveProfile} className="w-full">
                     Save Changes
@@ -304,7 +393,7 @@ const Profile = () => {
                 <CardContent className="space-y-4">
                   <div className="flex flex-col items-center space-y-4">
                     <Avatar className="w-32 h-32">
-                      <AvatarImage src={formData.profilePicture} alt="Profile" />
+                      <AvatarImage src={formData.profilePictureUrl} alt="Profile" />
                       <AvatarFallback>
                         <User className="w-16 h-16" />
                       </AvatarFallback>
