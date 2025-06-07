@@ -29,7 +29,6 @@ import {
   CategoryPayload,
   UserProfileResponse,
   LEVEL_TO_PERCENT,
-  EnrolledCourseResponse,
   mockInterests,
   mockEnrolledCourses,
   mockBookmarkedCourses,
