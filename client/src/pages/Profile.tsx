@@ -16,6 +16,7 @@ import {
   Eye,
   EyeOff,
   BookOpen,
+  Book,
   Bookmark,
   Trophy,
   Target,
@@ -24,9 +25,28 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
-import { CategoryPayload, UserProfileResponse, Level, LEVEL_TO_PERCENT } from '@/types';
+import {
+  CategoryPayload,
+  UserProfileResponse,
+  LEVEL_TO_PERCENT,
+  EnrolledCourseResponse,
+  mockInterests,
+  mockEnrolledCourses,
+  mockBookmarkedCourses,
+  mockSkillsInProgress,
+  mockUserSkills,
+} from '@/types';
 import { useAuth } from '@/hooks/useAuth.ts';
+import _ from 'lodash';
 import * as userService from '@/services/user.service.ts';
+
+
+const achievements = [
+  { title: "First Course Completed", date: "2024-01-20", icon: Trophy },
+  { title: "Week Streak", date: "2024-01-18", icon: Target },
+  { title: "React Expert", date: "2024-01-15", icon: Award },
+  { title: "JavaScript Master", date: "2024-01-10", icon: Star }
+];
 
 const Profile = () => {
   const { user: authUser } = useAuth(); // get current user and their id
@@ -69,7 +89,7 @@ const Profile = () => {
           password: '',
           confirmPassword: '',
           bio: profile.bio || '',
-          interests: profile.interests || [],
+          interests: (_.isNil(profile.interests) || _.isEmpty(profile.interests)) ? mockInterests : profile.interests,
           profilePicture: profile.profilePictureUrl || 'https://i.pravatar.cc/300' // Default to a random avatar.
         });
       } catch (e) {
@@ -134,42 +154,6 @@ const Profile = () => {
       reader.readAsDataURL(file);
     }
   };
-const interests = [
-    { id: 1, name: "Web Development", description: "Building websites and web applications" },
-    { id: 2, name: "Data Science", description: "Analyzing data to extract insights" },
-    { id: 3, name: "Machine Learning", description: "Creating models that learn from data" },
-    { id: 4, name: "UI/UX Design", description: "Designing user-friendly interfaces" },
-    { id: 5, name: "DevOps", description: "Automating software development processes" }
-  ];
-
-  const skills = [
-    { id: 3, name: "Python", description: "High-level programming language for general-purpose programming", level: 'ADVANCED', category: interests[1] },
-    { id: 5, name: "UI/UX Design", description: "Designing user interfaces and user experiences", level: 'INTERMEDIATE', category: interests[3] }
-  ];
-
-  const skillsInProgress = [
-    { id: 1, name: "React", description: "JavaScript library for building user interfaces", level: 'BEGINNER' , category: interests[0] },
-    { id: 2, name: "Node.js", description: "JavaScript runtime for server-side development", level: 'INTERMEDIATE', category: interests[0] },
-  ];
-
-  const enrolledCourses = [
-    { id: 1, title: "React Development", progress: 75, status: "In Progress" },
-    { id: 2, title: "JavaScript Fundamentals", progress: 100, status: "Completed" },
-    { id: 3, title: "UI/UX Design Principles", progress: 30, status: "In Progress" }
-  ];
-
-  const bookmarkedCourses = [
-    { id: 4, title: "Advanced React Patterns", instructor: "John Smith" },
-    { id: 5, title: "GraphQL Fundamentals", instructor: "Jane Wilson" },
-    { id: 6, title: "TypeScript Mastery", instructor: "Bob Johnson" }
-  ];
-
-  const achievements = [
-    { title: "First Course Completed", date: "2024-01-20", icon: Trophy },
-    { title: "Week Streak", date: "2024-01-18", icon: Target },
-    { title: "React Expert", date: "2024-01-15", icon: Award },
-    { title: "JavaScript Master", date: "2024-01-10", icon: Star }
-  ];
 
   if (loading) {
     return <div>Loading...</div>;
@@ -192,8 +176,9 @@ const interests = [
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="bookmarks">Bookmarks</TabsTrigger>
             <TabsTrigger value="skills">Skills</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
-
+          { /* Personal Information Tab */}
           <TabsContent value="personal" className="space-y-6">
             <div className="grid lg:grid-cols-3 gap-6">
               <Card className="lg:col-span-2">
@@ -288,7 +273,7 @@ const interests = [
                       id="bio"
                       value={formData.bio}
                       onChange={(e) => handleInputChange('bio', e.target.value)}
-                      placeholder={formData.bio || "Tell us about yourself..."}
+                      placeholder={formData.bio || "Tell us more about yourself..."}
                       rows={4}
                     />
                   </div>
@@ -311,7 +296,7 @@ const interests = [
                   </Button>
                 </CardContent>
               </Card>
-
+              {/* Profile Picture Card */}
               <Card>
                 <CardHeader>
                   <CardTitle>Profile Picture</CardTitle>
@@ -325,7 +310,6 @@ const interests = [
                         <User className="w-16 h-16" />
                       </AvatarFallback>
                     </Avatar>
-
                     <div className="w-full">
                       <Label htmlFor="picture" className="cursor-pointer">
                         <div className="flex items-center justify-center space-x-2 w-full p-2 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors">
@@ -346,69 +330,79 @@ const interests = [
               </Card>
             </div>
           </TabsContent>
-
-          <TabsContent value="skills" className="space-y-6">
+          { /* Courses Tab */}
+          <TabsContent value="courses" className="space-y-6">
             <div className="grid md:grid-cols-2 gap-6">
+
+              {/* Courses in Progress */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Skills in Progress</CardTitle>
-                  <CardDescription>Skills you're currently learning</CardDescription>
+                  <CardTitle>Courses in Progress</CardTitle>
+                  <CardDescription>Courses you're currently taking</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {skillsInProgress.map((skill) => (
-                    <div key={skill.name} className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">{skill.name}</span>
-                        <span className="text-sm text-gray-600">{skill.level}</span>
-                      </div>
-                      <Progress value={LEVEL_TO_PERCENT[skill.level]} className="h-2" />
-                    </div>
-                  ))}
+                  {( (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                      .filter((enrolled) => !enrolled.progress.completed)
+                  ).length === 0 ? (
+                    <div className="text-center text-gray-500">No courses in progress.</div>
+                  ) : (
+                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                      .filter((enrolled) => !enrolled.progress.completed)
+                      .map((enrolled) => (
+                        <div key={enrolled.course.id} className="border rounded-lg p-4 flex items-start gap-3">
+                          <BookOpen className="w-6 h-6 text-blue-600 mt-1" />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h3 className="font-semibold">{enrolled.course.title}</h3>
+                                <Badge variant="secondary">In Progress</Badge>
+                              </div>
+                              <span className="text-sm text-gray-600">{enrolled.progress.progress}%</span>
+                            </div>
+                            <Progress value={enrolled.progress.progress} className="h-2" />
+                          </div>
+                        </div>
+                      ))
+                  )}
                 </CardContent>
               </Card>
 
+              {/* Completed Courses */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Completed Skills</CardTitle>
-                  <CardDescription>Skills you've mastered</CardDescription>
+                  <CardTitle>Completed Courses</CardTitle>
+                  <CardDescription>Courses you've finished</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {skills.map((skill) => (
-                    <div key={skill.name} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <span className="font-medium text-green-800">{skill.name}</span>
-                      <Badge className="bg-green-600">Mastered</Badge>
-                    </div>
-                  ))}
+                  {( (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                      .filter((enrolled) => enrolled.progress.completed)
+                  ).length === 0 ? (
+                    <div className="text-center text-gray-500">No completed courses yet.</div>
+                  ) : (
+                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses) ? mockEnrolledCourses : user.enrolledCourses)
+                      .filter((enrolled) => enrolled.progress.completed)
+                      .map((enrolled) => (
+                        <div key={enrolled.course.id} className="border rounded-lg p-4 flex items-start gap-3">
+                          <Book className="w-6 h-6 text-green-600 mt-1" />
+                          <div className="flex-1">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <h3 className="font-semibold">{enrolled.course.title}</h3>
+                                <Badge variant="default">Completed</Badge>
+                              </div>
+                              <span className="text-sm text-gray-600">{enrolled.progress.progress}%</span>
+                            </div>
+                            <Progress value={enrolled.progress.progress} className="h-2" />
+                          </div>
+                        </div>
+                      ))
+                  )}
                 </CardContent>
               </Card>
+
             </div>
           </TabsContent>
-
-          <TabsContent value="courses" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Enrolled Courses</CardTitle>
-                <CardDescription>Courses you're currently taking or have completed</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {enrolledCourses.map((course) => (
-                  <div key={course.id} className="border rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold">{course.title}</h3>
-                        <Badge variant={course.status === "Completed" ? "default" : "secondary"}>
-                          {course.status}
-                        </Badge>
-                      </div>
-                      <span className="text-sm text-gray-600">{course.progress}%</span>
-                    </div>
-                    <Progress value={course.progress} className="h-2" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
+          { /* Bookmarks Tab */}
           <TabsContent value="bookmarks" className="space-y-6">
             <Card>
               <CardHeader>
@@ -416,22 +410,78 @@ const interests = [
                 <CardDescription>Courses you've saved for later</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {bookmarkedCourses.map((course) => (
-                  <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Bookmark className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <h3 className="font-medium">{course.title}</h3>
-                        <p className="text-sm text-gray-600">by {course.instructor}</p>
+                {_.isNil(user.bookmarkedCourses) || _.isEmpty(user.bookmarkedCourses) ? (
+                  // Show mock bookmarks if user has none
+                  mockBookmarkedCourses.map((course) => (
+                    <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Bookmark className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <h3 className="font-medium">{course.title}</h3>
+                          <p className="text-sm text-gray-600">by {course.instructor}</p>
+                        </div>
                       </div>
+                      <Button size="sm">Enroll</Button>
                     </div>
-                    <Button size="sm">Enroll</Button>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  user.bookmarkedCourses.map((course) => (
+                    <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Bookmark className="w-5 h-5 text-blue-600" />
+                        <div>
+                          <h3 className="font-medium">{course.title}</h3>
+                          <p className="text-sm text-gray-600">by {course.instructor}</p>
+                        </div>
+                      </div>
+                      <Button size="sm">Enroll</Button>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </TabsContent>
+          { /* Skills Tab */}
+          <TabsContent value="skills" className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
 
+              {/* Skills in Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Skills in Progress</CardTitle>
+                  <CardDescription>Skills you're currently learning</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(_.isNil(user.skillsInProgress) || _.isEmpty(user.skillsInProgress) ? mockSkillsInProgress : user.skillsInProgress).map((skill) => (
+                    <div key={skill.id} className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium">{skill.name}</span>
+                        <span className="text-sm text-gray-600">{skill.difficultyLevel}</span>
+                      </div>
+                      <Progress value={LEVEL_TO_PERCENT[skill.difficultyLevel]} className="h-2" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+              {/* Completed Skills */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Completed Skills</CardTitle>
+                  <CardDescription>Skills you've mastered</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(_.isNil(user.skills) || _.isEmpty(user.skills) ? mockUserSkills : user.skills).map((skill) => (
+                    <div key={skill.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <span className="font-medium text-green-800">{skill.name}</span>
+                      <Badge className="bg-green-600">Mastered</Badge>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+            </div>
+          </TabsContent>
+          { /* Achievements Tab */}
           <TabsContent value="achievements" className="space-y-6">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {achievements.map((achievement, index) => {
