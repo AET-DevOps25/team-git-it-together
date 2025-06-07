@@ -11,6 +11,7 @@ import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordStrengthBar } from '@/components/ui';
+import { validatePassword } from "@/utils/passwordValidation";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -63,21 +64,12 @@ const Signup = () => {
       });
       return;
     }
-    // 4. Password strength (zxcvbn)
-    const passwordStrength = zxcvbn(formData.password);
-    if (passwordStrength.score < 2) {
+    // 4. Password validation
+    const result = validatePassword(formData.password, formData.confirmPassword);
+    if (!result.valid) {
       toast({
-        title: "Weak Password",
-        description: passwordStrength.feedback.suggestions.join(" ") || "Please choose a stronger password.",
-        variant: "destructive"
-      });
-      return;
-    }
-    // 5. Password match
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Passwords do not match",
-        description: "Please ensure both passwords are identical.",
+        title: result.errorType === "mismatch" ? "Passwords do not match" : "Weak Password",
+        description: result.message,
         variant: "destructive"
       });
       return;
