@@ -68,10 +68,11 @@ services:
       args:
         VITE_APP_NAME: ${VITE_APP_NAME}
         VITE_APP_VERSION: ${VITE_APP_VERSION}
-        VITE_SERVER_API_URL: ${VITE_SERVER_API_URL}
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
         VITE_API_VERSION: ${VITE_API_VERSION}
         BUILD_MODE: ${BUILD_MODE}
-    # Use the latest tag for the client image
+        DOCKERIZED: 1
+        
     image: ${CLIENT_CONTAINER_NAME}:latest
     container_name: ${CLIENT_CONTAINER_NAME}
     restart: unless-stopped
@@ -80,10 +81,11 @@ services:
     env_file:
       - .env
     environment:
-      - VITE_APP_NAME=${VITE_APP_NAME}
-      - VITE_APP_VERSION=${VITE_APP_VERSION}
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
-      - VITE_API_VERSION=${VITE_API_VERSION}
+      VITE_APP_NAME: ${VITE_APP_NAME}
+      VITE_APP_VERSION: ${VITE_APP_VERSION}
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
+      VITE_API_VERSION: ${VITE_API_VERSION}
+      DOCKERIZED: 1
 
     depends_on:
       server:
@@ -96,6 +98,7 @@ services:
       start_period: 40s
     networks:
       - app-network
+  
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
       container_name: ${WEAVIATE_HOST}
