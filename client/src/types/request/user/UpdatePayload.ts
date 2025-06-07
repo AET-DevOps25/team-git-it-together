@@ -5,7 +5,7 @@ import { CoursePayload } from '@/types/request/course/CoursePayload.ts';
 
 export interface UpdatePayload {
   bio?: string;
-  profilePicture?: string;
+  profilePictureUrl?: string;
   password?: string;
 
   interests?: CategoryPayload[];
