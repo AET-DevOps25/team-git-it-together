@@ -12,8 +12,8 @@ import NotFound from './pages/NotFound';
 import Courses from '@/pages/Courses';
 
 import { AuthProvider } from '@/contexts/AuthProvider';
-import { RequireAuth, RequireGuest } from '@/components/RouteGuards.tsx';
-import Profile from '@/pages/Profile.tsx';
+import { RequireAuth, RequireGuest } from '@/components/RouteGuards';
+import Profile from '@/pages/Profile';
 
 const queryClient = new QueryClient();
 
