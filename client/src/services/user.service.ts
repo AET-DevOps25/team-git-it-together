@@ -119,3 +119,33 @@ export async function updateUserProfile(
 
   return await resp.json();
 }
+
+/**
+ * Delete the currently authenticated user's account.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user to delete
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function deleteUserAccount(userId: string): Promise<void> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/delete`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+  // No content response expected on success
+  if (resp.status !== 204) {
+    throw { status: resp.status, message: 'Unexpected response from server' };
+  }
+  // If we reach here, the account was successfully deleted
+  setAuthToken(null); // Clear the auth token
+  return;
+}
