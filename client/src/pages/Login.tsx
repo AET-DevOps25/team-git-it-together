@@ -164,7 +164,8 @@ const Login = () => {
               <span>Sign In</span>
             </CardTitle>
             <CardDescription>
-              Demo: FoulenBenFoulen, foulen.benFoulen@mail.com, easyPassword123
+              Please enter your username or email and password to sign in.
+              If you don't have an account, you can <Link to="/signup" className="text-blue-600 hover:text-blue-700 font-medium">sign up here</Link>.
             </CardDescription>
           </CardHeader>
 
