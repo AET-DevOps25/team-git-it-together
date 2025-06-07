@@ -1,6 +1,6 @@
 const appName = import.meta.env.VITE_APP_NAME;
 const appVersion = import.meta.env.VITE_APP_VERSION;
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_VERSION;
+const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/${import.meta.env.VITE_API_VERSION.replace(/^\//, '')}`;
 
 // On server startup, these environment variables should be logged to the console
 console.info(`🚀 Application Name: ${appName} started - Version: ${appVersion}`);
