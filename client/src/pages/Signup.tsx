@@ -6,10 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, UserPlus } from 'lucide-react';
+import { BookOpen, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
-import * as userService from '@/services/user.service';
 import { useToast } from '@/hooks/use-toast';
 
 const Signup = () => {
@@ -22,6 +21,9 @@ const Signup = () => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConirmationPassword, setShowConfirmationPassword] = useState(false);
+
   const { register } = useAuth();
   const { toast } = useToast();
 
@@ -206,10 +208,11 @@ const Signup = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
+                <div className="relative">
                 <Input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
@@ -217,14 +220,26 @@ const Signup = () => {
                   className="h-11"
                   disabled={isLoading}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+              </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <div className="relative">
+
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConirmationPassword ? "text" : "password"}
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
@@ -232,6 +247,16 @@ const Signup = () => {
                   className="h-11"
                   disabled={isLoading}
                 />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                    onClick={() => setShowConfirmationPassword(!showConirmationPassword)}
+                  >
+                    {showConirmationPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                  </Button>
+              </div>
               </div>
 
               <div className="text-sm">

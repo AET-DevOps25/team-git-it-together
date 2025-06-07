@@ -49,6 +49,11 @@ const Profile = () => {
 
   useEffect(() => {
     if (!authUser) {
+      toast({
+        title: "You have been logged out",
+        description: "Please log in again to access your profile.",
+        variant: "destructive"
+      });
       navigate('/login');
       return;
     }
@@ -65,13 +70,13 @@ const Profile = () => {
           confirmPassword: '',
           bio: profile.bio || '',
           interests: profile.interests || [],
-          profilePicture: profile.profilePictureUrl || 'https://i.pravatar.cc/150?img=69'
+          profilePicture: profile.profilePictureUrl || 'https://i.pravatar.cc/300' // Default to a random avatar.
         });
       } catch (e) {
         console.error("Error loading profile:", e);
         toast({
-          title: "Profile Load Error",
-          description: "Could not load your profile.",
+          title: e.message,
+          description: "Error Loading your Profile. Please contact support if this issue persists.",
           variant: "destructive"
         });
         navigate('/dashboard');
@@ -184,10 +189,9 @@ const interests = [
         <Tabs defaultValue="personal" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="bookmarks">Bookmarks</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
@@ -203,7 +207,7 @@ const interests = [
                       <Label htmlFor="firstName">First Name</Label>
                       <Input
                         id="firstName"
-                        value={formData.firstName}
+                        value={formData.firstName || ''}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
                         className="bg-gray-100"
                         readOnly
@@ -213,7 +217,7 @@ const interests = [
                       <Label htmlFor="lastName">Last Name</Label>
                       <Input
                         id="lastName"
-                        value={formData.lastName}
+                        value={formData.lastName || ''}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
                         className="bg-gray-100"
                         readOnly
@@ -226,7 +230,7 @@ const interests = [
                     <Input
                       id="email"
                       type="email"
-                      value={formData.email}
+                      value={formData.email || ''}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className="bg-gray-100"
                       readOnly
@@ -251,7 +255,7 @@ const interests = [
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                         </Button>
                       </div>
                     </div>

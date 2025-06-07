@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, BookOpen, CheckCircle2, HelpCircle, LogIn, WifiOff } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, Eye, EyeOff, HelpCircle, LogIn, WifiOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +16,8 @@ const Login = () => {
   const [password, setPassword] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   const { login } = useAuth();
   const { toast } = useToast();
 
@@ -188,10 +190,11 @@ const Login = () => {
               {/* Password Field */}
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
+                <div className="relative">
                 <Input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -200,6 +203,16 @@ const Login = () => {
                   autoComplete="current-password"
                   required
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+              </div>
               </div>
 
               {/* Remember Me & Forgot Password */}
