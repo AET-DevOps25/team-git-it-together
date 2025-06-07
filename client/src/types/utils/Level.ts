@@ -1,8 +1,13 @@
-export type Level = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+export enum Level {
+  BEGINNER = 'BEGINNER',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+  EXPERT = 'EXPERT',
+}
 
 export const LEVEL_TO_PERCENT: Record<Level, number> = {
-  BEGINNER: 25,
-  INTERMEDIATE: 50,
-  ADVANCED: 75,
-  EXPERT: 100,
+  [Level.BEGINNER]: 25,
+  [Level.INTERMEDIATE]: 50,
+  [Level.ADVANCED]: 75,
+  [Level.EXPERT]: 100,
 };

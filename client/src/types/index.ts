@@ -29,3 +29,7 @@ export * from './response/user/UserProfileResponse';
 export * from './utils/Level';
 export * from './utils/Language';
 export * from './utils/LessonContent';
+export * from './utils/LessonContentType';
+
+// Mocks
+export * from './utils/mocks/data.mock';
