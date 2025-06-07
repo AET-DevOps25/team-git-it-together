@@ -20,7 +20,7 @@ import {
   Trophy,
   Target,
   Award,
-  Star
+  Star, Trash,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +41,7 @@ import {validatePassword} from '@/utils/passwordValidation.ts';
 import { Switch } from '@/components/ui/switch.tsx';
 import { PasswordStrengthBar } from '@/components/ui';
 import { EditableInterests } from '@/components/EditableInterests.tsx';
-
+import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog.tsx';
 
 const achievements = [
   { title: "First Course Completed", date: "2024-01-20", icon: Trophy },
@@ -58,6 +58,7 @@ const Profile = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
   const [interests, setInterests] = React.useState<CategoryResponse[]>(mockInterests);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -215,6 +216,35 @@ const Profile = () => {
       });
 
   };
+
+  const handleDeleteAccount = async () => {
+    if (!authUser) {
+      toast({
+        title: "You are not logged in",
+        description: "Please log in to delete your account.",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+
+    try {
+      await userService.deleteUserAccount(authUser.id);
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been successfully deleted.",
+        variant: "success"
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      toast({
+        title: "Deletion Failed",
+        description: error.message || "An error occurred while deleting your account.",
+        variant: "destructive"
+      });
+    }
+  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -417,6 +447,24 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </div>
+            {/* Delete Account Button */}
+            <div className="flex justify-center mt-4">
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash className="w-4 h-4" />
+                Delete Account
+              </Button>
+            </div>
+
+            <ConfirmDeletionDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirm={handleDeleteAccount}
+            />
           </TabsContent>
           { /* Courses Tab */}
           <TabsContent value="courses" className="space-y-6">

@@ -1,5 +1,4 @@
 import validator from "validator";
-import zxcvbn from "zxcvbn";
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
