@@ -22,7 +22,7 @@ const Signup = () => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const { register } = useAuth();
   const { toast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,17 +81,12 @@ const Signup = () => {
     }
     setIsLoading(true);
     try {
-      await userService.register({
+      await register({
         email: formData.email.trim(),
         username: formData.username.trim(),
         password: formData.password.trim(),
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-      });
-      await login({
-        username: formData.username.trim(),
-        password: formData.password.trim(),
-        rememberMe: true,
       });
       toast({
         // @ts-expect-error - The title should accept a ReactNode and is implemented correctly

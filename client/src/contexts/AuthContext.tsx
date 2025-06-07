@@ -18,6 +18,13 @@ interface AuthContextType {
     rememberMe: boolean;
   }) => Promise<void>;
   logout: () => void;
+  register: (opts: {
+    firstName: string;
+    lastName: string;
+    username: string;
+    email: string;
+    password: string;
+  }) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
@@ -25,6 +32,8 @@ export const AuthContext = createContext<AuthContextType>({
   token: null,
   loading: true,
   login: async () => {
+  },
+  register: async () => {
   },
   logout: () => {
   },

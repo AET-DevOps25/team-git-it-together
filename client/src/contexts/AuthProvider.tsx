@@ -29,11 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem('rememberedIdentifier');
     }
 
+    userService.setAuthToken(jwtToken);
     setToken(jwtToken);
     setUser(userData);
 
   }
 
+  // Login function that accepts either email or username, plus password and rememberMe flag
   const login = async (opts: {
     email?: string;
     username?: string;
@@ -51,12 +53,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/dashboard');
   };
 
+  // Register function to register a new user
+const register = async (opts: {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+}) => {
+    const { firstName, lastName, username, email, password } = opts;
+    // Call the userService.register method
+    const response = await userService.register({
+      firstName,
+      lastName,
+      username,
+      email,
+      password,
+    });
+    // if response.id exists, registration was successful
+    if (response && response.id) {
+      console.log('Registration successful:', response);
+      //For now, we login the user immediately after registration - Later you might want to redirect to a confirmation page
+      const loginPayload: LoginPayload = {
+        email: response.email,
+        username: response.username,
+        password, // Use the same password for login
+      }
+      await login({
+        ...loginPayload,
+        rememberMe: true,
+      });
+    }
+};
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('user');
     localStorage.removeItem('rememberedIdentifier');
+    userService.setAuthToken(null) // Clear the auth token in userService
 
     setToken(null);
     setUser(null);
@@ -84,10 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
     setLoading(false);
-  }, []); // <--- make sure you have []
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
