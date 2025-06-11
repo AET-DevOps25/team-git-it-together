@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   // Determine API base for dev
   const isDocker = process.env.DOCKERIZED === '1';
   // If running inside Docker Compose, use "server", else "localhost"
-  const devApiTarget = isDocker ? 'http://server:8080' : 'http://localhost:8080';
+  const devApiTarget = isDocker ? 'http://server-gateway:8080' : 'http://localhost:8080';
 
   return {
     base: '/',
