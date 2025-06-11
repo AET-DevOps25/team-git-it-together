@@ -1,7 +1,7 @@
 # ────────────────────────────────
 # Stage 1: Install Dependencies
 # ────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -35,6 +35,8 @@ ENV DOCKERIZED=${DOCKERIZED}
 
 # Build with explicit mode
 RUN npm run build -- --mode=$BUILD_MODE
+# Remove unnecessary files to reduce image size
+RUN npm prune --production
 
 # ────────────────────────────────
 # Stage 3: Serve with Nginx
