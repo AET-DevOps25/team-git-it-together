@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+@Profile("dev")
 @Slf4j
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {
 
-    @Profile("dev")
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
         String method = exchange.getRequest().getMethod().name();
@@ -28,7 +28,6 @@ public class LoggingGlobalFilter implements GlobalFilter, Ordered {
                 });
     }
 
-    @Profile("dev")
     @Override
     public int getOrder() {
         return -1; // High precedence
