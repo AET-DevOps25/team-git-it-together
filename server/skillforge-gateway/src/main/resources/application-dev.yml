@@ -1,0 +1,18 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+user:
+  service:
+    uri: http://localhost:8081
+course:
+  service:
+    uri: http://localhost:8082
+
+gateway:
+  cors:
+    allowed-origins: "*"
+
+logging:
+  level:
+    com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO

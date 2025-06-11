@@ -1,0 +1,16 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+user:
+  service:
+    uri: http://user-service:8081
+course:
+  service:
+    uri: http://course-service:8082
+
+
+gateway:
+  cors:
+    allowed-origins: "*"
