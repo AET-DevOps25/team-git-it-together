@@ -13,7 +13,10 @@ from .services.crawler.schemas import CrawlRequest, CrawlResponse
 from .services.embedding import embedder_service
 from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryRequest, QueryResponse, DocumentResult
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
+from .services.llm import llm_service
+from .services.llm.schemas import GenerateRequest, GenerateResponse
 from langchain_openai import OpenAIEmbeddings
+
 
 # --- Configuration ---
 logging.basicConfig(level=logging.INFO)
@@ -102,3 +105,17 @@ def query_vector_db(request: QueryRequest):
     docs_data = result["data"]["Get"][DOCUMENT_CLASS_NAME]
     docs = [DocumentResult(**doc) for doc in docs_data]
     return QueryResponse(query=request.query_text, results=docs)
+
+@app.post("/generate", response_model=GenerateResponse)
+def generate_completion(request: GenerateRequest):
+    """Generates a text completion using the configured LLM abstraction layer."""
+    try:
+        generated_text = llm_service.generate_text(request.prompt)
+        return GenerateResponse(
+            prompt=request.prompt,
+            generated_text=generated_text,
+            provider=os.getenv("LLM_PROVIDER", "dummy")
+        )
+    except Exception as e:
+        logging.error(f"ERROR during text generation: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
