@@ -4,7 +4,6 @@ weaviate-client
 python-dotenv
 fastapi
 uvicorn
-fastapi
 uvicorn[standard]
 httpx
 beautifulsoup4
