@@ -5,6 +5,7 @@ on:
     paths:
       - 'client/**'
   pull_request:
+    branches: [main]
     paths:
       - 'client/**'
   workflow_dispatch:
@@ -40,7 +41,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (optional, but recommended)
+      - name: Lint code
         run: npm run lint
         continue-on-error: true
 
