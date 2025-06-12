@@ -99,14 +99,6 @@ services:
     restart: unless-stopped
     ports:
       - "${VITE_PORT}:3000"
-    env_file:
-      - .env
-    environment:
-      VITE_APP_NAME: ${VITE_APP_NAME}
-      VITE_APP_VERSION: ${VITE_APP_VERSION}
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-      VITE_API_VERSION: ${VITE_API_VERSION}
-      DOCKERIZED: 1
     depends_on:
       user-service:
         condition: service_healthy
