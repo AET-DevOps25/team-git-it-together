@@ -38,7 +38,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVES: ${SPRING_PROFILES_ACTIVES}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
@@ -60,7 +60,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_USER: ${SERVER_PORT_USER}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
       MONGODB_USERNAME: ${MONGODB_USERNAME}
