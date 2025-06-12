@@ -1,5 +1,44 @@
+##### Node/Vite/React/Java common ignore patterns
+
+# Dependency and build folders
 node_modules
 dist
+build
+target
+out
+.tmp
+tmp
+
+# IDE/editor folders
+.idea
+.vscode
+
+# Git and version control
 .git
 .gitignore
+
+# Logs and OS files
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Env files (never copy secrets!)
+.env
+.env.*
+
+# Test/coverage output
+coverage
+*.test.*
+
+# Docker-specific
+docker-compose.override.yml
+
+# Misc
+*.swp
+*.swo
+
+### OS files
+.DS_Store
+Thumbs.db

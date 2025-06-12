@@ -1,0 +1,37 @@
+server:
+  port: 8081
+  address: "0.0.0.0"
+
+spring:
+  application:
+    name: SkillForge-user-service
+  profiles:
+    active: ${SPRING_PROFILE_ACTIVE}
+  web:
+    resources:
+      add-mappings: false
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /docs/api
+  swagger-ui:
+    enabled: true
+    path: /docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,openapi,swagger-ui
+
+jwt:
+  secret: ${JWT_SECRET}
+  expirationMs: ${JWT_EXPIRATION_MS}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: INFO
+    org.mongodb.driver: WARN

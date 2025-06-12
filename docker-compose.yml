@@ -16,33 +16,52 @@ services:
       - mongo-data:/data/db
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" > /dev/null 2>&1"]
-      interval: 30s
+      interval: 360s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 20s
     logging:
       driver: "none"
     networks:
       - app-network
 
   # ─── Spring Boot Server ──────────────────────────────
-  server:
+  server-gateway:
     build:
-      context: ./server
+      context: ./server/skillforge-gateway
       dockerfile: Dockerfile
-      args:
-        SERVER_APP_NAME: ${SERVER_APP_NAME}
-    image: ${SERVER_CONTAINER_NAME}:latest
-    container_name: ${SERVER_CONTAINER_NAME}
+    image: ${SERVER_CONTAINER_NAME}-gateway:latest
+    container_name: ${SERVER_CONTAINER_NAME}-gateway
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT}:${SERVER_PORT}"
+      - "${SERVER_PORT_GATEWAY}:${SERVER_PORT_GATEWAY}"
     env_file:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      SERVER_PORT: ${SERVER_PORT}
-      SERVER_APP_NAME: ${SERVER_APP_NAME}
+      SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
+      interval: 360s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - app-network
+  user-service:
+    build:
+      context: ./server/skillforge-user
+      dockerfile: Dockerfile
+    image: ${SERVER_CONTAINER_NAME}-user:latest
+    container_name: ${SERVER_CONTAINER_NAME}-user
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT_USER}:${SERVER_PORT_USER}"
+    env_file:
+      - .env
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SERVER_PORT_USER: ${SERVER_PORT_USER}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
       MONGODB_USERNAME: ${MONGODB_USERNAME}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
@@ -50,11 +69,13 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
     depends_on:
+      server-gateway:
+        condition: service_healthy
       mongo:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT}/actuator/health || exit 1"]
-      interval: 30s
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_USER}/actuator/health || exit 1"]
+      interval: 60s
       timeout: 10s
       retries: 3
       start_period: 40s
@@ -86,9 +107,8 @@ services:
       VITE_API_BASE_URL: ${VITE_API_BASE_URL}
       VITE_API_VERSION: ${VITE_API_VERSION}
       DOCKERIZED: 1
-
     depends_on:
-      server:
+      user-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:3000 || exit 1"]
@@ -101,7 +121,7 @@ services:
   
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
-      container_name: ${WEAVIATE_HOST}
+      container_name: ${WEAVIATE_CONTAINER_NAME}
       restart: on-failure:0
       command:
         - --host

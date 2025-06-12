@@ -1,0 +1,28 @@
+server:
+  port: 8080
+  address: "0.0.0.0"
+
+spring:
+  application:
+    name: SkillForge-gateway
+  profiles:
+    active: ${SPRING_PROFILE_ACTIVE}
+  cloud:
+    gateway:
+      server:
+        webflux:
+          default-filters:
+            - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web: WARN
