@@ -7,10 +7,6 @@ on:
   pull_request:
     paths:
       - 'client/**'
-  workflow_run:
-    workflows: ["Build and Test Server"]
-    types:
-        - completed
   workflow_dispatch:
 
 permissions:
@@ -50,17 +46,23 @@ jobs:
 
       - name: Run tests if test files exist (.test.* or in __tests__ directories)
         run: |
-          # Find .test.* files or anything inside __tests__ folders
-          test_files=$(find src test -type f \( -name "*.test.js" -o -name "*.test.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" -o -path "*/__tests__/*" \))
+          # Only look in directories that exist to avoid find errors
+          paths=""
+          [ -d src ] && paths="$paths src"
+          [ -d test ] && paths="$paths test"
 
-          if [ -n "$test_files" ]; then
-            echo "Test files found:"
-            echo "$test_files"
-            npm run test
+          if [ -n "$paths" ]; then
+            test_files=$(find $paths -type f \( -name "*.test.js" -o -name "*.test.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" -o -path "*/__tests__/*" \) 2>/dev/null)
+            if [ -n "$test_files" ]; then
+              echo "Test files found:"
+              echo "$test_files"
+              npm run test
+            else
+              echo "No test files found (no *.test.* or __tests__/*). Skipping tests."
+            fi
           else
-            echo "No test files found (no *.test.* or __tests__/*). Skipping tests."
+            echo "No test or src directories found, skipping tests."
           fi
-
 
       - name: Build client
         run: npm run build
