@@ -38,7 +38,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_PROFILES_ACTIVES: ${SPRING_PROFILES_ACTIVES}
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
