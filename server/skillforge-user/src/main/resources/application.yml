@@ -6,7 +6,7 @@ spring:
   application:
     name: SkillForge-user-service
   profiles:
-    active: ${SPRING_PROFILE_ACTIVES:dev}
+    active: ${SPRING_PROFILE_ACTIVES:test}
   web:
     resources:
       add-mappings: false
