@@ -1,0 +1,50 @@
+name: Build and Test Server
+
+on:
+  push:
+    paths:
+      - 'server/skillforge-gateway/**'
+      - 'server/skillforge-user/**'
+  pull_request:
+    paths:
+      - 'server/skillforge-gateway/**'
+      - 'server/skillforge-user/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-gateway:
+    name: Build & Test Gateway
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/skillforge-gateway
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build and test
+        run: ./gradlew build --no-daemon
+
+  test-user-service:
+    name: Build & Test User Service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/skillforge-user
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'gradle'
+      - name: Build and test
+        run: ./gradlew build --no-daemon
