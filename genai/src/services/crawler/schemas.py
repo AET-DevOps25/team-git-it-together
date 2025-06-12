@@ -1,4 +1,3 @@
-# genai/src/services/crawler/schemas.py
 from pydantic import BaseModel, HttpUrl
 
 class CrawlRequest(BaseModel):

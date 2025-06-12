@@ -1,12 +1,15 @@
-# genai/src/services/crawler/crawler_service.py
 import httpx
 from bs4 import BeautifulSoup
 import hashlib
 import os
 import json
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Define a cache directory to store results
-CACHE_DIR = "tmp/crawled_pages"
+CACHE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "tmp/crawled_pages"))
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 def get_crawled_page(url: str) -> dict | None:
@@ -23,7 +26,16 @@ def fetch_and_clean_page(url: str) -> dict:
     try:
         headers = {'User-Agent': 'SkillForgeBot/1.0'}
         response = httpx.get(url, timeout=10.0, follow_redirects=True, headers=headers)
-        response.raise_for_status() # Raise exception for 4xx/5xx errors
+        try:
+            response.raise_for_status() # Raise exception for 4xx/5xx errors
+        except httpx.HTTPStatusError as e:
+            logging.error(f"HTTP error while fetching URL {url}: {e.response.status_code} - {e.response.text}")
+            # Re-raise with the specific status code to be handled by FastAPI
+            raise httpx.HTTPStatusError(
+                f"Client error '{e.response.status_code} {e.response.reason_phrase}' for url '{url}'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/{e.response.status_code}",
+                request=e.request,
+                response=e.response
+            )
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -45,5 +57,5 @@ def fetch_and_clean_page(url: str) -> dict:
         return result
 
     except httpx.RequestError as e:
-        print(f"Error fetching URL {url}: {e}")
+        logging.error(f"Error fetching URL {url}: {e}")
         raise  # Re-raise the exception to be handled by FastAPI
