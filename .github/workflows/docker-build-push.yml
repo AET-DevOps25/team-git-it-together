@@ -1,0 +1,93 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions: write-all
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - id: client
+            path: client
+            image: client
+            build-args: |
+              VITE_APP_NAME=SkillForge.ai
+              VITE_APP_VERSION=1.0-alpha
+              VITE_API_BASE_URL=/api/
+              VITE_API_VERSION=v1
+              BUILD_MODE=production
+              DOCKERIZED=1
+          - id: server-gateway
+            path: server/skillforge-gateway
+            image: server-gateway
+            build-args: ""
+          - id: user-service
+            path: server/skillforge-user
+            image: user-service
+            build-args: ""
+          - id: genai
+            path: genai
+            image: genai
+            build-args: ""
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract version from last tag
+        id: extract_version
+        run: |
+          git fetch --tags
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0-alpha")
+          echo "Last tag: $LAST_TAG"
+          echo "version=${LAST_TAG}" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.path }}
+          file: ${{ matrix.path }}/Dockerfile
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:${{ env.IMAGE_TAG }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}-cache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}-cache,mode=max
+          build-args: |
+            ${{ matrix.build-args }}
+            VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
+
+
+      - name: Clean up dangling images
+        run: |
+          docker image prune -f
+          docker builder prune -f
+          docker system prune -f
+        continue-on-error: true
+
+      - name: Output image URL
+        run: |
+          echo "Image URL: ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ matrix.image }}:${{ env.IMAGE_TAG }}"
