@@ -388,3 +388,4 @@ sketch
 # GenAI Service Cache and Logs
 genai/tmp/
 genai/crawled_content.log
+genai/.env

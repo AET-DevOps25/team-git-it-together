@@ -1,8 +1,10 @@
-langchain
-openai
-weaviate-client
-python-dotenv
 fastapi
 uvicorn
+fastapi
+uvicorn[standard]
 httpx
 beautifulsoup4
+weaviate-client<4.0.0
+langchain
+langchain-openai
+tiktoken
