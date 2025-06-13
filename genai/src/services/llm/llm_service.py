@@ -1,6 +1,7 @@
 # genai/src/services/llm/llm_service.py
 
 import os
+import logging
 from langchain_openai import ChatOpenAI
 from langchain_community.llms import FakeListLLM
 from langchain_core.language_models.base import BaseLanguageModel
@@ -11,7 +12,7 @@ def llm_factory() -> BaseLanguageModel:
     specified in the environment variables.
     """
     provider = os.getenv("LLM_PROVIDER", "dummy").lower()
-    print(f"--- Creating LLM for provider: {provider} ---")
+    logging.info(f"--- Creating LLM for provider: {provider} ---")
 
     if provider == "openai":
         if not os.getenv("OPENAI_API_KEY"):
