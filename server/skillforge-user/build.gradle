@@ -42,9 +42,14 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.20.1'
 }
 
 def appName = System.getenv("APP_NAME") ?: project.findProperty("appName") ?: "skill-forge-server"
+
+test {
+    jvmArgs "-javaagent:${configurations.testRuntimeClasspath.find { it.name.contains('mockito-core') }}", '-Xshare:off'
+}
 
 bootJar {
     archiveFileName = "${appName}.jar"

@@ -6,7 +6,7 @@ spring:
   application:
     name: SkillForge-gateway
   profiles:
-    active: ${SPRING_PROFILE_ACTIVE}
+    active: ${SPRING_PROFILE_ACTIVES:test}
   cloud:
     gateway:
       server:

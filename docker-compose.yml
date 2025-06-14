@@ -38,7 +38,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
@@ -60,7 +60,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_USER: ${SERVER_PORT_USER}
       MONGODB_DATABASE: ${MONGODB_DATABASE}
       MONGODB_USERNAME: ${MONGODB_USERNAME}
@@ -99,14 +99,6 @@ services:
     restart: unless-stopped
     ports:
       - "${VITE_PORT}:3000"
-    env_file:
-      - .env
-    environment:
-      VITE_APP_NAME: ${VITE_APP_NAME}
-      VITE_APP_VERSION: ${VITE_APP_VERSION}
-      VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-      VITE_API_VERSION: ${VITE_API_VERSION}
-      DOCKERIZED: 1
     depends_on:
       user-service:
         condition: service_healthy
