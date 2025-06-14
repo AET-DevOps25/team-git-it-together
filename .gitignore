@@ -384,3 +384,8 @@ sketch
 # gitignore template for Vue.js projects
 #
 # Recommended template: Node.gitignore
+
+# GenAI Service Cache and Logs
+genai/tmp/
+genai/crawled_content.log
+genai/.env
