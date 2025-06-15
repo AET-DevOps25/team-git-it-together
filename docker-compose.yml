@@ -147,22 +147,37 @@ services:
     build:
       context: ./genai
       dockerfile: Dockerfile
+      args:
+        GENAI_APP_NAME: ${GENAI_APP_NAME}
+        GENAI_APP_VERSION: ${GENAI_APP_VERSION}
+        GENAI_PORT: ${GENAI_PORT}
     image: ${GENAI_CONTAINER_NAME}:latest
     container_name: ${GENAI_CONTAINER_NAME}
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      - WEAVIATE_HOST=${WEAVIATE_HOST}
-      - WEAVIATE_HTTP_PORT=8080
-      - WEAVIATE_GRPC_PORT=50051
-      - GEMAI_PORT=${GEMAI_PORT}
-      - GEMAI_APP_NAME=${GEMAI_APP_NAME}
+      WEAVIATE_HOST: ${WEAVIATE_HOST}
+      WEAVIATE_HTTP_PORT: 8080
+      WEAVIATE_GRPC_PORT: 50051
+      GENAI_PORT: ${GENAI_PORT}
+      GENAI_APP_NAME: ${GENAI_APP_NAME}
+      GENAI_APP_VERSION: ${GENAI_APP_VERSION}
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
     ports:
-      - "${GENAI_PORT:-8082}:${GENAI_PORT:-8082}"
+      - "${GENAI_PORT}:${GENAI_PORT}"
     depends_on:
       weaviate-db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT}/ping || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - app-network
 
