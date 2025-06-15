@@ -115,3 +115,9 @@ docker-compose.yaml
 venv/
 ENV/
 env/
+
+# ignore cache directories
+.cache/
+cache/
+.tmp/
+tmp/
