@@ -18,7 +18,7 @@ def get_weaviate_client() -> weaviate.Client:
     return weaviate.Client(url=weaviate_url)
 
 def ensure_schema_exists(client: weaviate.Client):
-    """Checks if the DocumentChunk class exists in Weaviate and creates it if not."""
+    """Checks if the DocumentChunk class exists in Weaviate and creates it if not (idempotent)."""
     logger.info("Ensuring Weaviate schema exists...")
     document_class_schema = {
         "class": DOCUMENT_CLASS_NAME,
@@ -29,11 +29,17 @@ def ensure_schema_exists(client: weaviate.Client):
             {"name": "source_url", "dataType": ["string"]},
         ],
     }
-    
-    # Use the v3 client's schema methods
-    if not client.schema.exists(DOCUMENT_CLASS_NAME):
-        print(f"Schema '{DOCUMENT_CLASS_NAME}' not found. Creating it...")
-        client.schema.create_class(document_class_schema)
-        print("Schema created successfully.")
-    else:
-        print(f"Schema '{DOCUMENT_CLASS_NAME}' already exists.")
+    try:
+        if not client.schema.exists(DOCUMENT_CLASS_NAME):
+            logger.info(f"Schema '{DOCUMENT_CLASS_NAME}' not found. Creating it...")
+            client.schema.create_class(document_class_schema)
+            logger.info("Schema created successfully.")
+        else:
+            logger.info(f"Schema '{DOCUMENT_CLASS_NAME}' already exists.")
+    except Exception as exc:
+        msg = str(getattr(exc, "error", exc))
+        if "class already exists" in msg or "TYPE_ADD_CLASS" in msg:
+            logger.info(f"Schema '{DOCUMENT_CLASS_NAME}' already exists (caught on creation attempt).")
+        else:
+            logger.error(f"Unexpected error while ensuring schema: {exc}")
+            raise

@@ -20,11 +20,7 @@ def test_weaviate_connection():
     client = weaviate.Client(url=weaviate_url)
 
     try:
-        time.sleep(5)  # allow Weaviate to finish startup
-        # Fetch metadata
-        meta = client.get_meta()
-        logger.info("Weaviate meta:\n %s", json.dumps(meta, indent=2))
-
+        time.sleep(3)  # allow Weaviate to finish startup
         # Readiness check
         if client.is_ready():
             logger.info("✅ Weaviate is fully ready")
