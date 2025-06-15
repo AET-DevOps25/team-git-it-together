@@ -39,7 +39,7 @@ ENV GENAI_APP_VERSION=${GENAI_APP_VERSION}
 EXPOSE ${GENAI_PORT}
 
 # Copy Python dependencies from builder
-COPY --from=builder /build /home/appuser/app
+COPY --from=builder --chown=appuser /build /home/appuser/app
 COPY --from=builder /root/.local /home/appuser/.local
 
 # Ensure user local bin is in path
