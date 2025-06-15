@@ -52,8 +52,12 @@ jobs:
             path: genai
             image: genai
             name: Build and Push GenAI
-            build-args: ""
-
+            build-args: |
+              GENAI_APP_NAME=SkillForge GenAI
+              GENAI_APP_VERSION=1.0-alpha
+              GENAI_PORT=8888
+              UVICORN_WORKERS=2
+              CORS_ALLOW_ORIGINS=*
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
