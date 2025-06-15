@@ -151,6 +151,8 @@ services:
         GENAI_APP_NAME: ${GENAI_APP_NAME}
         GENAI_APP_VERSION: ${GENAI_APP_VERSION}
         GENAI_PORT: ${GENAI_PORT}
+        UVICORN_WORKERS: ${UVICORN_WORKERS}
+        CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS}
     image: ${GENAI_CONTAINER_NAME}:latest
     container_name: ${GENAI_CONTAINER_NAME}
     restart: unless-stopped
