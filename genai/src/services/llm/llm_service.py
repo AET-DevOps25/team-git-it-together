@@ -1,5 +1,3 @@
-# genai/src/services/llm/llm_service.py
-
 import os
 import logging
 from langchain_openai import ChatOpenAI
@@ -10,41 +8,49 @@ def llm_factory() -> BaseLanguageModel:
     """
     Factory function to create and return an LLM instance based on the provider
     specified in the environment variables.
+    Supports OpenAI, OpenAI-compatible (local/llmstudio), and dummy models.
     """
     provider = os.getenv("LLM_PROVIDER", "dummy").lower()
     logging.info(f"--- Creating LLM for provider: {provider} ---")
 
-    if provider == "openai":
-        if not os.getenv("OPENAI_API_KEY"):
-            raise ValueError("OPENAI_API_KEY is not set for the 'openai' provider.")
-        # Returns a high-quality chat model from OpenAI
-        return ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+    if provider in ("openai", "llmstudio", "local"):
+        # Get API base and key from env
+        openai_api_key = os.getenv("OPENAI_API_KEY", "sk-xxx-dummy-key")
+        openai_api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
+
+        model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        return ChatOpenAI(
+            model=model,
+            temperature=0.7,
+            openai_api_key=openai_api_key,
+            openai_api_base=openai_api_base
+        )
     
     elif provider == "dummy":
-        # This is a fake LLM for testing. It will cycle through these responses.
         responses = [
             "The first summary from the dummy LLM is about procedural languages.",
             "The second summary is about object-oriented programming.",
             "This is a fallback response.",
         ]
         return FakeListLLM(responses=responses)
-    
-    # In the future, you could add other providers like 'ollama' here
-    # elif provider == "ollama":
-    #     return ChatOllama(model="llama3")
 
     else:
-        raise ValueError(f"Unsupported LLM provider: {provider}")
+        raise ValueError(f"Currently Unsupported LLM provider: {provider}")
+
+LLM_SINGLETON = llm_factory()
 
 def generate_text(prompt: str) -> str:
     """
     Generates a text completion for a given prompt using the configured LLM.
     """
     # 1. Get the correct LLM instance from our factory
-    llm = llm_factory()
+    llm = LLM_SINGLETON
+
+    # if we using local LLM, we need to append "/no_think" in case the model is a thinking model
+    if os.getenv("LLM_PROVIDER", "dummy").lower() == "llmstudio" and hasattr(llm, 'model_name'):
+            prompt += "/no_think"
     
     # 2. Invoke the LLM with the prompt
-    #    (The .invoke() method is standard across all LangChain models)
     response = llm.invoke(prompt)
 
     # 3. The response object's structure can vary slightly by model.
