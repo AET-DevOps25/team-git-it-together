@@ -1,0 +1,11 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  data:
+    mongodb:
+      database: test-db
+
+jwt:
+  secret: test-secret
+  expirationMs: 3600000

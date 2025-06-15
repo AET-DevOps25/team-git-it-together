@@ -1,24 +1,49 @@
-FROM python:3.12-slim
+# --- Stage 1: Builder ---
+FROM python:3.12-slim AS builder
 
-# Create and switch to a non-root user
+# Install build tools
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build
+
+# Install dependencies into a local dir
+COPY requirements.txt ./
+RUN pip install --upgrade pip && pip install --user --no-cache-dir -r requirements.txt
+
+# Copy app code (but not user)
+COPY . .
+
+# --- Stage 2: Final runtime image ---
+FROM python:3.12-slim AS runtime
+
+# For healthcheck
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+
+# Non-root user
 RUN useradd --create-home appuser
 USER appuser
-
 WORKDIR /home/appuser/app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Build-time config
+ARG GENAI_PORT=8888
+ARG GENAI_APP_NAME=skill-forge-genai-dev
+ARG GENAI_APP_VERSION=0.0.1
 
-# Copy source
-COPY --chown=appuser:appuser . .
+# Runtime config
+ENV GENAI_PORT=${GENAI_PORT}
+ENV GENAI_APP_NAME=${GENAI_APP_NAME}
+ENV GENAI_APP_VERSION=${GENAI_APP_VERSION}
 
-# Expose port (make sure your app reads $PORT)
-ENV PORT=8082
-EXPOSE ${PORT}
+EXPOSE ${GENAI_PORT}
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT}/health || exit 1
+# Copy Python dependencies from builder
+COPY --from=builder --chown=appuser /build /home/appuser/app
+COPY --from=builder /root/.local /home/appuser/.local
 
-ENTRYPOINT ["python", "src/main.py"]
+# Ensure user local bin is in path
+ENV PATH=/home/appuser/.local/bin:$PATH
+
+
+ENTRYPOINT ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${GENAI_PORT}"]

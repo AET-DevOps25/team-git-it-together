@@ -1,0 +1,118 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'server/skillforge-gateway/**'
+      - 'server/skillforge-user/**'
+      - 'genai/**'
+  workflow_dispatch:
+  workflow_call:
+
+permissions: 
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - id: client
+            path: client
+            image: client
+            name: Build and Push Client
+            build-args: |
+              VITE_APP_NAME=SkillForge.ai
+              VITE_APP_VERSION=1.0-alpha
+              VITE_API_BASE_URL=/api/
+              VITE_API_VERSION=v1
+              BUILD_MODE=production
+              DOCKERIZED=1
+          - id: server-gateway
+            path: server/skillforge-gateway
+            image: server-gateway
+            name: Build and Push Server Gateway
+            build-args: ""
+          - id: user-service
+            path: server/skillforge-user
+            image: user-service
+            name: Build and Push User Service
+            build-args: ""
+          - id: genai
+            path: genai
+            image: genai
+            name: Build and Push GenAI
+            build-args: |
+              GENAI_APP_NAME=SkillForge GenAI
+              GENAI_APP_VERSION=1.0-alpha
+              GENAI_PORT=8888
+              UVICORN_WORKERS=2
+              CORS_ALLOW_ORIGINS=*
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Set image tag
+        id: set_tag
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            echo "tag=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Extract version from last tag
+        id: extract_version
+        run: |
+          git fetch --tags
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0-alpha")
+          echo "Last tag: $LAST_TAG"
+          echo "version=${LAST_TAG}" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.path }}
+          file: ${{ matrix.path }}/Dockerfile
+          push: true
+          tags: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}
+          cache-from: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache
+          cache-to: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache,mode=max
+          build-args: |
+            ${{ matrix.build-args }}
+            VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
+
+
+      - name: Clean up dangling images
+        run: |
+          docker image prune -f
+          docker builder prune -f
+          docker system prune -f
+        continue-on-error: true
+
+      - name: Output image URL
+        run: |
+          echo "Image URL: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}"

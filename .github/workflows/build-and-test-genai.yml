@@ -1,0 +1,69 @@
+name: Build, Lint & Test the GenAI Service
+
+on:
+  push:
+    paths:
+      - 'genai/**'
+  pull_request:
+    paths:
+      - 'genai/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-lint-test-genai:
+    name: Build, Lint & Test GenAI Service
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('genai/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r genai/requirements.txt
+
+      - name: Lint code with flake8
+        run: |
+          pip install flake8
+          flake8 genai/src --count --select=E9,F63,F7,F82 --show-source --statistics
+        continue-on-error: true
+
+      - name: Run tests if test files exist
+        run: |
+          if ls genai/tests/*.py 1> /dev/null 2>&1; then
+            echo "Found test files. Running tests..."
+            pip install pytest
+            pytest genai/tests
+          else
+            echo "No test files found. Skipping tests."
+          fi
+
+      - name: Verify main entrypoint exists
+        run: |
+          if [ -f "genai/src/main.py" ]; then
+            echo "main.py exists."
+          else
+            echo "genai/src/main.py does not exist! Build failed."
+            exit 1
+          fi
