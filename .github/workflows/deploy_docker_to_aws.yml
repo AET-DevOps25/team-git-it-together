@@ -1,12 +1,11 @@
 name: Deploy Docker Images
 
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
   workflow_dispatch:
-  workflow_call:
+    inputs:
+      EC2_PUBLIC_IP:
+        description: 'Public IP of the AWS EC2 instance'
+        required: true
 
 permissions:
   contents: read
@@ -18,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: AWS
-      url: 'https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io'
+      url: 'https://client.${{ inputs.EC2_PUBLIC_IP }}.nip.io'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -26,15 +25,15 @@ jobs:
       - name: Test EC2 connectivity
         run: |
           set -e
-          echo "Testing connectivity to EC2 instance: ${{ vars.EC2_PUBLIC_IP }}"
-          ping -c 3 ${{ vars.EC2_PUBLIC_IP }}
-          nc -zv ${{ vars.EC2_PUBLIC_IP }} 22
+          echo "Testing connectivity to EC2 instance: ${{ inputs.EC2_PUBLIC_IP }}"
+          ping -c 3 ${{ inputs.EC2_PUBLIC_IP }}
+          nc -zv ${{ inputs.EC2_PUBLIC_IP }} 22
           echo "Connectivity test successful."
 
       - name: Copy Docker Compose File From Repo to VM Host
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
+          host: ${{ inputs.EC2_PUBLIC_IP }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           source: "./docker-compose.prod.yml"
