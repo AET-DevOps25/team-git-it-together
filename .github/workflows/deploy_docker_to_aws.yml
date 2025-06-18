@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       EC2_PUBLIC_IP:
-        description: 'Public IP of the AWS EC2 instance'
+        description: 'Provide the public IP of the EC2 instance'
+        default: ${{ vars.EC2_PUBLIC_IP }}
         required: true
 
 permissions:
