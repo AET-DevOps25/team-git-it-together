@@ -1,0 +1,150 @@
+name: Deploy Docker Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'server/skillforge-gateway/**'
+      - 'server/skillforge-user/**'
+      - 'genai/**'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: AWS
+      url: 'https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Test EC2 connectivity
+        run: |
+          set -e
+          echo "Testing connectivity to EC2 instance: ${{ vars.EC2_PUBLIC_IP }}"
+          ping -c 3 ${{ vars.EC2_PUBLIC_IP }}
+          nc -zv ${{ vars.EC2_PUBLIC_IP }} 22
+          echo "Connectivity test successful."
+
+      - name: Copy Docker Compose File From Repo to VM Host
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          source: "./docker-compose.prod.yml"
+          target: /home/${{ vars.AWS_EC2_USER }}
+
+      - name: Log copy success
+        run: |
+          echo "Docker Compose file copied to VM host at /home/${{ vars.AWS_EC2_USER }}/docker-compose.prod.yml"
+
+      
+      - name: Get latest tag (or use 1.0-alpha as fallback)
+        id: get_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0-alpha")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag is: $TAG"
+
+      - name: Prepare Environment File
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/${{ vars.AWS_EC2_USER }}
+            rm -f .env.prod
+            cat <<EOF > .env.prod
+            MONGODB_CONTAINER_NAME=skill-forge-mongo-db
+            CLIENT_CONTAINER_NAME=skill-forge-client
+            SERVER_CONTAINER_NAME=skill-forge-server
+            GENAI_CONTAINER_NAME=skill-forge-genai
+            WEAVIATE_CONTAINER_NAME=skill-forge-weaviate
+
+            MONGODB_EXPOSED_PORT=27018
+            MONGODB_DATABASE=${{ vars.MONGODB_DATABASE }}
+            MONGODB_USERNAME=${{ secrets.MONGODB_USERNAME }}
+            MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}
+
+            SPRING_PROFILE_ACTIVES=docker
+            SERVER_PORT_GATEWAY=8081
+            SERVER_PORT_USER=8082
+            SERVER_PORT_COURSES=8083
+            
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION_MS=${{ vars.JWT_EXPIRATION_MS }}
+
+            VITE_PORT=3000
+            VITE_APP_NAME=SkillForge.ai
+            VITE_APP_VERSION=${{ steps.get_tag.outputs.tag }}
+            VITE_API_BASE_URL=/api/
+            VITE_API_VERSION=v1
+            BUILD_MODE=production
+
+            WEAVIATE_HOST=weaviate-db
+            WEAVIATE_EXPOSED_HTTP_PORT=1234
+            WEAVIATE_EXPOSED_GRPC_PORT=50051
+
+            GENAI_APP_NAME=skill-forge-genai
+            GENAI_APP_VERSION=${{ steps.get_tag.outputs.tag }}
+            GENAI_PORT=8888
+            CORS_ALLOW_ORIGINS=*
+            IS_DEV_MODE=0
+            UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}
+            LLM_PROVIDER=${{ vars.LLM_PROVIDER }}
+            OPENAI_API_BASE=${{ vars.OPENAI_API_BASE }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            OPENAI_MODEL=${{ vars.OPENAI_MODEL }}
+
+            CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io
+            SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io
+            PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api
+            EOF
+            chmod 600 .env.prod
+            echo ".env.prod file created."
+
+      - name: SSH to VM and Execute Docker-Compose Up
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/${{ vars.AWS_EC2_USER }}
+            echo " >>> Logging into Docker registry..."
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo " >>> Starting Docker Compose..."
+            if ! docker compose -f docker-compose.prod.yml --env-file .env.prod up --pull=always -d; then
+              echo "❌ Docker Compose failed. Showing service status:"
+              docker compose -f docker-compose.prod.yml ps
+              echo "-----------------------------------------"
+              echo "------------ Recent logs ----------------"
+              docker compose -f docker-compose.prod.yml logs --tail=40
+              exit 1
+            fi
+      
+      - name: SSH to VM and Clean Up Old Docker Images and Volumes
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd /home/${{ vars.AWS_EC2_USER }}
+            echo "Pruning unused Docker images and volumes..."
+            docker image prune -af
+            docker volume prune -f
+            docker system prune -af
+            echo "Cleanup complete."
