@@ -1,4 +1,30 @@
 services:
+  reverse-proxy:
+      image: traefik:v3.4
+      container_name: traefik
+      restart: unless-stopped
+      command:
+        - "--providers.docker=true"
+        - "--providers.docker.exposedByDefault=false"
+        - "--entrypoints.web.address=:80"
+        - "--entrypoints.websecure.address=:443"
+        - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+        - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+        - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+        - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+        - "--certificatesresolvers.letsencrypt.acme.email=admin@tum.de"
+        - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+        # For local test add:
+        # - "--api.dashboard=true"
+        # - "--api.insecure=true"
+      ports:
+        - "80:80"
+        - "443:443"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - ./letsencrypt:/letsencrypt
+      networks:
+        - app-network
   # ─── MongoDB ──────────────────────────────────────
   mongo:
     image: mongo:7.0
@@ -7,7 +33,7 @@ services:
     ports:
       - "${MONGODB_EXPOSED_PORT}:27017"
     env_file:
-      - .env
+      - .env.prod
     environment:
       MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
@@ -16,9 +42,9 @@ services:
       - mongo-data:/data/db
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" > /dev/null 2>&1"]
-      interval: 360s
+      interval: 600s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 20s
     logging:
       driver: "none"
@@ -27,38 +53,38 @@ services:
 
   # ─── Spring Boot Server ──────────────────────────────
   server-gateway:
-    build:
-      context: ./server/skillforge-gateway
-      dockerfile: Dockerfile
-    image: ${SERVER_CONTAINER_NAME}-gateway:latest
+    image: ghcr.io/aet-devops25/team-git-it-together/server-gateway:latest
     container_name: ${SERVER_CONTAINER_NAME}-gateway
     restart: unless-stopped
     ports:
       - "${SERVER_PORT_GATEWAY}:${SERVER_PORT_GATEWAY}"
     env_file:
-      - .env
+      - .env.prod
     environment:
       SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
-      interval: 360s
+      interval: 600s
       timeout: 10s
       retries: 3
       start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.services.gateway.loadbalancer.server.port=${SERVER_PORT_GATEWAY}"
+      - "traefik.http.routers.gateway.entrypoints=websecure"
+      - "traefik.http.routers.gateway.tls.certresolver=letsencrypt"
     networks:
       - app-network
   user-service:
-    build:
-      context: ./server/skillforge-user
-      dockerfile: Dockerfile
-    image: ${SERVER_CONTAINER_NAME}-user:latest
+    image: ghcr.io/aet-devops25/team-git-it-together/user-service:latest
     container_name: ${SERVER_CONTAINER_NAME}-user
     restart: unless-stopped
     ports:
       - "${SERVER_PORT_USER}:${SERVER_PORT_USER}"
     env_file:
-      - .env
+      - .env.prod
     environment:
       SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
       SERVER_PORT_USER: ${SERVER_PORT_USER}
@@ -75,46 +101,48 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_USER}/actuator/health || exit 1"]
-      interval: 60s
+      interval: 600s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 30s
     networks:
       - app-network
   
   client:
-    build:
-      context: ./client
-      dockerfile: Dockerfile
-      args:
-        VITE_APP_NAME: ${VITE_APP_NAME}
-        VITE_APP_VERSION: ${VITE_APP_VERSION}
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL}
-        VITE_API_VERSION: ${VITE_API_VERSION}
-        BUILD_MODE: ${BUILD_MODE}
-        DOCKERIZED: 1
-        
-    image: ${CLIENT_CONTAINER_NAME}:latest
+    image: ghcr.io/aet-devops25/team-git-it-together/client:latest
     container_name: ${CLIENT_CONTAINER_NAME}
     restart: unless-stopped
     ports:
       - "${VITE_PORT}:3000"
+    env_file:
+      - .env.prod
+    environment:
+      PUBLIC_API_URL: ${PUBLIC_API_URL}
     depends_on:
       user-service:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:3000 || exit 1"]
-      interval: 30s
+      interval: 600s
       timeout: 10s
       retries: 3
       start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST}`)"
+      - "traefik.http.services.client.loadbalancer.server.port=${VITE_PORT}"
+      - "traefik.http.routers.client.entrypoints=websecure"
+      - "traefik.http.routers.client.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.client-compress.compress=true"
+      - "traefik.http.routers.client.middlewares=client-compress"
+      - "traefik.http.routers.client.priority=1"
     networks:
       - app-network
   
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
       container_name: ${WEAVIATE_CONTAINER_NAME}
-      restart: unless-stopped
+      restart: on-failure
       command:
         - --host
         - 0.0.0.0
@@ -136,28 +164,19 @@ services:
         - weaviate-genai-data:/var/lib/weaviate
       healthcheck:
         test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/v1/.well-known/ready || exit 1"]
-        interval: 10s
-        timeout: 5s
-        retries: 10
-        start_period: 10s
+        interval: 600s
+        timeout: 10s
+        retries: 3
+        start_period: 50s
       networks:
         - app-network
 
   genai:
-    build:
-      context: ./genai
-      dockerfile: Dockerfile
-      args:
-        GENAI_APP_NAME: ${GENAI_APP_NAME}
-        GENAI_APP_VERSION: ${GENAI_APP_VERSION}
-        GENAI_PORT: ${GENAI_PORT}
-        UVICORN_WORKERS: ${UVICORN_WORKERS}
-        CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS}
-    image: ${GENAI_CONTAINER_NAME}:latest
+    image: ghcr.io/aet-devops25/team-git-it-together/genai:latest
     container_name: ${GENAI_CONTAINER_NAME}
     restart: unless-stopped
     env_file:
-      - .env
+      - .env.prod
     environment:
       WEAVIATE_HOST: ${WEAVIATE_HOST}
       WEAVIATE_HTTP_PORT: 8080
@@ -176,10 +195,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT}/ping || exit 1"]
-      interval: 60s
+      interval: 600s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 50s
     networks:
       - app-network
 
