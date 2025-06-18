@@ -2,17 +2,10 @@ name: Deploy Docker Images
 
 on:
   push:
-  workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
-  pull_request:
-    branches: [main]
   workflow_dispatch:
     inputs:
       EC2_PUBLIC_IP:
         description: 'Provide the public IP of the EC2 instance'
-        default: ${{ vars.EC2_PUBLIC_IP }}
         required: false
   workflow_call:
 
@@ -22,7 +15,6 @@ permissions:
 
 jobs:
   deploy:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: AWS
