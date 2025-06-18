@@ -2,6 +2,7 @@ name: Deploy Docker Images
 
 on:
   push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       EC2_PUBLIC_IP:
