@@ -70,11 +70,18 @@ services:
       retries: 3
       start_period: 30s
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.gateway.rule=Host(`${SERVER_HOST}`)"
+        # Route 1: API direct domain (api........io)
+      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.routers.gateway-api.entrypoints=websecure"
+      - "traefik.http.routers.gateway-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.gateway-api.service=gateway"
+      # Route 2: API on the client domain
+      - "traefik.http.routers.gateway-client.rule=Host(`${CLIENT_HOST}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.gateway-client.entrypoints=websecure"
+      - "traefik.http.routers.gateway-client.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.gateway-client.service=gateway"
+      # Service config:
       - "traefik.http.services.gateway.loadbalancer.server.port=${SERVER_PORT_GATEWAY}"
-      - "traefik.http.routers.gateway.entrypoints=websecure"
-      - "traefik.http.routers.gateway.tls.certresolver=letsencrypt"
     networks:
       - app-network
   user-service:
