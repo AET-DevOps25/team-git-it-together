@@ -4,10 +4,10 @@ spring:
       on-profile: dev
 user:
   service:
-    uri: http://localhost:8081
+    uri: http://localhost:8082
 course:
   service:
-    uri: http://localhost:8082
+    uri: http://localhost:8083
 
 gateway:
   cors:

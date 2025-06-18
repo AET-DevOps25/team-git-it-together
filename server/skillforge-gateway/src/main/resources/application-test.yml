@@ -4,10 +4,10 @@ spring:
       on-profile: test
 user:
   service:
-    uri: http://user-test:8081
+    uri: http://user-test:8082
 course:
   service:
-    uri: http://course-test:8082
+    uri: http://course-test:8083
 
 gateway:
   cors:
