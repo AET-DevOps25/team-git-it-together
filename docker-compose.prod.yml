@@ -142,7 +142,7 @@ services:
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
       container_name: ${WEAVIATE_CONTAINER_NAME}
-      restart: on-failure:0
+      restart: on-failure
       command:
         - --host
         - 0.0.0.0
