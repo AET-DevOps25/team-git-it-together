@@ -32,14 +32,6 @@ jobs:
 
       - name: Print selected URL
         run: echo "Will deploy to https://client.${{ steps.select_ip.outputs.ip }}.nip.io"
-      
-      - name: Test EC2 connectivity
-        run: |
-          set -e
-          echo "Testing connectivity to EC2 instance: ${{ steps.select_ip.outputs.ip }}"
-          ping -c 3 ${{ steps.select_ip.outputs.ip }}
-          nc -zv ${{ steps.select_ip.outputs.ip }} 22
-          echo "Connectivity test successful."
 
       - name: Copy Docker Compose File From Repo to VM Host
         uses: appleboy/scp-action@v0.1.7
