@@ -17,11 +17,22 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Print selected URL
-        run: echo "Will deploy to https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-
-      - name: Copy Docker Compose File From Repo to VM Host
+      - name: Test SSH, disk space & Docker registry
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.EC2_PUBLIC_IP }}
+          username: ${{ vars.AWS_EC2_USER }}
+          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          script: |
+            set -e
+            echo "Testing disk space:"
+            df -h /
+            echo "Testing Docker:"
+            docker ps
+            echo "Testing Docker registry login:"
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "All initial checks passed."
+      - name: Copy Docker Compose File From Repo to the EC2 Instance
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ vars.EC2_PUBLIC_IP }}
@@ -30,10 +41,6 @@ jobs:
           source: "./docker-compose.prod.yml"
           target: /home/${{ vars.AWS_EC2_USER }}
 
-      - name: Log copy success
-        run: |
-          echo "Docker Compose file copied to VM host at /home/${{ vars.AWS_EC2_USER }}/docker-compose.prod.yml"
-
       - name: Get latest tag (or use 1.0-alpha as fallback)
         id: get_tag
         run: |
@@ -41,7 +48,7 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Latest tag is: $TAG"
 
-      - name: Prepare Environment File
+      - name: Prepare Environment File (.env.prod)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ vars.EC2_PUBLIC_IP }}
@@ -99,9 +106,9 @@ jobs:
 
             chmod 600 .env.prod
             echo ".env.prod file created."
-      - name: SSH to VM and Execute Docker-Compose Up
+      - name: SSH to the EC2 Instance and Start Docker Compose
         uses: appleboy/ssh-action@v1.0.3
-        timeout-minutes: 20
+        timeout-minutes: 10
         with:
           host: ${{ vars.EC2_PUBLIC_IP }}
           username: ${{ vars.AWS_EC2_USER }}
@@ -120,18 +127,3 @@ jobs:
               docker compose -f docker-compose.prod.yml logs --tail=40
               exit 1
             fi
-      
-      - name: SSH to VM and Clean Up Old Docker Images and Volumes
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ vars.EC2_PUBLIC_IP }}
-          username: ${{ vars.AWS_EC2_USER }}
-          key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
-          script: |
-            set -e
-            cd /home/${{ vars.AWS_EC2_USER }}
-            echo "Pruning unused Docker images and volumes..."
-            docker image prune -af
-            docker volume prune -f
-            docker system prune -af
-            echo "Cleanup complete."
