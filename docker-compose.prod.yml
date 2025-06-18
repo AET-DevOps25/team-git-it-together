@@ -109,7 +109,7 @@ services:
       - app-network
   
   client:
-    image: ${CLIENT_CONTAINER_NAME}:latest
+    image: ghcr.io/aet-devops25/team-git-it-together/client:latest
     container_name: ${CLIENT_CONTAINER_NAME}
     restart: unless-stopped
     ports:
