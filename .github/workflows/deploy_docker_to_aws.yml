@@ -102,7 +102,7 @@ jobs:
             echo ".env.prod file created."
       - name: SSH to VM and Execute Docker-Compose Up
         uses: appleboy/ssh-action@v1.0.3
-        timeout-minutes: 10
+        timeout-minutes: 20
         with:
           host: ${{ vars.EC2_PUBLIC_IP }}
           username: ${{ vars.AWS_EC2_USER }}
