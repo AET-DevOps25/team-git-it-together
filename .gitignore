@@ -389,3 +389,5 @@ sketch
 genai/tmp/
 genai/crawled_content.log
 genai/.env
+
+.ansible/

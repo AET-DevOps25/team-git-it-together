@@ -1,3 +1,8 @@
+# This workflow performs a manual deployment of Docker images to an AWS EC2 instance
+# via SSH/SCP. It is intended for legacy/manual operations. For full automation,
+# see the automated deployment workflow (.github/workflows/auto_docker_deploy_to_aws.yml).
+
+
 name: Deploy Docker Images
 
 on:
