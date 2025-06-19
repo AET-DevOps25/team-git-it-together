@@ -11,6 +11,10 @@ on:
         description: 'AWS Secret Access Key'
         required: true
         type: string
+      AWS_SESSION_TOKEN:
+        description: 'AWS Session Token (optional, for temporary credentials)'
+        required: true
+        type: string
       AWS_REGION:
         description: 'AWS Region (e.g. us-east-1)'
         required: true
@@ -35,6 +39,7 @@ jobs:
         with:
           aws-access-key-id: ${{ github.event.inputs.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ github.event.inputs.AWS_SESSION_TOKEN }}
           aws-region: ${{ github.event.inputs.AWS_REGION }}
 
       # Terraform: Init, Plan, Apply
