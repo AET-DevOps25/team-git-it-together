@@ -1,4 +1,12 @@
 terraform {
+  backend "remote" {
+    organization = "darkLabTn"
+
+    workspaces {
+      name = "git-it-together"
+    }
+    
+  }
   required_version = ">= 1.12.1"
   required_providers {
     aws = {

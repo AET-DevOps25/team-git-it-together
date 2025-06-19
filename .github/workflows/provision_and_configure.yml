@@ -12,7 +12,12 @@ on:
         required: true
         type: string
       AWS_SESSION_TOKEN:
-        description: 'AWS Session Token (optional, for temporary credentials)'
+        description: 'AWS Session Token'
+        required: true
+        type: string
+      
+      TF_TOKEN:
+        description: 'Terraform Cloud API Token'
         required: true
         type: string
       AWS_REGION:
@@ -27,6 +32,8 @@ permissions:
 jobs:
   provision_and_configure:
     runs-on: ubuntu-latest
+    env:
+      TF_TOKEN_app_terraform_io: ${{ github.event.inputs.TF_TOKEN }}
     outputs:
       ec2_ip: ${{ steps.get_public_ip.outputs.ec2_ip }}
     steps:
