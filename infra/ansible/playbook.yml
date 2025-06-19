@@ -1,0 +1,62 @@
+---
+- name: Install Docker on Ubuntu Server
+  hosts: git_it_together
+  become: true
+  tasks:
+
+    - name: Install/Update required packages
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: true
+
+    - name: Add Docker’s official GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+        update_cache: true
+
+    - name: Install/Update Docker Engine, CLI, Buildx, Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Ensure Docker service is started and enabled
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add 'ubuntu' user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Reconnect to server for new group membership
+      ansible.builtin.meta: reset_connection
+
+    - name: Test running Docker as 'ubuntu'
+      become: false
+      ansible.builtin.command: docker version
+      register: docker_version
+      changed_when: false
+
+    - name: Show Docker version output
+      ansible.builtin.debug:
+        var: docker_version.stdout

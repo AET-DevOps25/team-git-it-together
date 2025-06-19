@@ -1,0 +1,18 @@
+inventory.ini
+*.pem
+*.key
+*.pub
+.ssh/
+.ansible/
+
+# Common system and IDE files
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
+# Python specific files
+__pycache__/
+*.py[cod]
+*$py.classs
