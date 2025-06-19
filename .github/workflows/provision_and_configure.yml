@@ -83,7 +83,7 @@ jobs:
           ansible-playbook -i inventory.ini docker-setup.yml
 
       - name: Trigger Deploy Workflow
-        uses: peter-evans/workflow-dispatch@v1
+        uses: peter-evans/repository-dispatch@v3
         with:
             workflow: "deploy_to_aws.yml"
             ref: ${{ github.ref }}
