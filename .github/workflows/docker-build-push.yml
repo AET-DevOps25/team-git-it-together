@@ -2,14 +2,14 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [main]
+    branches: [main, test]
     paths:
       - 'client/**'
       - 'server/skillforge-gateway/**'
       - 'server/skillforge-user/**'
       - 'genai/**'
   pull_request:
-    branches: [main]
+    branches: [main, test]
     paths:
       - 'client/**'
       - 'server/skillforge-gateway/**'
@@ -102,7 +102,7 @@ jobs:
         with:
           context: ${{ matrix.path }}
           file: ${{ matrix.path }}/Dockerfile
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/test' }}
           tags: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}
           cache-from: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache
           cache-to: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache,mode=max
