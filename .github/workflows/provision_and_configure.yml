@@ -78,19 +78,19 @@ jobs:
       # Write SSH key for Ansible
       - name: Write SSH key
         run: |
-          echo "${{ secrets.AWS_EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+          echo "${{ secrets.AWS_EC2_PRIVATE_KEY }}" > infra/ansible/id_rsa
+          chmod 600 infra/ansible/id_rsa
 
       # Write inventory for Ansible using the new IP
       - name: Write inventory.ini for Ansible
         run: |
           echo "[git_it_together]" > infra/ansible/inventory.ini
-          echo "${{ steps.get_public_ip.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> infra/ansible/inventory.ini
+          echo "${{ steps.get_public_ip.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=infra/ansible/id_rsa" >> infra/ansible/inventory.ini
 
       # Add host to known_hosts to avoid SSH prompts
       - name: Add EC2 to known_hosts
         run: |
-          ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> ~/.ssh/known_hosts
+         ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> infra/ansible/known_hosts
 
       # Run Ansible Playbook for server configuration
       - name: Configure EC2 with Ansible
