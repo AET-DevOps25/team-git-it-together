@@ -1,6 +1,11 @@
 name: Provision and Configure AWS
 
 on:
+  push:
+      branches:
+        - main
+      paths:
+        - 'infra/**'
   workflow_dispatch:
     inputs:
       AWS_ACCESS_KEY_ID:
@@ -16,12 +21,15 @@ on:
         required: true
         default: 'us-east-1'
         type: string
-
+permissions:
+  contents: read
+  packages: read
+  id-token: write
 jobs:
   provision_and_configure:
     runs-on: ubuntu-latest
     outputs:
-      ec2_public_ip: ${{ steps.get_public_ip.outputs.ec2_public_ip }}
+      ec2_ip: ${{ steps.get_public_ip.outputs.ec2_ip }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -48,7 +56,7 @@ jobs:
       - name: Get EC2 Public IP
         id: get_public_ip
         run: |
-          echo "ec2_public_ip=$(terraform -chdir=infra/terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+          echo "ec2_ip=$(terraform -chdir=infra/terraform output -raw public_ip)" >> $GITHUB_OUTPUT
 
       # Write SSH key for Ansible
       - name: Write SSH key
@@ -60,12 +68,12 @@ jobs:
       - name: Write inventory.ini for Ansible
         run: |
           echo "[git_it_together]" > infra/ansible/inventory.ini
-          echo "${{ steps.get_public_ip.outputs.ec2_public_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> infra/ansible/inventory.ini
+          echo "${{ steps.get_public_ip.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa" >> infra/ansible/inventory.ini
 
       # Add host to known_hosts to avoid SSH prompts
       - name: Add EC2 to known_hosts
         run: |
-          ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_public_ip }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> ~/.ssh/known_hosts
 
       # Run Ansible Playbook for server configuration
       - name: Configure EC2 with Ansible
@@ -79,5 +87,4 @@ jobs:
             workflow: "deploy_to_aws.yml"
             ref: ${{ github.ref }}
             inputs: |
-            ec2_public_ip: "${{ steps.get_public_ip.outputs.ec2_public_ip }}"
-
+              ec2_ip: "${{ steps.get_public_ip.outputs.ec2_ip }}"
