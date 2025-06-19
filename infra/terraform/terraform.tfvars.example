@@ -1,0 +1,2 @@
+key_name = "my-ssh-key"
+eip_allocation_id = "eipalloc-XXXXXXXXX"

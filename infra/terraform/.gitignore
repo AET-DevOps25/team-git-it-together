@@ -1,0 +1,21 @@
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+crash.log
+.terraform.lock.hcl
+override.tf
+override.tf.json
+terraform.tfstate
+terraform.tfstate.backup
+.terraform.tfvars
+.terraform.tfvars.json
+
+
+# Common system and IDE files
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+*~
