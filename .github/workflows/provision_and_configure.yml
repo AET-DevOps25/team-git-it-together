@@ -56,6 +56,7 @@ jobs:
       - name: Get EC2 Public IP
         id: get_public_ip
         run: |
+          echo "The EC2 has the following public IP: $(terraform -chdir=infra/terraform output -raw public_ip)"
           echo "ec2_ip=$(terraform -chdir=infra/terraform output -raw public_ip)" >> $GITHUB_OUTPUT
 
       # Write SSH key for Ansible
