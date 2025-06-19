@@ -8,6 +8,11 @@ terraform {
   }
 }
 
+# The used Elastic IP that will be associated with the EC2 instance
+data "aws_eip" "used" {
+  id = var.eip_allocation_id
+}
+
 # Configure the AWS provider and region
 provider "aws" {
   region = var.aws_region

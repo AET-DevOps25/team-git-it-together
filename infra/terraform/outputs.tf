@@ -7,5 +7,5 @@ output "public_ip" {
 }
 
 output "eip_address" {
-  value = var.eip_allocation_id
+  value = data.aws_eip.used.public_ip
 }
