@@ -1,11 +1,6 @@
 name: Provision and Configure AWS
 
 on:
-  push:
-      branches:
-        - main
-      paths:
-        - 'infra/**'
   workflow_dispatch:
     inputs:
       AWS_ACCESS_KEY_ID:
