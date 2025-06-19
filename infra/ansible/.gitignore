@@ -15,4 +15,4 @@ inventory.ini
 # Python specific files
 __pycache__/
 *.py[cod]
-*$py.classs
+*$py.class
