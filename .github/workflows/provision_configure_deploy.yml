@@ -122,6 +122,7 @@ jobs:
   deploy:
     needs: configure
     uses: ./.github/workflows/deploy_to_aws.yml
+    name: Deploy to AWS
     with:
       ec2_ip: ${{ needs.configure.outputs.ec2_ip }}
     secrets:
