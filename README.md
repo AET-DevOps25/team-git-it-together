@@ -6,8 +6,8 @@
       </a>
     </td>
     <td>
-      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_and_configure.yml">
-        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_and_configure.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
       </a>
     </td>
   </tr>
