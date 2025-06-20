@@ -6,6 +6,17 @@ on:
       ec2_ip:
         required: true
         type: string
+    secrets:
+      AWS_EC2_PRIVATE_KEY:
+        required: true
+      MONGODB_USERNAME:
+        required: true
+      MONGODB_PASSWORD:
+        required: true
+      JWT_SECRET:
+        required: true
+      OPENAI_API_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       ec2_ip:
