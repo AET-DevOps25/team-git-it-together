@@ -97,10 +97,10 @@ resource "aws_security_group" "ssh" {
 
 # EC2 Instance: Launches Ubuntu server in public subnet and attaches SSH security group
 resource "aws_instance" "ubuntu" {
-  lifecycle {
-    ignore_changes = [
-      associate_public_ip_address
-    ]
+  root_block_device {
+    volume_size = 8
+    volume_type = "gp3"
+    encrypted   = true
   }
 
   ami                         = var.ami_id
