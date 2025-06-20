@@ -10,7 +10,7 @@ terraform.tfstate
 terraform.tfstate.backup
 .terraform.tfvars
 .terraform.tfvars.json
-
+.terraformrc
 
 # Common system and IDE files
 .DS_Store
