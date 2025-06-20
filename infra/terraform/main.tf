@@ -103,9 +103,12 @@ resource "aws_instance" "ubuntu" {
   subnet_id                   = aws_subnet.main.id          # Launch in the public subnet
   vpc_security_group_ids      = [aws_security_group.ssh.id]
   associate_public_ip_address = false                       # Because we are using an Elastic IP and we will associate it later
+  monitoring = true # Enable detailed monitoring for the instance
 
   tags = {
     Name = "skill-forge-prod"
+    Environment = var.environment
+    Project = "team-git-it-together"
   }
 
 }

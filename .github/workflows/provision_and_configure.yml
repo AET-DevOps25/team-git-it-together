@@ -65,6 +65,7 @@ jobs:
         run: |
           echo 'key_name = "vockey"' > infra/terraform/terraform.tfvars
           echo 'eip_allocation_id = "eipalloc-09c9c194eb27783aa"' >> infra/terraform/terraform.tfvars
+          echo 'environment = "prod"' >> infra/terraform/terraform.tfvars
 
       - name: Terraform Init
         run: terraform -chdir=infra/terraform init

@@ -22,3 +22,8 @@ variable "eip_allocation_id" {
   description = "The allocation ID of an existing Elastic IP"
   type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment (e.g., dev, prod)"
+  type        = string
+}
