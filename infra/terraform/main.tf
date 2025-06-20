@@ -39,7 +39,7 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "main" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.1.0/24" # This subnet has IPs from 10.0.1.0 to 10.0.1.255.
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
 
   tags = { Name = "git-it-together-main-subnet" }
 }
@@ -97,6 +97,12 @@ resource "aws_security_group" "ssh" {
 
 # EC2 Instance: Launches Ubuntu server in public subnet and attaches SSH security group
 resource "aws_instance" "ubuntu" {
+  lifecycle {
+    ignore_changes = [
+      associate_public_ip_address
+    ]
+  }
+
   ami                         = var.ami_id
   instance_type               = var.instance_type
   key_name                    = var.key_name
