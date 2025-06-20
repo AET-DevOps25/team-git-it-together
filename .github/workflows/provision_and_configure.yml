@@ -99,7 +99,7 @@ jobs:
       - name: Add EC2 to known_hosts (with retries)
         run: |
           for i in {1..10}; do
-            ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> infra/ansible/known_hosts && exit 0
+            ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} > infra/ansible/known_hosts && exit 0
             echo "ssh-keyscan failed, retrying in 5 seconds..."
             sleep 5
           done
@@ -110,7 +110,7 @@ jobs:
       - name: Configure EC2 with Ansible
         working-directory: infra/ansible
         run: |
-          ansible-playbook -i inventory.ini playbook.yml
+          ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbook.yml
 
       - name: Trigger Deploy Workflow
         uses: peter-evans/repository-dispatch@v3
