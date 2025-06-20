@@ -115,7 +115,7 @@ jobs:
       - name: Trigger Deploy Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}å
           repository: ${{ github.repository }}
           event-type: deploy-to-aws
           client-payload: '{"ec2_ip": "${{ steps.get_public_ip.outputs.ec2_ip }}"}'
