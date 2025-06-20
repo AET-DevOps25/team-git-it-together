@@ -1,4 +1,4 @@
-name: Provision, Configure and deploy to AWS
+name: Provision, Configure and Deploy to AWS
 
 on:
   workflow_dispatch:
