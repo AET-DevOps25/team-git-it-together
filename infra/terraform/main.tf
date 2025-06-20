@@ -81,13 +81,52 @@ resource "aws_security_group" "ssh" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "SSH access from anywhere (This is just for learning purposes, not recommended for production)"
   }
-  # Allow all outbound traffic
+
+  # Allow HTTP from anywhere
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTP"
+  }
+
+  # Allow HTTPS from anywhere
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS"
+  }
+
+  # Allow the api port (8081) from anywhere
+  ingress {
+     from_port   = 8081
+     to_port     = 8081
+     protocol    = "tcp"
+     cidr_blocks = ["0.0.0.0/0"]
+     description = "API Port"
+   }
+
+  # Optional: Allow ICMP (ping) for diagnostics (can be removed for stricter security)
+  ingress {
+    from_port   = -1
+    to_port     = -1
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "ICMP ping"
+  }
+
+  # Allow all outbound (default, recommended for most cases)
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "All outbound"
   }
 
   tags = {
