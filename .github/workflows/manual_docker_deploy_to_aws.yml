@@ -3,7 +3,7 @@
 # see the automated deployment workflow (.github/workflows/auto_docker_deploy_to_aws.yml).
 
 
-name: Deploy Docker Images
+name: Manual Deploy to AWS
 
 on:
   workflow_dispatch:
