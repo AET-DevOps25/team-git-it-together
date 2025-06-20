@@ -96,9 +96,15 @@ jobs:
           echo "${{ steps.get_public_ip.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=infra/ansible/id_rsa" >> infra/ansible/inventory.ini
 
       # Add host to known_hosts to avoid SSH prompts
-      - name: Add EC2 to known_hosts
+      - name: Add EC2 to known_hosts (with retries)
         run: |
-         ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> infra/ansible/known_hosts
+          for i in {1..10}; do
+            ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} >> infra/ansible/known_hosts && exit 0
+            echo "ssh-keyscan failed, retrying in 5 seconds..."
+            sleep 5
+          done
+          echo "ssh-keyscan failed after retries" >&2
+          exit 1
 
       # Run Ansible Playbook for server configuration
       - name: Configure EC2 with Ansible
