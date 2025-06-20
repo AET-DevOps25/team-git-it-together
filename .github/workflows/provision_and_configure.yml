@@ -28,9 +28,8 @@ on:
 permissions:
   contents: read
   packages: read
-  id-token: write
 jobs:
-  provision_and_configure:
+  provision:
     runs-on: ubuntu-latest
     env:
       TF_TOKEN_app_terraform_io: ${{ github.event.inputs.TF_TOKEN }}
@@ -43,7 +42,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.12.1
+          terraform_version: 1.12.2
       
       - name: Cache Terraform providers
         uses: actions/cache@v4
@@ -76,12 +75,19 @@ jobs:
       - name: Terraform Apply
         run: terraform -chdir=infra/terraform apply -auto-approve
 
-      # Output EC2 Public IP for use by deploy workflow
+      # Output EC2 Public IP for use by configure and deploy workflows
       - name: Get EC2 Public IP
         id: get_public_ip
         run: |
           echo "The EC2 has the following public IP: $(terraform -chdir=infra/terraform output -raw public_ip)"
           echo "ec2_ip=$(terraform -chdir=infra/terraform output -raw public_ip)" >> $GITHUB_OUTPUT
+
+  configure:
+    needs: provision
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       # Write SSH key for Ansible
       - name: Write SSH key
@@ -93,13 +99,13 @@ jobs:
       - name: Write inventory.ini for Ansible
         run: |
           echo "[git_it_together]" > infra/ansible/inventory.ini
-          echo "${{ steps.get_public_ip.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=id_rsa" >> infra/ansible/inventory.ini
+          echo "${{ needs.provision.outputs.ec2_ip }} ansible_user=ubuntu ansible_ssh_private_key_file=id_rsa" >> infra/ansible/inventory.ini
 
       # Add host to known_hosts to avoid SSH prompts
       - name: Add EC2 to known_hosts (with retries)
         run: |
           for i in {1..10}; do
-            ssh-keyscan ${{ steps.get_public_ip.outputs.ec2_ip }} > infra/ansible/known_hosts && exit 0
+            ssh-keyscan ${{ needs.provision.outputs.ec2_ip }} > infra/ansible/known_hosts && exit 0
             echo "ssh-keyscan failed, retrying in 5 seconds..."
             sleep 5
           done
@@ -112,10 +118,10 @@ jobs:
         run: |
           ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbook.yml
   deploy:
-    needs: provision_and_configure
+    needs: configure
     uses: ./.github/workflows/deploy_to_aws.yml
     with:
-      ec2_ip: ${{ needs.provision_and_configure.outputs.ec2_ip }}
+      ec2_ip: ${{ needs.provision.outputs.ec2_ip }}
     secrets:
       AWS_EC2_PRIVATE_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
       MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}
