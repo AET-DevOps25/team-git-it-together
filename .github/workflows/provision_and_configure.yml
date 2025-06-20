@@ -112,7 +112,7 @@ jobs:
         run: |
           ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbook.yml
   deploy:
-      needs: provision_and_configure
-      uses: ./.github/workflows/deploy_to_aws.yml
-      with:
-        ec2_ip: ${{ steps.get_public_ip.outputs.ec2_ip }}
+    needs: provision_and_configure
+    uses: ./.github/workflows/deploy_to_aws.yml
+    with:
+      ec2_ip: ${{ needs.provision_and_configure.outputs.ec2_ip }}
