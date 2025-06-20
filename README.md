@@ -1,8 +1,28 @@
+<table>
+  <tr>
+    <td>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml/badge.svg" alt="Build and Push Docker Images"/>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_and_configure.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_and_configure.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>Build & Push Docker Images</b></td>
+    <td align="center"><b>Provision, Configure & Deploy to AWS</b></td>
+  </tr>
+</table>
+
+
 # [APP NAME TBD]  
 
 **Team**: git-it-together
 
-**Authors:** Mahdi Bayouli · Moetaz Khelil · Achraf Labidi
+**Authors:** Achraf Labidi · Mahdi Bayouli 
 
 **Tutor:** Sindi Buklaji
 
