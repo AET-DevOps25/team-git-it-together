@@ -111,11 +111,8 @@ jobs:
         working-directory: infra/ansible
         run: |
           ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbook.yml
-
-      - name: Trigger Deploy Workflow
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}å
-          repository: ${{ github.repository }}
-          event-type: deploy-to-aws
-          client-payload: '{"ec2_ip": "${{ steps.get_public_ip.outputs.ec2_ip }}"}'
+  deploy:
+      needs: provision_and_configure
+      uses: ./.github/workflows/deploy_to_aws.yml
+      with:
+        ec2_ip: ${{ steps.get_public_ip.outputs.ec2_ip }}
