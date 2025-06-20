@@ -17,13 +17,6 @@ on:
         required: true
       OPENAI_API_KEY:
         required: true
-  workflow_dispatch:
-    inputs:
-      ec2_ip:
-        description: 'EC2 public IP to deploy to'
-        required: true
-        type: string
-
 permissions:
   contents: read
   packages: read
@@ -33,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: AWS
-      url: 'https://client.${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}.nip.io'
+      url: 'https://client.${{ inputs.ec2_ip }}.nip.io'
 
     steps:
       - name: Checkout Code
@@ -42,7 +35,7 @@ jobs:
       - name: Test SSH, disk space & Docker registry
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}
+          host: ${{ inputs.ec2_ip }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
@@ -58,7 +51,7 @@ jobs:
       - name: Copy Docker Compose File From Repo to the EC2 Instance
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}
+          host: ${{ inputs.ec2_ip }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           source: "./docker-compose.prod.yml"
@@ -74,7 +67,7 @@ jobs:
       - name: Prepare Environment File (.env.prod)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}
+          host: ${{ inputs.ec2_ip }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
@@ -123,9 +116,9 @@ jobs:
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
             echo "OPENAI_MODEL=${{ vars.OPENAI_MODEL }}" >> .env.prod
 
-            echo "CLIENT_HOST=client.${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}.nip.io" >> .env.prod
-            echo "SERVER_HOST=api.${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}.nip.io" >> .env.prod
-            echo "PUBLIC_API_URL=https://api.${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}.nip.io/api" >> .env.prod
+            echo "CLIENT_HOST=client.${{ inputs.ec2_ip }}.nip.io" >> .env.prod
+            echo "SERVER_HOST=api.${{ inputs.ec2_ip }}.nip.io" >> .env.prod
+            echo "PUBLIC_API_URL=https://api.${{ inputs.ec2_ip }}.nip.io/api" >> .env.prod
 
             chmod 600 .env.prod
             echo ".env.prod file created."
@@ -134,7 +127,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         timeout-minutes: 10
         with:
-          host: ${{ github.event.inputs.ec2_ip || inputs.ec2_ip }}
+          host: ${{ inputs.ec2_ip }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
           script: |
