@@ -110,7 +110,7 @@ jobs:
       - name: Configure EC2 with Ansible
         working-directory: infra/ansible
         run: |
-          ansible-playbook -i inventory.ini docker-setup.yml
+          ansible-playbook -i inventory.ini playbook.yml
 
       - name: Trigger Deploy Workflow
         uses: peter-evans/repository-dispatch@v3
