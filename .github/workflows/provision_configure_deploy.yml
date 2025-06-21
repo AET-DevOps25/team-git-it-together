@@ -38,6 +38,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Mask all inputs
+        run: |
+          echo "::add-mask::${{ github.event.inputs.AWS_ACCESS_KEY_ID }}"
+          echo "::add-mask::${{ github.event.inputs.AWS_SECRET_ACCESS_KEY }}"
+          echo "::add-mask::${{ github.event.inputs.AWS_SESSION_TOKEN }}"
+          echo "::add-mask::${{ github.event.inputs.TF_TOKEN }}"
+          echo "::add-mask::${{ github.event.inputs.AWS_REGION }}"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -91,6 +99,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Mask all inputs
+        run: |
+          echo "::add-mask::${{ secrets.AWS_EC2_PRIVATE_KEY }}"
       # Write SSH key for Ansible
       - name: Write SSH key
         run: |
