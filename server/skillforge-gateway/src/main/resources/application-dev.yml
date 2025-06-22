@@ -17,3 +17,7 @@ course:
 gateway:
   cors:
     allowed-origins: "*"
+
+logging:
+  level:
+    com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO
