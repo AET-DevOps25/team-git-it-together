@@ -3,13 +3,16 @@ spring:
     activate:
       on-profile: docker
 
+server:
+  port: ${SERVER_PORT_GATEWAY:8080}
+  address: "0.0.0.0"
+
 user:
   service:
-    uri: http://user-service:8082
+    uri: http://user-service:${SERVER_PORT_USER}
 course:
   service:
-    uri: http://course-service:8083
-
+    uri: http://course-service:${SERVER_PORT_COURSES}
 
 gateway:
   cors:
