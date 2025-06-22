@@ -1,3 +1,7 @@
+server:
+  port: ${SERVER_PORT_USER:8081}
+  address: "0.0.0.0"
+
 spring:
   config:
     activate:
@@ -7,5 +11,5 @@ spring:
       database: test-db
 
 jwt:
-  secret: test-secret
-  expirationMs: 3600000
+  secret: ${JWT_SECRET}
+  expirationMs: ${JWT_EXPIRATION_MS}

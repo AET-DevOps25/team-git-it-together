@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: ${SERVER_PORT_USER:8081}
   address: "0.0.0.0"
 
 spring:
