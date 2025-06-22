@@ -31,8 +31,7 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - name: Inject environment variables for tests
-        run: |
-          echo "SERVER_PORT_GATEWAY=8080" >> $GITHUB_ENV
+        run: echo "SERVER_PORT_GATEWAY=8080" >> $GITHUB_ENV
       - name: Build and test
         run: ./gradlew build --no-daemon
 
@@ -54,6 +53,6 @@ jobs:
         run: |
           echo "SERVER_PORT_USER=8081" >> $GITHUB_ENV
           echo "JWT_SECRET=test-secret" >> $GITHUB_ENV
-          echo "JWT_EXPIRATION_MS=3600000" >> $GITHUB_ENV  
+          echo "JWT_EXPIRATION_MS=3600000" >> $GITHUB_ENV
       - name: Build and test
         run: ./gradlew build --no-daemon
