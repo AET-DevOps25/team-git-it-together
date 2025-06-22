@@ -9,10 +9,10 @@ server:
 
 user:
   service:
-    uri: http://user-service:${SERVER_PORT_USER}
+    uri: http://user-service:${SERVER_PORT_USER:8081}
 course:
   service:
-    uri: http://course-service:${SERVER_PORT_COURSES}
+    uri: http://course-service:${SERVER_PORT_COURSES:8082}
 
 gateway:
   cors:

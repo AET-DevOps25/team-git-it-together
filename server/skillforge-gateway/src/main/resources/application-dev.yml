@@ -9,15 +9,11 @@ server:
 
 user:
   service:
-    uri: http://localhost:${SERVER_PORT_USER}
+    uri: http://localhost:${SERVER_PORT_USER:8081}
 course:
   service:
-    uri: http://localhost:${SERVER_PORT_COURSES}
+    uri: http://localhost:${SERVER_PORT_COURSES:8082}
 
 gateway:
   cors:
     allowed-origins: "*"
-
-logging:
-  level:
-    com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO

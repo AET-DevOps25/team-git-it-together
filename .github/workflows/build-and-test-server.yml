@@ -33,9 +33,11 @@ jobs:
       - name: Create .env file for Spring
         run: |
           echo "SERVER_PORT_GATEWAY=8080" > .env
+          echo "SERVER_PORT_USER=8081" >> .env
+          echo "SERVER_PORT_COURSES=8082" >> .env
       - name: Build and test
         run: ./gradlew build --no-daemon
-
+  
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
@@ -53,7 +55,9 @@ jobs:
       - name: Create .env file for Spring
         run: |
           echo "SERVER_PORT_USER=8081" > .env
+          echo "SERVER_PORT_COURSES=8082" >> .env
           echo "JWT_SECRET=test-secret" >> .env
           echo "JWT_EXPIRATION_MS=3600000" >> .env
       - name: Build and test
         run: ./gradlew build --no-daemon
+  

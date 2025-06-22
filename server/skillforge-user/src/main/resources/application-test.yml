@@ -9,7 +9,12 @@ spring:
   data:
     mongodb:
       database: test-db
+      # Use embedded MongoDB for tests with default values
+      host: localhost
+      port: 27017
+      username: ${MONGODB_USERNAME:testuser}
+      password: ${MONGODB_PASSWORD:testpass}
 
 jwt:
-  secret: ${JWT_SECRET}
-  expirationMs: ${JWT_EXPIRATION_MS}
+  secret: ${JWT_SECRET:test-secret}
+  expirationMs: ${JWT_EXPIRATION_MS:3600000}
