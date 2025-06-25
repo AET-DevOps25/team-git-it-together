@@ -1,0 +1,45 @@
+# Nginx config – rendered at runtime via envsubst
+# `${API_HOST}` is replaced with the environment variable value when the
+# container starts (handled automatically by the nginx docker-entrypoint).
+
+server {
+    listen 3000;
+    server_name localhost;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Single Page Application routing
+    location / {
+        try_files $uri /index.html;
+    }
+
+    # Reverse-proxy API requests to the backend Gateway
+    location /api/ {
+        proxy_pass http://${API_HOST}/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Deny dotfiles
+    location ~ /\. {
+        deny all;
+    }
+
+    # Static asset caching
+    location ~* \.(js|css|png|jpg|jpeg|svg|gif|ico|woff2?)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        access_log off;
+    }
+
+    location = /index.html {
+        add_header Cache-Control "no-cache, must-revalidate";
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+    gzip_proxied any;
+}
