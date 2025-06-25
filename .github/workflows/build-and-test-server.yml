@@ -30,11 +30,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
-      - name: Create .env file for Spring
-        run: |
-          echo "SERVER_PORT_GATEWAY=8080" > .env
-          echo "SERVER_PORT_USER=8081" >> .env
-          echo "SERVER_PORT_COURSES=8082" >> .env
+      - uses: ./.github/actions/create-dotenv
       - name: Build and test
         run: ./gradlew build --no-daemon
   
@@ -52,12 +48,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
-      - name: Create .env file for Spring
-        run: |
-          echo "SERVER_PORT_USER=8081" > .env
-          echo "SERVER_PORT_COURSES=8082" >> .env
-          echo "JWT_SECRET=test-secret" >> .env
-          echo "JWT_EXPIRATION_MS=3600000" >> .env
+      - uses: ./.github/actions/create-dotenv
       - name: Build and test
         run: ./gradlew build --no-daemon
-  
