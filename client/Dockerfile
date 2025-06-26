@@ -44,8 +44,8 @@ RUN npm prune --production
 FROM nginx:stable-alpine AS runner
 WORKDIR /usr/share/nginx/html
 
-# Replace default Nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy Nginx template – docker-entrypoint will envsubst it
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Copy static build from previous stage
 COPY --from=builder /app/dist .

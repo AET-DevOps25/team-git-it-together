@@ -2,12 +2,17 @@ spring:
   config:
     activate:
       on-profile: test
+
+server:
+  port: ${SERVER_PORT_GATEWAY:8081}
+  address: "0.0.0.0"
+
 user:
   service:
-    uri: http://user-test:8082
+    uri: http://user-test:${SERVER_PORT_USER:8082}
 course:
   service:
-    uri: http://course-test:8083
+    uri: http://course-test:${SERVER_PORT_COURSES:8083}
 
 gateway:
   cors:

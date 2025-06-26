@@ -30,9 +30,10 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
+      - uses: ./.github/actions/create-dotenv
       - name: Build and test
         run: ./gradlew build --no-daemon
-
+  
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
@@ -47,5 +48,6 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
           cache: 'gradle'
+      - uses: ./.github/actions/create-dotenv
       - name: Build and test
         run: ./gradlew build --no-daemon
