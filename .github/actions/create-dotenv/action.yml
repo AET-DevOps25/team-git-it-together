@@ -9,9 +9,9 @@ runs:
       run: |
         cat <<'EOF' > .env
         # Ports
-        SERVER_PORT_GATEWAY=8080
-        SERVER_PORT_USER=8081
-        SERVER_PORT_COURSES=8082
+        SERVER_PORT_GATEWAY=8081
+        SERVER_PORT_USER=8082
+        SERVER_PORT_COURSES=8083
 
         # JWT (used by user-service tests)
         JWT_SECRET=test-secret
