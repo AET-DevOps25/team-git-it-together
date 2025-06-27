@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devops25-git-it-together-prod
+  labels:
+    app.kubernetes.io/name: skill-forge-ai
+    app.kubernetes.io/part-of: git-it-together
+    app.kubernetes.io/instance: prod
+    environment: prod
+    team: git-it-together
+    owner: git-it-together
+    purpose: devops25
+  annotations:
+    description: "Namespace for git-it-together production environment"
+    created-by: "git-it-together"
+    managed-by: "git-it-together"
