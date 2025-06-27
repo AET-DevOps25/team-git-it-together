@@ -96,6 +96,8 @@ services:
         
     image: ${CLIENT_CONTAINER_NAME}:latest
     container_name: ${CLIENT_CONTAINER_NAME}
+    environment:
+      - API_HOST=server-gateway:${SERVER_PORT_GATEWAY}
     restart: unless-stopped
     ports:
       - "${VITE_PORT}:3000"
