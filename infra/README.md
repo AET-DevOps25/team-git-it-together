@@ -2,7 +2,7 @@
 
 Provision and configure cloud infrastructure for the git-it-together teams's platform using **Terraform** (for AWS provisioning) and **Ansible** (for configuration management).
 
----
+
 
 ## 🧰 What’s Inside?
 
@@ -12,7 +12,7 @@ Provision and configure cloud infrastructure for the git-it-together teams's pla
   - Installs and configures Docker & Docker Compose on the provisioned EC2 instance
   - Adds the `ubuntu` user to the `docker` group for passwordless Docker commands
 
----
+
 
 ## 📂 Project Structure
 
@@ -33,17 +33,16 @@ Provision and configure cloud infrastructure for the git-it-together teams's pla
    └── README.md
    ```
 
----
+
 
 ## 🚦 Prerequisites
 
 - [Terraform](https://www.terraform.io/downloads)
 - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 - [AWS CLI](https://aws.amazon.com/cli/) configured with your AWS account
-- [KUbernetes CLI (kubectl)](https://kubernetes.io/docs/tasks/tools/) (if you plan to use Kubernetes)
-- [helm](https://helm.sh/docs/intro/install/) (if you plan to use Helm for Kubernetes deployments)
-- [Docker](https://docs.docker.com/get-docker/) (for local development)
-- [Docker Compose](https://docs.docker.com/compose/install/) (for local development)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Helmfile](https://github.com/helmfile/helmfile#installation) (recommended for multi-chart orchestration)
 - kubectl configured with your Kubernetes cluster
 - AWS account and credentials (for Terraform)
 - SSH private key for your EC2 instance
@@ -100,67 +99,196 @@ Provision and configure cloud infrastructure for the git-it-together teams's pla
    ansible-playbook -i inventory.ini docker-setup.yml
    ```
 
----
 
-##  🏗️ Deploying Infrastructure with Kubernetes and Helm into Rancher
 
-1. **Ensure you download the KubeConfig file `student` from Rancher.**
-   - This file is essential for connecting to your Kubernetes cluster.
-   - Save it to your local machine (e.g., `~/.kube/config`). (Ensure you create a backup of your existing kubeconfig if you have one.)
-2. **Ensure you have the `kubectl` and `helm` CLI tools installed.**
-   - [Install kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-   - [Install Helm](https://helm.sh/docs/intro/install/)
-3. **Ensure the kubectl context is set to the Rancher cluster (student).**
-   - You can check this by running:
-     ```bash
-     kubectl config current-context
-     ```
-     Which should return `student`.
-4. **Ensure You manually create the `git-it-together` namespace in the kubernetes cluster.**
-   - You can do this by running:
-     ```bash
-     kubectl create namespace devops25-git-it-together-prod
-     ```
-     But due to Access Control Policies, Do not run this command as the namespace will be created but won't be visible in the Rancher UI.
-   - Instead, you can create the namespace via the Rancher UI by navigating to the "Namespaces" section and clicking "Create Namespace".
-   > The Namespace should also be created - No need to create it again.
+## 🏗️ Kubernetes & Helm Deployment
 
-5. **To verify the namespace creation, you can run:**
+### 1. **Kubeconfig Setup**
+
+* **Download the Rancher `student` KubeConfig.**
+* Place it at `~/.kube/config` (backup your previous file if necessary).
+* Test connection:
+
+  ```bash
+  kubectl config current-context
+  # Should return: student
+  ```
+
+
+
+### 2. **Ensure Required CLI Tools are Installed**
+
+* [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+* [Helm](https://helm.sh/docs/intro/install/)
+* [Helmfile](https://github.com/helmfile/helmfile#installation) (recommended for multi-chart orchestration)
+
+
+
+### 3. **Namespace Creation**
+
+> **Important:** Due to RBAC policies, create the namespace **via the Rancher UI**, not `kubectl`.
+
+* In Rancher:
+  Go to **"Namespaces" → "Create Namespace"**
+  Name: `devops25-git-it-together-prod`
+
+
+
+### 4. **(Optional) Namespace Metadata**
+
+If you have labels/annotations to add (e.g., `k8s/namespace.yaml`), you can apply them **once**:
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+```
+
+> Only do this if advised—usually, creating via Rancher UI is sufficient.
+
+
+
+### 5. **Helm Chart Structure**
+
+Your charts are organized as an umbrella chart with service subcharts:
+
+```
+infra/helm/
+└── skill-forge-ai/
+    ├── client/
+    ├── gateway/
+    ├── genai/
+    ├── user/
+    ├── helmfile.yaml
+    └── ...
+```
+
+### 6. Deploy with Helmfile 🚀
+
+> **Note:** Each service chart (`client`, `gateway`, `genai`, `user`) is defined as a separate Helm chart, and there is **no umbrella chart** at the root.  
+> You must use [Helmfile](https://github.com/helmfile/helmfile) to orchestrate deployment of all service charts together.
+
+From the `infra/helm/skill-forge-ai` directory, run:
+
+```bash
+helmfile deps      # Fetches all chart dependencies (if any)
+helmfile apply     # Installs/updates all defined charts
+## or
+helmfile sync  # (runs without interactive diff)
+```
+
+> **Do not** run `helm install ./skill-forge-ai ...` as this will not deploy all services.
+> Use `helmfile` for multi-chart orchestration.
+
+### **💡 Useful Commands**
+
+#### **Helm**
+
+* **List all Helm releases in a namespace:**
+
+  ```bash
+  helm list -n devops25-git-it-together-prod
+  ```
+
+* **Get detailed information about a specific release:**
+
+  ```bash
+  helm status <release-name> -n devops25-git-it-together-prod
+  ```
+
+* **Upgrade (update) a release:**
+
+  ```bash
+  helm upgrade <release-name> <chart-path> -n devops25-git-it-together-prod
+  ```
+
+* **Uninstall (delete) a release:**
+
+  ```bash
+  helm uninstall <release-name> -n devops25-git-it-together-prod
+  ```
+
+#### **Kubernetes (kubectl)**
+
+* **List all resources in a namespace:**
+
+  ```bash
+  kubectl get all -n devops25-git-it-together-prod
+  ```
+
+* **Describe a resource (e.g., pod, service, deployment):**
+
+  ```bash
+  kubectl describe <resource-type> <resource-name> -n devops25-git-it-together-prod
+  # Example:
+  kubectl describe pod <pod-name> -n devops25-git-it-together-prod
+  ```
+
+* **View logs for a pod:**
+
+  ```bash
+  kubectl logs <pod-name> -n devops25-git-it-together-prod
+  ```
+
+* **Port-forward a service (for local testing):**
+
+  ```bash
+  kubectl port-forward svc/<service-name> 1234:80 -n devops25-git-it-together-prod
+  ```
+
+
+
+#### **Helmfile**
+
+* **Install or sync all defined releases (charts):**
+
+  ```bash
+  helmfile apply
+  # Or, for non-interactive apply:
+  helmfile sync
+  ```
+
+* **Show what changes will be made (diff):**
+
+  ```bash
+  helmfile diff
+  ```
+
+* **Uninstall all releases defined in helmfile.yaml:**
+
+  ```bash
+  helmfile destroy
+  ```
+
+
+
+#### **General Tips**
+
+* Replace `<release-name>`, `<resource-type>`, `<resource-name>`, and `<service-name>` with your actual names.
+* Always double-check you’re operating in the correct namespace!
+
+
+
+## 🚀 Deploying to Kubernetes with Helmfile (Same as in Step 6: Deploy with Helmfile):
+
+1. **Prepare your kubeconfig from Rancher and verify the context.**
+2. **Ensure the namespace is created via the Rancher UI:**
+   Name: `devops25-git-it-together-prod`
+3. **Install chart dependencies:**
+
    ```bash
-   kubectl get ns devops25-git-it-together-prod
+   cd infra/helm/skill-forge-ai
+   helmfile deps
    ```
-6. **To apply some metadata to the namespace, you can use k8s/namespace.yaml file.**
-   - This file contains metadata such as labels and annotations that can be useful for organizing and managing resources within the namespace.
-   - You can apply it by running:
-     ```bash
-     kubectl apply -f k8s/namespace.yaml
-     ```
-   > This also should not be run again as the namespace is already created and the metadata is already applied.
-7. **Deploy the Helm charts:**
-   - Navigate to the `infra/helm` directory.
-   - Use the following command to deploy the Helm charts:
-     ```bash
-     helm install skill-forge-ai ./skill-forge-ai --namespace devops25-git-it-together-prod
-     ```
-   - This command will deploy the SkillForge.ai application into the `devops25-git-it-together-prod` namespace.
-8. **Verify the deployment:**
-   - You can check the status of the deployment by running:
-     ```bash
-     kubectl get all -n devops25-git-it-together-prod
-     ```
-   - This will show you all the resources created in the `devops25-git-it-together-prod` namespace, including pods, services, and deployments.
-9. **Access the application:**
-   - Once the deployment is verified, you can access the SkillForge.ai application using the service's external IP or domain name.
-   - If you want to access cluster-internal services, you can utilize port-forwarding:
-     ```bash
-     kubectl port-forward svc/skill-forge-ai-<service-name> 1234:80 -n devops25-git-it-together-prod
-     ```
-     > Do not use ports 8080, 8081, 8082 or 8083 as they are already used by the Rancher UI and other services.
-10. **Cleanup:**
-   - If you need to remove the deployment, you can run:
-     ```bash
-     helm uninstall skill-forge-ai --namespace devops25-git-it-together-prod
-     ```
+4. **Apply all Helm charts:**
+
+   ```bash
+   helmfile apply
+   ```
+5. **Verify deployment:**
+
+   ```bash
+   kubectl get all -n devops25-git-it-together-prod
+   ```
+6. **Access services as required (see above).**
 
 
 ## 🧑‍💻 Automation / CI/CD
@@ -169,9 +297,60 @@ Provision and configure cloud infrastructure for the git-it-together teams's pla
 * Ansible playbooks can be triggered post-Terraform deployment to configure the infrastructure.
 * The Ansible `inventory.ini` will also be dynamically generated based on the Terraform output and environment variables on GitHub.
 
----
+
 
 ## 📚 References
 
 * [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
 * [Ansible Docs](https://docs.ansible.com/ansible/latest/index.html)
+* [Kubernetes Docs](https://kubernetes.io/docs/home/)
+* [Helm Docs](https://helm.sh/docs/)
+* [Helmfile GitHub](https://github.com/helmfile/helmfile)
+* [Kubernetes CLI (kubectl) Docs](https://kubernetes.io/docs/reference/kubectl/)
+* [Docker Docs](https://docs.docker.com/)
+* [Docker Compose Docs](https://docs.docker.com/compose/)
+* [Helmfile Docs](https://github.com/helmfile/helmfile)
+* [Rancher Docs](https://ranchermanager.docs.rancher.com/)
+
+## 🧑‍💻 Automation / CI/CD
+
+* **Terraform:**
+
+  * In CI pipelines, the `terraform.tfvars` file is dynamically generated using environment-specific variables and secrets.
+  * Runs infrastructure provisioning jobs (VPC, subnets, EC2, security groups, etc.) in a repeatable and reviewable manner.
+* **Ansible:**
+
+  * Playbooks are triggered automatically after successful Terraform apply, to configure the provisioned EC2 instance(s).
+  * The `inventory.ini` file is dynamically generated from the Terraform output using GitHub Actions or another pipeline tool, ensuring correct host IPs and SSH details.
+* **Docker & Docker Compose:**
+
+  * Used for local development and can be orchestrated in CI for building and testing application containers before Kubernetes deployment.
+* **Kubernetes & Helmfile:**
+
+  * CI pipelines use Helmfile to synchronize chart dependencies and deploy application microservices to the target Kubernetes cluster.
+  * Environments (dev, staging, prod) can be parameterized using Helmfile’s `environments:` feature and values files.
+* **Secrets & Configs:**
+
+  * Sensitive configuration is injected via environment variables or secret management (e.g., Kubernetes Secrets, AWS SSM, or GitHub Actions secrets).
+* **Automated Deployment Example:**
+
+  1. Terraform applies infrastructure.
+  2. Ansible configures servers and installs dependencies.
+  3. Helmfile deploys and synchronizes all service charts to Kubernetes.
+  4. CI checks and tests validate each stage before proceeding to the next.
+
+## 📚 References
+
+* [Terraform AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+* [Terraform CLI Docs](https://developer.hashicorp.com/terraform/cli)
+* [Ansible Docs](https://docs.ansible.com/ansible/latest/index.html)
+* [Kubernetes Docs](https://kubernetes.io/docs/home/)
+* [Kubernetes CLI (kubectl) Docs](https://kubernetes.io/docs/reference/kubectl/)
+* [Helm Docs](https://helm.sh/docs/)
+* [Helmfile Docs](https://github.com/helmfile/helmfile)
+* [Docker Docs](https://docs.docker.com/)
+* [Docker Compose Docs](https://docs.docker.com/compose/)
+* [Rancher Docs](https://ranchermanager.docs.rancher.com/)
+* [CI/CD Patterns with GitHub Actions](https://docs.github.com/en/actions)
+* [Best Practices for GitOps and Kubernetes](https://www.weave.works/technologies/gitops/)
+
