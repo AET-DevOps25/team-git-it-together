@@ -1,0 +1,23 @@
+apiVersion: v2
+name: skill-forge-ai
+description: A Helm Umbrella chart for SkillForge.ai web application
+type: application
+version: 0.1.0
+appVersion: "1.0.0-alpha"
+dependencies:
+  - name: client
+    version: 0.1.0
+    repository: file://charts/client
+  - name: gateway
+    version: 0.1.0
+    repository: file://charts/gateway
+  - name: user
+    version: 0.1.0
+    repository: file://charts/user
+  # Add Course once it's ready
+  # - name: course
+  #   version: 0.1.0
+  #   repository: file://charts/course
+  - name: genai
+    version: 1.0.0
+    repository: file://charts/genai
