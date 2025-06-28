@@ -2,9 +2,11 @@
 # `${API_HOST}` is replaced with the environment variable value when the
 # container starts (handled automatically by the nginx docker-entrypoint).
 
+# in server_name, we use "_" to catch all.
+
 server {
     listen 3000;
-    server_name localhost;
+    server_name _;
 
     root /usr/share/nginx/html;
     index index.html;
@@ -16,11 +18,16 @@ server {
 
     # Reverse-proxy API requests to the backend Gateway
     location /api/ {
-        proxy_pass http://${API_HOST}/api/;
+        proxy_pass http://${API_HOST}:${API_PORT}/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /healthz {
+        return 200 'ok';
+        add_header Content-Type text/plain;
     }
 
     # Deny dotfiles
