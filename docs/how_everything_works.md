@@ -138,6 +138,24 @@ We use **Traefik** as a dynamic reverse proxy and Nginx in the frontend client c
   * Use `${VAR:-default}` syntax in Compose for reliable defaults.
   * If you update the `.env` file, restart containers for changes to apply.
 
+* **Vite env variables: `VITE_` build args vs. environment variables**
+
+  * **Vite only injects environment variables at build time** if they are prefixed with `VITE_` (e.g., `VITE_API_BASE_URL`) and passed as Docker `build.args`.
+  * **Runtime `environment:` values are *not* visible to Vite code** (unless you rebuild the image). If you change a `VITE_` variable in your environment and restart the container, the frontend won't see the change—**rebuild is required**!
+  * **Best practice:** Pass all frontend-configurable variables as both `build.args` (for Vite) and `environment` (if you also need them in your runtime, e.g., Nginx templates).
+  * Example:
+
+    ```yaml
+    build:
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_API_VERSION: ${VITE_API_VERSION:-v1}
+    environment:
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      VITE_API_VERSION: ${VITE_API_VERSION:-v1}
+    ```
+  * If you want to change frontend environment variables, **always rebuild the client image** with the new values.
+
 * **Health checks fail, containers restart forever**
 
   * The health check `test:` command must match what the service actually serves and the port.
@@ -147,7 +165,7 @@ We use **Traefik** as a dynamic reverse proxy and Nginx in the frontend client c
 * **Traefik dashboard 404 or unreachable**
 
   * Check which port you mapped it to (default is 8080, but you can set it to another).
-  * You need to enable it via the right flags in `command:` section of Traefik service.
+  * You need to enable it via the right flags in the `command:` section of Traefik service.
   * Dashboard should be mapped to `web` entrypoint or a dedicated entrypoint like `dashboard`.
 
 * **CORS Issues**
