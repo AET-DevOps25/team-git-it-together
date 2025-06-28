@@ -32,6 +32,8 @@ jobs:
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
       - name: Build and test
+        env:
+          SPRING_PROFILE_ACTIVES: test
         run: ./gradlew build --no-daemon
   
   test-user-service:
@@ -50,4 +52,6 @@ jobs:
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
       - name: Build and test
+        env:
+          SPRING_PROFILE_ACTIVES: test
         run: ./gradlew build --no-daemon
