@@ -20,4 +20,8 @@ gateway:
 
 logging:
   level:
+    com.gitittogether.skillforge.server.gateway: DEBUG
     com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO
+    com.gitittogether.skillforge.server.gateway.config: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG

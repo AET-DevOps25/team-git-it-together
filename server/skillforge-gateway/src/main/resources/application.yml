@@ -6,7 +6,7 @@ spring:
   application:
     name: SkillForge-gateway
   profiles:
-    active: ${SPRING_PROFILE_ACTIVES:test}
+    active: ${SPRING_PROFILE_ACTIVES:dev}
   cloud:
     gateway:
       server:
@@ -14,15 +14,18 @@ spring:
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-for-development-only-change-in-production}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}
 
+gateway:
+  cors:
+    allowed-origins: "*"
 
 logging:
   level:
-    root: INFO
+    com.gitittogether.skillforge.server.gateway: INFO
+    com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO
+    com.gitittogether.skillforge.server.gateway.config: INFO
     org.springframework.cloud.gateway: INFO
-    org.springframework.web: WARN
+    org.springframework.security: INFO
