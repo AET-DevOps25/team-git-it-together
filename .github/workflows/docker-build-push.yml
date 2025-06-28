@@ -28,6 +28,9 @@ env:
 jobs:
   build-and-push:
     name: ${{ matrix.name }}
+    environment: 
+      name: AWS
+    
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -41,8 +44,11 @@ jobs:
               VITE_APP_VERSION=1.0-alpha
               VITE_API_BASE_URL=/api/
               VITE_API_VERSION=v1
+              VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api
+              VITE_API_INTERNAL_HOST=server-gateway
+              VITE_API_INTERNAL_PORT=8081
               BUILD_MODE=production
-              DOCKERIZED=1
+              VITE_PORT=3000
           - id: server-gateway
             path: server/skillforge-gateway
             image: server-gateway

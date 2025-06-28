@@ -73,7 +73,10 @@ jobs:
           VITE_API_BASE_URL: /api/
           VITE_API_VERSION: v1
           BUILD_MODE: production
-          DOCKERIZED: 1
+          VITE_PUBLIC_API_URL: http://server.localhost:8081/api
+          VITE_API_INTERNAL_HOST: server-gateway
+          VITE_API_INTERNAL_PORT: 8081
+          VITE_PORT: 3000
 
       - name: Verify build output
         run: |

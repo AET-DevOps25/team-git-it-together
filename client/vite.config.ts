@@ -6,12 +6,11 @@ import { resolve } from 'path';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   const port = parseInt(env.VITE_PORT || '3000', 10);
+  const serverGatewayHost = process.env.VITE_API_INTERNAL_HOST || 'localhost';
+  const serverGatewayPort = process.env.VITE_API_INTERNAL_PORT || '8081';
 
-  // Determine API base for dev
-  const isDocker = process.env.DOCKERIZED === '1';
-  // If running inside Docker Compose, use "server", else "localhost"
-  const devApiTarget = isDocker ? 'http://server-gateway:8080' : 'http://localhost:8080';
-
+  // If running inside Docker Compose, use "server-gateway", else "localhost"
+  const devApiTarget = `http://${serverGatewayHost}:${serverGatewayPort}`;
   return {
     base: '/',
     plugins: [react()],
@@ -31,6 +30,8 @@ export default defineConfig(({ mode }) => {
       host: true,
       origin: `http://0.0.0.0:${port}`,
       // ---- DEV PROXY ----
+      // In Production (docker), The nginx server will handle the API requests and proxy them to the backend services.
+      // In Development, we use Vite's proxy to forward requests to the backend API.
       proxy:
         mode === 'development'
           ? {
