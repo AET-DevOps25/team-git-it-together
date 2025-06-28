@@ -82,7 +82,7 @@ const Login = () => {
 
     try {
       // AuthContext.login(...) will handle setting storage, token, user and navigation
-      await login({ email, username, password: password.trim(), rememberMe });
+      const loggedInUser = await login({ email, username, password: password.trim(), rememberMe });
       toast({
         // @ts-expect-error - The title should accept a ReactNode and is implemented correctly
         title: (
@@ -91,7 +91,9 @@ const Login = () => {
             Login Successful
           </span>
         ),
-        description: <span className="text-green-700">{`Welcome back, ${username}!`}</span>,
+        description: (
+          <span className="text-green-700">{`Welcome back, ${loggedInUser.firstName || loggedInUser.username}!`}</span>
+        ),
         variant: 'success',
       });
     } catch (err: unknown) {
