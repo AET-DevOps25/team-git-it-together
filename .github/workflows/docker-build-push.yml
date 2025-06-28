@@ -28,9 +28,6 @@ env:
 jobs:
   build-and-push:
     name: ${{ matrix.name }}
-    environment: 
-      name: AWS
-    
     runs-on: ubuntu-latest
     strategy:
       matrix:
