@@ -53,44 +53,44 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Latest tag is: $TAG"
 
-      - name: Prepare Environment File (.env.prod)
+      - name: Prepare Environment File (.env)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ vars.EC2_PUBLIC_IP }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
-          # TODO: Add echo "MONGODB_DATABASE=\"vars.MONGODB_DATABASE \"" >> .env.prod
-          #      echo "MONGODB_USERNAME=\"$secrets.MONGODB_USERNAME\"" >> .env.prod
+          # TODO: Add echo "MONGODB_DATABASE=\"vars.MONGODB_DATABASE \"" >> .env
+          #      echo "MONGODB_USERNAME=\"$secrets.MONGODB_USERNAME\"" >> .env
           # Once updated
           script: |
             set -e
             cd /home/${{ vars.AWS_EC2_USER }}
-            rm -f .env.prod
-            echo "Creating .env.prod file..."
+            rm -f .env
+            echo "Creating .env file..."
 
-            echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> .env.prod
+            echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> .env
 
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.prod
-            echo "JWT_EXPIRATION_MS=${{ vars.JWT_EXPIRATION_MS }}" >> .env.prod
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRATION_MS=${{ vars.JWT_EXPIRATION_MS }}" >> .env
 
-            echo "VITE_APP_NAME=SkillForge.ai" >> .env.prod
-            echo "VITE_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env.prod
+            echo "VITE_APP_NAME=SkillForge.ai" >> .env
+            echo "VITE_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
 
-            echo "GENAI_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env.prod
-            echo "UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}" >> .env.prod
-            echo "LLM_PROVIDER=${{ vars.LLM_PROVIDER }}" >> .env.prod
-            echo "OPENAI_API_BASE=${{ vars.OPENAI_API_BASE }}" >> .env.prod
-            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env.prod
-            echo "OPENAI_MODEL=${{ vars.OPENAI_MODEL }}" >> .env.prod
+            echo "GENAI_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
+            echo "UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}" >> .env
+            echo "LLM_PROVIDER=${{ vars.LLM_PROVIDER }}" >> .env
+            echo "OPENAI_API_BASE=${{ vars.OPENAI_API_BASE }}" >> .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            echo "OPENAI_MODEL=${{ vars.OPENAI_MODEL }}" >> .env
 
-            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env.prod
-            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env.prod
-            echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env.prod
-            echo "VITE_API_INTERNAL_HOST=server-gateway" >> .env.prod
-            echo "VITE_API_INTERNAL_PORT=8081" >> .env.prod
+            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env
+            echo "VITE_API_INTERNAL_HOST=server-gateway" >> .env
+            echo "VITE_API_INTERNAL_PORT=8081" >> .env
 
-            chmod 600 .env.prod
-            echo ".env.prod file created ✅"
+            chmod 600 .env
+            echo ".env file created ✅"
       - name: SSH to the EC2 Instance and Start Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         timeout-minutes: 10
@@ -104,7 +104,7 @@ jobs:
             echo " >>> Logging into Docker registry..."
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             echo " >>> Starting Docker Compose..."
-            if ! docker compose -f docker-compose.prod.yml --env-file .env.prod up --pull=always -d --remove-orphans; then
+            if ! docker compose -f docker-compose.prod.yml --env-file .env up --pull=always -d --remove-orphans; then
               echo "❌ Docker Compose failed. Showing service status:"
               docker compose -f docker-compose.prod.yml ps
               echo "-----------------------------------------"
