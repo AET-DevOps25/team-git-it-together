@@ -231,6 +231,19 @@ Before you get started, make sure you have the following installed on your devel
   ```bash
   docker-compose up --build
   ```
+* **To Try the production setup locally:**
+
+  * Create a `.env.prod` file based on `.env.prod.example` and fill in the required values.
+  * Run the production setup with:
+
+    ```bash
+    docker compose --env-file .env.prod -f docker-compose.local.yaml up --build -d
+    ```
+  * **To stop and delete all containers, networks, and volumes of the production setup:**
+
+    ```bash
+    docker compose --env-file .env.prod -f docker-compose.local.yaml down --volumes --remove-orphans
+    ```
 
 
 ## 📌 Future Improvements
