@@ -1,6 +1,5 @@
 name: "Create Spring .env"
 description: "Generate a .env file with all variables required by Spring services during CI"
-author: "Cascade AI"
 runs:
   using: "composite"
   steps:
