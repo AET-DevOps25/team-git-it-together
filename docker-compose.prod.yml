@@ -25,50 +25,25 @@ services:
         - ./letsencrypt:/letsencrypt
       networks:
         - app-network
-  # ─── MongoDB ──────────────────────────────────────
-  mongo:
-    image: mongo:7.0
-    container_name: ${MONGODB_CONTAINER_NAME}
-    restart: unless-stopped
-    ports:
-      - "${MONGODB_EXPOSED_PORT}:27017"
-    env_file:
-      - .env.prod
-    environment:
-      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE}
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
-    volumes:
-      - mongo-data:/data/db
-    healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping')\" > /dev/null 2>&1"]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
-    logging:
-      driver: "none"
-    networks:
-      - app-network
 
   # ─── Spring Boot Server ──────────────────────────────
   server-gateway:
     image: ghcr.io/aet-devops25/team-git-it-together/server-gateway:latest
-    container_name: ${SERVER_CONTAINER_NAME}-gateway
+    container_name: skill-forge-server-gateway
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT_GATEWAY}:${SERVER_PORT_GATEWAY}"
+      - "${SERVER_PORT_GATEWAY:-8081}:${SERVER_PORT_GATEWAY:-8081}"
     env_file:
       - .env.prod
     environment:
-      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
-      SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES:-prod}
+      SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY:-8081}
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY}/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY:-8081}/actuator/health || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 20s
     labels:
         # Route 1: API direct domain (api........io)
       - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST}`)"
@@ -81,33 +56,30 @@ services:
       - "traefik.http.routers.gateway-client.tls.certresolver=letsencrypt"
       - "traefik.http.routers.gateway-client.service=gateway"
       # Service config:
-      - "traefik.http.services.gateway.loadbalancer.server.port=${SERVER_PORT_GATEWAY}"
+      - "traefik.http.services.gateway.loadbalancer.server.port=${SERVER_PORT_GATEWAY:-8081}"
     networks:
       - app-network
   user-service:
     image: ghcr.io/aet-devops25/team-git-it-together/user-service:latest
-    container_name: ${SERVER_CONTAINER_NAME}-user
+    container_name: skill-forge-server-user
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT_USER}:${SERVER_PORT_USER}"
+      - "${SERVER_PORT_USER:-8082}:${SERVER_PORT_USER:-8082}"
     env_file:
       - .env.prod
     environment:
-      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES}
-      SERVER_PORT_USER: ${SERVER_PORT_USER}
-      MONGODB_DATABASE: ${MONGODB_DATABASE}
-      MONGODB_USERNAME: ${MONGODB_USERNAME}
+      SPRING_PROFILE_ACTIVES: ${SPRING_PROFILE_ACTIVES:-prod}
+      SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-skillForge}
+      MONGODB_USERNAME: ${MONGODB_USERNAME:-skillForgeDevops25}
       MONGODB_PASSWORD: ${MONGODB_PASSWORD}
-      MONGODB_HOST: mongo
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
     depends_on:
       server-gateway:
         condition: service_healthy
-      mongo:
-        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_USER}/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_USER:-8082}/actuator/health || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -117,19 +89,27 @@ services:
   
   client:
     image: ghcr.io/aet-devops25/team-git-it-together/client:latest
-    container_name: ${CLIENT_CONTAINER_NAME}
+    container_name: skill-forge-client
     restart: unless-stopped
     ports:
-      - "${VITE_PORT}:3000"
+      - "${VITE_PORT:-3000}:${VITE_PORT:-3000}"
     env_file:
       - .env.prod
     environment:
-      PUBLIC_API_URL: ${PUBLIC_API_URL}
+      VITE_PORT: ${VITE_PORT:-3000}
+      BUILD_MODE: ${BUILD_MODE:-production}
+      VITE_APP_NAME: "${VITE_APP_NAME:-SkillForge.ai}"
+      VITE_APP_VERSION: "${VITE_APP_VERSION:-1.0.0}"
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      VITE_API_VERSION: ${VITE_API_VERSION:-v1}
+      VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
+      VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-server-gateway}
+      VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
     depends_on:
       user-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fs http://localhost:3000 || exit 1"]
+      test: ["CMD-SHELL", "curl -fs http://localhost:${VITE_PORT:-3000} || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 3
@@ -137,7 +117,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST}`)"
-      - "traefik.http.services.client.loadbalancer.server.port=${VITE_PORT}"
+      - "traefik.http.services.client.loadbalancer.server.port=${VITE_PORT:-3000}"
       - "traefik.http.routers.client.entrypoints=websecure"
       - "traefik.http.routers.client.tls.certresolver=letsencrypt"
       - "traefik.http.middlewares.client-compress.compress=true"
@@ -148,7 +128,7 @@ services:
   
   weaviate-db:
       image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
-      container_name: ${WEAVIATE_CONTAINER_NAME}
+      container_name: skill-forge-weaviate
       restart: on-failure
       command:
         - --host
@@ -158,8 +138,8 @@ services:
         - --scheme
         - http
       ports:
-        - "${WEAVIATE_EXPOSED_HTTP_PORT}:8080"
-        - "${WEAVIATE_EXPOSED_GRPC_PORT}:50051"
+        - "${WEAVIATE_EXPOSED_HTTP_PORT:-8080}:8080"
+        - "${WEAVIATE_EXPOSED_GRPC_PORT:-50051}:50051"
       environment:
         QUERY_DEFAULTS_LIMIT: 25
         AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
@@ -180,28 +160,39 @@ services:
 
   genai:
     image: ghcr.io/aet-devops25/team-git-it-together/genai:latest
-    container_name: ${GENAI_CONTAINER_NAME}
+    container_name: skill-forge-genai
     restart: unless-stopped
     env_file:
       - .env.prod
     environment:
-      WEAVIATE_HOST: ${WEAVIATE_HOST}
+      WEAVIATE_HOST: ${WEAVIATE_HOST:-weaviate-db}
       WEAVIATE_HTTP_PORT: 8080
       WEAVIATE_GRPC_PORT: 50051
-      GENAI_PORT: ${GENAI_PORT}
-      GENAI_APP_NAME: ${GENAI_APP_NAME}
-      GENAI_APP_VERSION: ${GENAI_APP_VERSION}
-      LLM_PROVIDER: ${LLM_PROVIDER}
-      OPENAI_API_BASE: ${OPENAI_API_BASE}
+      GENAI_PORT: ${GENAI_PORT:-8888}
+      GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
+      GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0}"
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
+      IS_DEV_MODE: ${IS_DEV_MODE:-0}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_MODEL: ${OPENAI_MODEL}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
     ports:
-      - "${GENAI_PORT}:${GENAI_PORT}"
+      - "${GENAI_PORT:-8888}:${GENAI_PORT:-8888}"
     depends_on:
       weaviate-db:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.genai.rule=Host(`genai.${SERVER_HOST:-server.localhost}`)"
+      - "traefik.http.routers.genai.entrypoints=websecure"
+      - "traefik.http.routers.genai.tls.certresolver=letsencrypt"
+      - "traefik.http.services.genai.loadbalancer.server.port=${GENAI_PORT:-8888}"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOriginList=${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.routers.genai.middlewares=genai-cors@docker"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT}/ping || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT:-8888}/ping || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -210,7 +201,6 @@ services:
       - app-network
 
 volumes:
-  mongo-data:
   weaviate-genai-data:
 
 networks:

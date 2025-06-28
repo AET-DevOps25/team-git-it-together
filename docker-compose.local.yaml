@@ -39,7 +39,7 @@ services:
       start_period: 20s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST:-server-gateway.localhost}`)"
+      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST:-server.localhost}`)"
       - "traefik.http.routers.gateway-api.entrypoints=web"
       - "traefik.http.services.gateway.loadbalancer.server.port=8081"
     networks:
@@ -81,11 +81,14 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_PORT: ${VITE_PORT:-3000}
-        VITE_APP_NAME: "${VITE_APP_NAME:-SkillForge.ai}"
-        VITE_APP_VERSION: "${VITE_APP_VERSION:-1.0.0}"
+        BUILD_MODE: ${BUILD_MODE:-production}
+        VITE_APP_NAME: ${VITE_APP_NAME:-SkillForge.ai}
+        VITE_APP_VERSION: ${VITE_APP_VERSION:-1.0.0}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
         VITE_API_VERSION: ${VITE_API_VERSION:-v1}
-        BUILD_MODE: ${BUILD_MODE:-production}
+        VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-server-gateway}
+        VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
+        VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
     container_name: skill-forge-client
     restart: unless-stopped
     ports:
@@ -93,13 +96,16 @@ services:
     env_file:
       - .env.prod
     environment:
+      VITE_PORT: ${VITE_PORT:-3000}
+      BUILD_MODE: ${BUILD_MODE:-production}
       VITE_APP_NAME: "${VITE_APP_NAME:-SkillForge.ai}"
       VITE_APP_VERSION: "${VITE_APP_VERSION:-1.0.0}"
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
       VITE_API_VERSION: ${VITE_API_VERSION:-v1}
-      PUBLIC_API_URL: ${PUBLIC_API_URL}
-      API_HOST: ${SERVER_HOST:-server-gateway}
-      API_PORT: 8081
+      VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-server-gateway}
+      VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
+      VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
+
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST:-client.localhost}`)"
@@ -190,6 +196,13 @@ services:
       start_period: 50s
     networks:
       - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.genai.rule=Host(`genai.${SERVER_HOST:-server.localhost}`)"
+      - "traefik.http.routers.genai.entrypoints=web"
+      - "traefik.http.services.genai.loadbalancer.server.port=8888"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigin=${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
 volumes:
   weaviate-genai-data:

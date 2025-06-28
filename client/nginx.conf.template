@@ -1,5 +1,5 @@
 # Nginx config – rendered at runtime via envsubst
-# `${API_HOST}` is replaced with the environment variable value when the
+# `${API_INTERNAL_HOST}` is replaced with the environment variable value when the
 # container starts (handled automatically by the nginx docker-entrypoint).
 
 # in server_name, we use "_" to catch all.
@@ -18,7 +18,7 @@ server {
 
     # Reverse-proxy API requests to the backend Gateway
     location /api/ {
-        proxy_pass http://${API_HOST}:${API_PORT}/api/;
+        proxy_pass http://${VITE_API_INTERNAL_HOST}:${VITE_API_INTERNAL_PORT}/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
