@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username?: string;
     password: string;
     rememberMe: boolean;
-  }) => {
+  }): Promise<UserLoginResponse> => {
     // Extract rememberMe separately; build a proper LoginPayload for userService.login
     const { email = '', username = '', password, rememberMe } = opts;
     const payload: LoginPayload = { email, username, password };
@@ -46,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // response.jwtToken must exist, and response carries whatever user fields your backend returns
     persistAuth(response.jwtToken, response, rememberMe);
     navigate('/dashboard');
+    return response;
   };
 
   // Register function to register a new user
@@ -55,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     username: string;
     email: string;
     password: string;
-  }) => {
+  }): Promise<UserLoginResponse> => {
     const { firstName, lastName, username, email, password } = opts;
     // Call the userService.register method
     const response = await userService.register({
@@ -74,11 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: response.username,
         password, // Use the same password for login
       };
-      await login({
+      // The login function returns the user payload, so we can return it from here.
+      return login({
         ...loginPayload,
-        rememberMe: true,
+        rememberMe: true, // Auto-remember on register
       });
     }
+    // This path should not be reached if userService.register throws on failure, but as a safeguard:
+    throw new Error('Registration failed: server did not return a valid user.');
   };
 
   const logout = () => {

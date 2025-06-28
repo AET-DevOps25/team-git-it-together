@@ -16,7 +16,7 @@ interface AuthContextType {
     username?: string;
     password: string;
     rememberMe: boolean;
-  }) => Promise<void>;
+  }) => Promise<UserLoginResponse>;
   logout: () => void;
   register: (opts: {
     firstName: string;
@@ -24,14 +24,18 @@ interface AuthContextType {
     username: string;
     email: string;
     password: string;
-  }) => Promise<void>;
+  }) => Promise<UserLoginResponse>;
 }
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
   loading: true,
-  login: async () => {},
-  register: async () => {},
+  login: async () => {
+    throw new Error('Login function not implemented. Make sure to wrap your app in AuthProvider.');
+  },
+  register: async () => {
+    throw new Error('Register function not implemented. Make sure to wrap your app in AuthProvider.');
+  },
   logout: () => {},
 });
