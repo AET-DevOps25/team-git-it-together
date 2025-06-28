@@ -128,7 +128,7 @@ jobs:
           echo "Deployment complete! Access your services at:"
           echo "Client: https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
           echo "API: https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "GenAI: https://genai.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "GenAI: https://genai.api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
           echo "Check the status of your services with:"
           echo "docker compose -f docker-compose.prod.yml ps"
           echo "View logs with:"
