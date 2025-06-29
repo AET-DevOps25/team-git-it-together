@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT_USER:8081}
+  port: ${SERVER_PORT_USER:8082}
   address: "0.0.0.0"
 
 

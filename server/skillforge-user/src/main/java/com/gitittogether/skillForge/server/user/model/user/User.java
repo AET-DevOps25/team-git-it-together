@@ -1,8 +1,5 @@
 package com.gitittogether.skillForge.server.user.model.user;
 
-import com.gitittogether.skillForge.server.user.model.course.Category;
-import com.gitittogether.skillForge.server.user.model.course.Course;
-import com.gitittogether.skillForge.server.user.model.course.EnrolledCourse;
 import com.gitittogether.skillForge.server.user.model.skill.Skill;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -40,9 +37,6 @@ public class User {
     private String profilePictureUrl;
     private String bio;
 
-    @Builder.Default
-    private List<Category> interests = new ArrayList<>(); // Interests are categories the user is interested in
-
     // Skills
     @Builder.Default
     private List<Skill> skills = new ArrayList<>(); // List of skills the user has mastered
@@ -50,13 +44,13 @@ public class User {
     @Builder.Default
     private List<Skill> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
 
-    // Courses
+    // Course references - now using IDs instead of full objects
     @Builder.Default
-    private List<EnrolledCourse> enrolledCourses = new ArrayList<>(); // List of courses the user is enrolled in, with progress tracking
+    private List<String> enrolledCourseIds = new ArrayList<>(); // List of course IDs the user is enrolled in
 
     @Builder.Default
-    private List<Course> bookmarkedCourses = new ArrayList<>();
+    private List<String> bookmarkedCourseIds = new ArrayList<>(); // List of course IDs the user has bookmarked
 
     @Builder.Default
-    private List<EnrolledCourse> completedCourses = new ArrayList<>(); // List of courses the user has completed
+    private List<String> completedCourseIds = new ArrayList<>(); // List of course IDs the user has completed
 }

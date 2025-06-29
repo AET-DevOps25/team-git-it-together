@@ -1,8 +1,9 @@
 package com.gitittogether.skillForge.server.user.model.skill;
 
-import com.gitittogether.skillForge.server.user.model.course.Category;
-import com.gitittogether.skillForge.server.user.model.course.Level;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,23 +13,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @Document(collection = "skills")
 public class Skill {
-
     @Id
     private String id;
-
-    @NonNull
     private String name;
-
-    @NonNull
     private String description;
-
-    @NonNull
-    private Category category;
-
-    @NonNull
-    private String iconUrl;
-
-    @NonNull
-    private Level level;
-
+    private String category;
+    private String level;
 }

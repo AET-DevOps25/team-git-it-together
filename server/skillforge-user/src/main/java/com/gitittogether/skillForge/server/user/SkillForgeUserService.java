@@ -9,12 +9,12 @@ import java.util.Locale;
 
 @SpringBootApplication
 @Slf4j
-public class SkillForgeServerApplication {
+public class SkillForgeUserService {
 
     public static void main(String[] args) {
         Locale.setDefault(Locale.ENGLISH);
         // Start application and get environment
-        Environment env = SpringApplication.run(SkillForgeServerApplication.class, args).getEnvironment();
+        Environment env = SpringApplication.run(SkillForgeUserService.class, args).getEnvironment();
 
         // Log important environment info
         log.info("✅ Spring Boot application started successfully!");

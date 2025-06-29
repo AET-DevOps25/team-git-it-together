@@ -51,6 +51,7 @@ public class SecurityConfig {
                         // Public endpoints: user registration, login, health checks, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
                         .requestMatchers(
                                 "/actuator/*",
