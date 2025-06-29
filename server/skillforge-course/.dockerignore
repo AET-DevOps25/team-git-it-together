@@ -1,0 +1,72 @@
+### Gradle files
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### IDE files
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+.project
+.classpath
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache/
+
+### OS files
+.DS_Store
+Thumbs.db
+
+### Git files
+.git/
+.gitignore
+.gitattributes
+
+### Docker files
+Dockerfile
+.dockerignore
+
+### Logs and temp files
+*.log
+logs/
+tmp/
+out/
+
+### Test reports
+test-results/
+reports/
+
+# Build output - always rebuild in container
+target/
+build/
+out/
+
+# IDE/editor settings
+.idea/
+.vscode/
+*.iml
+
+# OS & misc
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Git
+.git/
+.gitignore
+
+# Env files - never copy secrets
+.env
+.env.*
+
+# Maven/Gradle wrappers (optional if you use them in the build)
+.mvn/
+.gradle/

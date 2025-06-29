@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT_COURSES:8083}
+  address: "0.0.0.0"
+
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE:skillForge}
+      uri: mongodb://${MONGODB_USERNAME:skillForgeDevops25}:${MONGODB_PASSWORD:PickleR1cK!}@${MONGODB_HOST:localhost}:27017/${MONGODB_DATABASE:skillForge}?authSource=admin
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: INFO
+    org.mongodb.driver: WARN

@@ -1,0 +1,13 @@
+server:
+  port: ${SERVER_PORT_COURSES:8083}
+  address: "0.0.0.0"
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE}
+      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_DATABASE}.szhyxck.mongodb.net/?retryWrites=true&w=majority&appName=SkillForge
