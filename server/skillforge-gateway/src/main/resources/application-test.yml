@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: test
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 server:
   port: ${SERVER_PORT_GATEWAY:8081}
@@ -17,3 +22,10 @@ course:
 gateway:
   cors:
     allowed-origins: "*"
+
+# Override Rate limiting configuration
+rate:
+  limit:
+    requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:300}
+    requests-per-second: ${RATE_LIMIT_REQUESTS_PER_SECOND:60}
+    burst: ${RATE_LIMIT_BURST:50}

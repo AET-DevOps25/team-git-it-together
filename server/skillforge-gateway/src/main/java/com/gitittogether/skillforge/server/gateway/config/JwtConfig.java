@@ -18,10 +18,10 @@ public class JwtConfig implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        log.info("=== JWT Configuration Validation ===");
-        log.info("JWT Secret Length: {}", jwtSecret != null ? jwtSecret.length() : "NULL");
-        log.info("Using Default Secret: {}", isUsingDefaultSecret());
-        log.info("Environment Variable JWT_SECRET: {}", System.getenv("JWT_SECRET") != null ? "SET" : "NOT SET");
+        log.debug("=== JWT Configuration Validation ===");
+        log.debug("JWT Secret Length: {}", jwtSecret != null ? jwtSecret.length() : "NULL");
+        log.debug("Using Default Secret: {}", isUsingDefaultSecret());
+        log.debug("Environment Variable JWT_SECRET: {}", System.getenv("JWT_SECRET") != null ? "SET" : "NOT SET");
         
         if (isUsingDefaultSecret()) {
             log.warn("⚠️  WARNING: Using default JWT secret. This should only be used in development!");
@@ -32,7 +32,7 @@ public class JwtConfig implements CommandLineRunner {
         // Initialize JWT utility logging
         jwtUtil.initialize();
         
-        log.info("=== JWT Configuration Validation Complete ===");
+        log.debug("=== JWT Configuration Validation Complete ===");
     }
 
     private boolean isUsingDefaultSecret() {

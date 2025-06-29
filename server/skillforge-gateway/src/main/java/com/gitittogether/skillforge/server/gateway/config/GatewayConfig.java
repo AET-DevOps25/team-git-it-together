@@ -2,10 +2,13 @@ package com.gitittogether.skillforge.server.gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 
 @Slf4j
 @Configuration
@@ -14,7 +17,9 @@ public class GatewayConfig {
     @Bean
     public RouteLocator routes(
             RouteLocatorBuilder builder,
-            JwtAuthenticationFilter filter,
+            JwtAuthenticationFilter jwtFilter,
+            RedisRateLimiter redisRateLimiter,
+            KeyResolver userKeyResolver,
             @Value("${user.service.uri}") String userServiceUri,
             @Value("${course.service.uri}") String courseServiceUri
     ) {
@@ -22,15 +27,60 @@ public class GatewayConfig {
                 userServiceUri, courseServiceUri);
         
         RouteLocator routeLocator = builder.routes()
-                .route("user-service", r -> r.path("/api/v1/users/**")
-                        .filters(f -> f.filter(filter))
+                // Health check routes (no rate limiting, no auth) - must come first
+                .route("gateway-health", r -> r.path("/actuator/health")
+                        .uri("http://localhost:8081"))
+                .route("user-health", r -> r.path("/api/v1/users/health")
                         .uri(userServiceUri))
-                .route("course-service", r -> r.path("/api/v1/courses/**")
-                        .filters(f -> f.filter(filter))
+                .route("course-health", r -> r.path("/api/v1/courses/health")
+                        .uri(courseServiceUri))
+                
+                // User service routes
+                .route("user-service-auth", r -> r.path("/api/v1/users/login", "/api/v1/users/register")
+                        .filters(f -> f
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(userServiceUri))
+                
+                .route("user-service-protected", r -> r.path("/api/v1/users/**")
+                        .filters(f -> f
+                                .filter(jwtFilter)
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(userServiceUri))
+                
+                // Course service routes
+                .route("course-service-public", r -> r.path("/api/v1/courses/public/**")
+                        .filters(f -> f
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(courseServiceUri))
+                
+                .route("course-service-protected", r -> r.path("/api/v1/courses/**")
+                        .filters(f -> f
+                                .filter(jwtFilter)
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
                 .build();
         
-        log.info("GatewayConfig: Routes configured successfully");
+        log.info("GatewayConfig: Routes configured successfully with Redis-based rate limiting and JWT authentication");
         return routeLocator;
     }
 }

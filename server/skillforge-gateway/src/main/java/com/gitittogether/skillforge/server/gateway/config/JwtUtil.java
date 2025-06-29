@@ -38,7 +38,7 @@ public class JwtUtil {
                 MessageDigest digest = MessageDigest.getInstance("SHA-256");
                 byte[] hash = digest.digest(jwtSecret.getBytes(StandardCharsets.UTF_8));
                 String secretHash = bytesToHex(hash).substring(0, 16); // First 16 chars of hash
-                log.info("JwtUtil: JWT secret loaded - Length: {}, Hash: {}..., Using default: {}", 
+                log.debug("JwtUtil: JWT secret loaded - Length: {}, Hash: {}..., Using default: {}",
                         jwtSecret.length(), secretHash, jwtSecret.equals("default-secret-key-for-development-only-change-in-production"));
             } catch (NoSuchAlgorithmException e) {
                 log.warn("JwtUtil: Could not hash JWT secret for logging");
