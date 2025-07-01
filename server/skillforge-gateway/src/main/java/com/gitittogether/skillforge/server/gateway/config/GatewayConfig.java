@@ -21,7 +21,8 @@ public class GatewayConfig {
             RedisRateLimiter redisRateLimiter,
             KeyResolver userKeyResolver,
             @Value("${user.service.uri}") String userServiceUri,
-            @Value("${course.service.uri}") String courseServiceUri
+            @Value("${course.service.uri}") String courseServiceUri,
+            @Value("${gateway.health.uri}") String gatewayHealthUri
     ) {
         log.info("GatewayConfig: Configuring routes with user service URI: {} and course service URI: {}", 
                 userServiceUri, courseServiceUri);
@@ -29,13 +30,13 @@ public class GatewayConfig {
         RouteLocator routeLocator = builder.routes()
                 // Health check routes (no rate limiting, no auth) - must come first
                 .route("gateway-health", r -> r.path("/actuator/health")
-                        .uri("http://localhost:8081"))
+                        .uri(gatewayHealthUri))
                 .route("user-health", r -> r.path("/api/v1/users/health")
                         .uri(userServiceUri))
                 .route("course-health", r -> r.path("/api/v1/courses/health")
                         .uri(courseServiceUri))
                 
-                // User service routes
+                // User service routes that are public (no auth)
                 .route("user-service-auth", r -> r.path("/api/v1/users/login", "/api/v1/users/register")
                         .filters(f -> f
                                 .requestRateLimiter(config -> config
@@ -67,7 +68,17 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
-                
+                // Categories route in courses are public
+                .route("course-service-categories", r -> r.path("/api/v1/courses/categories/**")
+                        .filters(f -> f
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(courseServiceUri))
+                // Protected course service routes (requires JWT)
                 .route("course-service-protected", r -> r.path("/api/v1/courses/**")
                         .filters(f -> f
                                 .filter(jwtFilter)

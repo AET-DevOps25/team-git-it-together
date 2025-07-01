@@ -22,6 +22,8 @@ course:
 gateway:
   cors:
     allowed-origins: "*"
+  health:
+    uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 
 # Override Rate limiting configuration
 rate:

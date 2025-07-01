@@ -1,0 +1,105 @@
+# Example YAML configuration for rate limiting in Spring Cloud Gateway
+# This file demonstrates how to configure rate limiting using YAML instead of Java config
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        # User service routes with rate limiting
+        - id: user-service-auth
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/users/login, /api/v1/users/register
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1  # tokens per second
+                redis-rate-limiter.burstCapacity: 5  # burst capacity
+                key-resolver: "#{@userKeyResolver}"
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Limit
+                value: "60"
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Remaining
+                value: "59"
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Reset
+                value: "1640998800"
+        
+        - id: user-service-protected
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/users/**
+          filters:
+            - name: JwtAuthenticationFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 5
+                key-resolver: "#{@userKeyResolver}"
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Limit
+                value: "60"
+        
+        # Course service routes with rate limiting
+        - id: course-service-public
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/courses/public/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 2  # higher rate for public endpoints
+                redis-rate-limiter.burstCapacity: 10
+                key-resolver: "#{@userKeyResolver}"
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Limit
+                value: "120"
+        
+        - id: course-service-protected
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/courses/**
+          filters:
+            - name: JwtAuthenticationFilter
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 1
+                redis-rate-limiter.burstCapacity: 5
+                key-resolver: "#{@authenticatedUserKeyResolver}"  # different key resolver for authenticated users
+            - name: AddResponseHeader
+              args:
+                name: X-RateLimit-Limit
+                value: "60"
+  
+  # Redis configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-connections: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+# Rate limiting configuration
+rate:
+  limit:
+    requests-per-minute: 60
+    requests-per-second: 10
+    burst: 20
+
+# Logging for rate limiting
+logging:
+  level:
+    org.springframework.cloud.gateway.filter.ratelimit: DEBUG
+    org.springframework.data.redis: DEBUG 

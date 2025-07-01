@@ -41,6 +41,14 @@ jwt:
 gateway:
   cors:
     allowed-origins: "*"
+  health:
+    uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
 
 logging:
   level:
