@@ -8,12 +8,9 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-      - org.springframework.boot.autoconfigure.actuator.ActuatorAutoConfiguration
-      - org.springframework.boot.autoconfigure.metrics.export.prometheus.PrometheusMetricsExportAutoConfiguration
       - org.springframework.cloud.gateway.config.GatewayAutoConfiguration
       - org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration
-      - org.springframework.boot.autoconfigure.web.reactive.ReactiveWebServerAutoConfiguration
-  
+
   # Disable Redis for tests (will be mocked if needed)
   data:
     redis:
@@ -62,7 +59,8 @@ logging:
 # Disable metrics
 management:
   endpoints:
-    enabled-by-default: false
+    access:
+      default: none
   endpoint:
     health:
-      enabled: false 
+      access: none

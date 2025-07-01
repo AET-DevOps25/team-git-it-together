@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Import;
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
     properties = {
         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration",
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.actuator.ActuatorAutoConfiguration",
-        "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.metrics.export.prometheus.PrometheusMetricsExportAutoConfiguration"
     }
 )
 @ActiveProfiles("test")

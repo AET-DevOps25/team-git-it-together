@@ -39,10 +39,11 @@ logging:
 # Disable metrics
 management:
   endpoints:
-    enabled-by-default: false
+    access:
+      default: none
   endpoint:
     health:
-      enabled: false
+      access: none
 
 # JWT configuration for tests
 jwt:
