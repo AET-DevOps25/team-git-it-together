@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.github.spotbugs' version '6.0.4'
+    id 'checkstyle'
 }
 
 group = 'com.gitittogether.skillforge.server'
@@ -87,9 +89,65 @@ bootJar {
 
 // Configure Gradle daemon for better performance
 gradle.projectsEvaluated {
-    tasks.withType(JavaCompile).tap {
-        configureEach {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+}
+
+// SpotBugs configuration
+spotbugs {
+    excludeFilter = file("$rootDir/config/spotbugs/exclude.xml")
+}
+
+spotbugsMain {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
         }
     }
+}
+
+spotbugsTest {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/spotbugs/test/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    }
+}
+
+// Checkstyle configuration
+checkstyle {
+    toolVersion = '10.12.5'
+    configFile = file("$rootDir/config/checkstyle/checkstyle.xml")
+    configProperties = [
+        'checkstyle.cache.file': file("$buildDir/checkstyle.cache")
+    ]
+}
+
+checkstyleMain {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/checkstyle/main/checkstyle.html")
+        }
+    }
+}
+
+checkstyleTest {
+    reports {
+        html {
+            required = true
+            outputLocation = file("$buildDir/reports/checkstyle/test/checkstyle.html")
+        }
+    }
+}
+
+// Convenience task to run all code quality checks
+task codeQualityCheck {
+    dependsOn 'spotbugsMain', 'spotbugsTest', 'checkstyleMain', 'checkstyleTest'
+    description = 'Run all code quality checks (SpotBugs and Checkstyle)'
 }
