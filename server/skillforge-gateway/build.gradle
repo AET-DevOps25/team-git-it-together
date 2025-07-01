@@ -47,9 +47,38 @@ dependencyManagement {
 }
 
 test {
-	jvmArgs "-javaagent:${configurations.testRuntimeClasspath.find { it.name.contains('mockito-core') }}", '-Xshare:off'
+	// Enable parallel test execution
+	maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+	// JVM optimizations for faster startup
+	jvmArgs = [
+		'-Xmx512m',
+		'-Xms256m',
+		'-XX:+UseG1GC',
+		'-XX:MaxGCPauseMillis=200',
+		'-XX:+UseStringDeduplication',
+		'-XX:+OptimizeStringConcat',
+		'-Djava.security.egd=file:/dev/./urandom',
+		'-Dspring.profiles.active=test'
+	]
+	forkEvery = 1
+	failFast = false
+	testLogging {
+		events "passed", "skipped", "failed"
+		exceptionFormat = 'full'
+		showStandardStreams = false
+	}
+	useJUnitPlatform()
+	exclude '**/*IntegrationTest*'
+	exclude '**/*E2ETest*'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Configure Gradle daemon for better performance
+gradle.projectsEvaluated {
+	tasks.withType(JavaCompile) {
+		options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+	}
 }
