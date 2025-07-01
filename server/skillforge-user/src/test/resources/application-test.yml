@@ -1,3 +1,4 @@
+# Optimized test configuration for faster execution
 spring:
   config:
     activate:
@@ -7,6 +8,7 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+
   # Disable MongoDB for tests (will be mocked)
   data:
     mongodb:
@@ -26,7 +28,23 @@ spring:
       ddl-auto: none
     show-sql: false
 
+# Disable logging for faster execution
 logging:
   level:
-    com.gitittogether.skillForge.server.course: DEBUG
-    org.springframework.data.mongodb: DEBUG 
+    root: WARN
+    com.gitittogether.skillForge.server.user: WARN
+    org.springframework: WARN
+    org.mongodb: WARN
+
+# Disable metrics
+management:
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: false
+
+# JWT configuration for tests
+jwt:
+  secret: test-jwt-secret-key-for-testing-only
+  expirationMs: 3600000 
