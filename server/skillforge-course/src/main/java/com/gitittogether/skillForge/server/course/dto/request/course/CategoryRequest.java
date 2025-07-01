@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CategoryRequest {
-    @NotBlank
     private String id;
     @NotBlank
     private String name;

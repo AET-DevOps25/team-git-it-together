@@ -3,6 +3,7 @@ package com.gitittogether.skillForge.server.course.controller.courses;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledCourseResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,16 +35,16 @@ public class CourseController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CourseResponse>> getAllCourses() {
+    public ResponseEntity<List<CourseSummaryResponse>> getAllCourses() {
         log.info("Fetching all courses");
-        List<CourseResponse> responses = courseService.getAllCourses();
+        List<CourseSummaryResponse> responses = courseService.getAllCourses();
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<CourseResponse>> getPublicCourses() {
+    public ResponseEntity<List<CourseSummaryResponse>> getPublicCourses() {
         log.info("Fetching public courses for landing page");
-        List<CourseResponse> responses = courseService.getPublicCourses();
+        List<CourseSummaryResponse> responses = courseService.getPublicCourses();
         return ResponseEntity.ok(responses);
     }
 
@@ -82,20 +83,6 @@ public class CourseController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{courseId}/bookmark/{userId}")
-    public ResponseEntity<Void> bookmarkCourseForUser(@PathVariable String courseId, @PathVariable String userId) {
-        log.info("Bookmarking course {} for user {}", courseId, userId);
-        courseService.bookmarkCourseForUser(courseId, userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{courseId}/bookmark/{userId}")
-    public ResponseEntity<Void> unbookmarkCourseForUser(@PathVariable String courseId, @PathVariable String userId) {
-        log.info("Unbookmarking course {} for user {}", courseId, userId);
-        courseService.unbookmarkCourseForUser(courseId, userId);
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping("/{courseId}/complete/{userId}")
     public ResponseEntity<Void> completeCourseForUser(@PathVariable String courseId, @PathVariable String userId) {
         log.info("Completing course {} for user {}", courseId, userId);
@@ -110,17 +97,17 @@ public class CourseController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/user/{userId}/bookmarked")
-    public ResponseEntity<List<CourseResponse>> getUserBookmarkedCourses(@PathVariable String userId) {
-        log.info("Fetching bookmarked courses for user: {}", userId);
-        List<CourseResponse> responses = courseService.getUserBookmarkedCourses(userId);
-        return ResponseEntity.ok(responses);
+    @PostMapping("/{courseId}/bookmark/{userId}")
+    public ResponseEntity<Void> bookmarkCourse(@PathVariable String courseId, @PathVariable String userId) {
+        log.info("Bookmarking course {} for user {}", courseId, userId);
+        courseService.bookmarkCourse(courseId, userId);
+        return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/user/{userId}/completed")
-    public ResponseEntity<List<EnrolledCourseResponse>> getUserCompletedCourses(@PathVariable String userId) {
-        log.info("Fetching completed courses for user: {}", userId);
-        List<EnrolledCourseResponse> responses = courseService.getUserCompletedCourses(userId);
-        return ResponseEntity.ok(responses);
+    @DeleteMapping("/{courseId}/bookmark/{userId}")
+    public ResponseEntity<Void> unbookmarkCourse(@PathVariable String courseId, @PathVariable String userId) {
+        log.info("Unbookmarking course {} for user {}", courseId, userId);
+        courseService.unbookmarkCourse(courseId, userId);
+        return ResponseEntity.noContent().build();
     }
 } 

@@ -1,6 +1,6 @@
 package com.gitittogether.skillForge.server.course.dto.request.course;
 
-import com.gitittogether.skillForge.server.course.model.course.Level;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +17,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CourseRequest {
-    @NotBlank
     private String id;
 
     @NotBlank
@@ -50,13 +49,14 @@ public class CourseRequest {
     private String thumbnailUrl;
 
     @Builder.Default
-    private boolean published = false;
+    private boolean published = true;
 
     @Builder.Default
-    private boolean isPublic = false;
+    private boolean isPublic = true;
 
     @NotNull
-    private Language language;
+    @Builder.Default
+    private Language language = Language.EN; // Default language is English
 
     @Builder.Default
     private double rating = 0.0;

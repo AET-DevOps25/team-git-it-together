@@ -1,5 +1,6 @@
 package com.gitittogether.skillForge.server.course.model.course;
 
+import com.gitittogether.skillForge.server.course.model.utils.LessonContentType;
 import lombok.*;
 
 @Data

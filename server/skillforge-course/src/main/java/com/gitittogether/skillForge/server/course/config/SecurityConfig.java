@@ -35,6 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints: health checks, public courses, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/categories/**").permitAll()
                         .requestMatchers(
                                 "/actuator/*",
                                 "/api/v1/courses/health",
@@ -43,7 +44,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // All other course endpoints require authentication (JWT from gateway)
                         .requestMatchers("/api/v1/courses/**").authenticated()
-                        .anyRequest().authenticated()
+                        // Block all other requests
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

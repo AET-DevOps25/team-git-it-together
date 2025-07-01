@@ -17,9 +17,11 @@ public class CourseProgressResponse {
     private String courseId;
     @NotBlank
     private String userId;
+    @NotBlank
     private double progress;
     private LocalDateTime enrolledAt;
     private LocalDateTime lastAccessedAt;
+    @NotBlank
     private boolean completed;
     private LocalDateTime completedAt;
 }

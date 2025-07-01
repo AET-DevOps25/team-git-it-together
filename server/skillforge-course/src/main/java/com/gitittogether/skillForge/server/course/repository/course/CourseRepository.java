@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.course.repository.course;
 
 import com.gitittogether.skillForge.server.course.model.course.Course;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -44,7 +45,7 @@ public interface CourseRepository extends MongoRepository<Course, String> {
      * @param level The course level.
      * @return List of courses with the specified level.
      */
-    List<Course> findByLevel(com.gitittogether.skillForge.server.course.model.course.Level level);
+    List<Course> findByLevel(Level level);
     
     /**
      * Find courses by language.

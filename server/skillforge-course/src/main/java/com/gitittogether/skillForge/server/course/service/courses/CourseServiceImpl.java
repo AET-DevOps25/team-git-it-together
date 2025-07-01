@@ -3,19 +3,23 @@ package com.gitittogether.skillForge.server.course.service.courses;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledCourseResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
 import com.gitittogether.skillForge.server.course.mapper.course.EnrolledCourseMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledCourse;
-import com.gitittogether.skillForge.server.course.model.course.UserBookmark;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
-import com.gitittogether.skillForge.server.course.repository.course.UserBookmarkRepository;
 import com.gitittogether.skillForge.server.course.repository.course.UserCourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +32,9 @@ public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
     private final UserCourseRepository userCourseRepository;
-    private final UserBookmarkRepository userBookmarkRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
+    @Value("${user.service.uri:http://localhost:8082}")
+    private String userServiceUri;
 
     @Override
     @Transactional
@@ -53,12 +59,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> getAllCourses() {
+    public List<CourseSummaryResponse> getAllCourses() {
         log.info("Fetching all courses");
-        
+
         List<Course> courses = courseRepository.findAll();
         return courses.stream()
-                .map(CourseMapper::toCourseResponse)
+                .map(CourseMapper::toCourseSummaryResponse)
                 .collect(Collectors.toList());
     }
 
@@ -89,9 +95,6 @@ public class CourseServiceImpl implements CourseService {
         
         // Delete all user enrollments for this course
         userCourseRepository.deleteByCourseId(courseId);
-        
-        // Delete all bookmarks for this course
-        userBookmarkRepository.deleteByCourseId(courseId);
         
         courseRepository.deleteById(courseId);
         log.info("Deleted course with ID: {}", courseId);
@@ -127,6 +130,18 @@ public class CourseServiceImpl implements CourseService {
         course.setNumberOfEnrolledUsers(course.getNumberOfEnrolledUsers() + 1);
         courseRepository.save(course);
         
+        // Call user service to update enrolledCourseIds
+        try {
+            String enrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Service-Key", "course-service-key");
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            restTemplate.postForEntity(enrollUrl, request, Void.class);
+            log.info("Called user service to add course {} to user {}'s enrolled courses", courseId, userId);
+        } catch (Exception e) {
+            log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
+        }
+        
         log.info("Enrolled user {} in course {}", userId, courseId);
         return EnrolledCourseMapper.toEnrolledCourseResponse(savedEnrolledCourse);
     }
@@ -135,60 +150,27 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void unenrollUserFromCourse(String courseId, String userId) {
         log.info("Unenrolling user {} from course {}", userId, courseId);
-        
         EnrolledCourse enrolledCourse = userCourseRepository.findByCourseIdAndProgressUserId(courseId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not enrolled in course"));
-        
         userCourseRepository.delete(enrolledCourse);
-        
         // Update course enrollment count
         Course course = courseRepository.findById(courseId).orElse(null);
         if (course != null) {
             course.setNumberOfEnrolledUsers(Math.max(0, course.getNumberOfEnrolledUsers() - 1));
             courseRepository.save(course);
         }
-        
+        // Call user service to update enrolledCourseIds
+        try {
+            String unenrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Service-Key", "course-service-key");
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            restTemplate.exchange(unenrollUrl, HttpMethod.DELETE, request, Void.class);
+            log.info("Called user service to remove course {} from user {}'s enrolled courses", courseId, userId);
+        } catch (Exception e) {
+            log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
+        }
         log.info("Unenrolled user {} from course {}", userId, courseId);
-    }
-
-    @Override
-    @Transactional
-    public void bookmarkCourseForUser(String courseId, String userId) {
-        log.info("Bookmarking course {} for user {}", courseId, userId);
-        
-        // Verify course exists
-        if (!courseRepository.existsById(courseId)) {
-            throw new ResourceNotFoundException("Course not found with ID: " + courseId);
-        }
-        
-        // Check if already bookmarked
-        if (userBookmarkRepository.existsByUserIdAndCourseId(userId, courseId)) {
-            log.warn("User {} has already bookmarked course {}", userId, courseId);
-            throw new IllegalArgumentException("Course is already bookmarked");
-        }
-        
-        UserBookmark bookmark = UserBookmark.builder()
-                .userId(userId)
-                .courseId(courseId)
-                .bookmarkedAt(LocalDateTime.now())
-                .build();
-        
-        userBookmarkRepository.save(bookmark);
-        log.info("Bookmarked course {} for user {}", courseId, userId);
-    }
-
-    @Override
-    @Transactional
-    public void unbookmarkCourseForUser(String courseId, String userId) {
-        log.info("Unbookmarking course {} for user {}", courseId, userId);
-        
-        if (!userBookmarkRepository.existsByUserIdAndCourseId(userId, courseId)) {
-            log.warn("Course {} is not bookmarked for user {}", courseId, userId);
-            throw new IllegalArgumentException("Course is not bookmarked");
-        }
-        
-        userBookmarkRepository.deleteByUserIdAndCourseId(userId, courseId);
-        log.info("Unbookmarked course {} for user {}", courseId, userId);
     }
 
     @Override
@@ -204,6 +186,19 @@ public class CourseServiceImpl implements CourseService {
         enrolledCourse.getProgress().setProgress(100.0);
         
         userCourseRepository.save(enrolledCourse);
+        
+        // Call user service to update completedCourseIds
+        try {
+            String completeUrl = userServiceUri + "/api/v1/users/" + userId + "/complete/" + courseId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Service-Key", "course-service-key");
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            restTemplate.postForEntity(completeUrl, request, Void.class);
+            log.info("Called user service to mark course {} as completed for user {}", courseId, userId);
+        } catch (Exception e) {
+            log.error("Failed to update user's completed courses in user service: {}", e.getMessage(), e);
+        }
+        
         log.info("Completed course {} for user {}", courseId, userId);
     }
 
@@ -218,37 +213,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> getUserBookmarkedCourses(String userId) {
-        log.info("Fetching bookmarked courses for user: {}", userId);
-        
-        List<UserBookmark> bookmarks = userBookmarkRepository.findByUserId(userId);
-        List<String> courseIds = bookmarks.stream()
-                .map(UserBookmark::getCourseId)
-                .collect(Collectors.toList());
-        
-        List<Course> courses = courseRepository.findAllById(courseIds);
-        return courses.stream()
-                .map(CourseMapper::toCourseResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<EnrolledCourseResponse> getUserCompletedCourses(String userId) {
-        log.info("Fetching completed courses for user: {}", userId);
-        
-        List<EnrolledCourse> completedCourses = userCourseRepository.findByProgressUserIdAndProgressCompletedTrue(userId);
-        return completedCourses.stream()
-                .map(EnrolledCourseMapper::toEnrolledCourseResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<CourseResponse> getPublicCourses() {
+    public List<CourseSummaryResponse> getPublicCourses() {
         log.info("Fetching public courses for landing page");
         
         List<Course> publicCourses = courseRepository.findByIsPublicTrue();
         return publicCourses.stream()
-                .map(CourseMapper::toCourseResponse)
+                .map(CourseMapper::toCourseSummaryResponse)
                 .collect(Collectors.toList());
     }
 
@@ -260,5 +230,55 @@ public class CourseServiceImpl implements CourseService {
         return publicPublishedCourses.stream()
                 .map(CourseMapper::toCourseResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void bookmarkCourse(String courseId, String userId) {
+        log.info("Bookmarking course {} for user {}", courseId, userId);
+        
+        // Verify course exists
+        if (!courseRepository.existsById(courseId)) {
+            throw new ResourceNotFoundException("Course not found with ID: " + courseId);
+        }
+        
+        // Call user service to update bookmarkedCourseIds
+        try {
+            String bookmarkUrl = userServiceUri + "/api/v1/users/" + userId + "/bookmark/" + courseId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Service-Key", "course-service-key");
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            restTemplate.postForEntity(bookmarkUrl, request, Void.class);
+            log.info("Called user service to bookmark course {} for user {}", courseId, userId);
+        } catch (Exception e) {
+            log.error("Failed to update user's bookmarked courses in user service: {}", e.getMessage(), e);
+        }
+        
+        log.info("Bookmarked course {} for user {}", courseId, userId);
+    }
+
+    @Override
+    @Transactional
+    public void unbookmarkCourse(String courseId, String userId) {
+        log.info("Unbookmarking course {} for user {}", courseId, userId);
+        
+        // Verify course exists
+        if (!courseRepository.existsById(courseId)) {
+            throw new ResourceNotFoundException("Course not found with ID: " + courseId);
+        }
+        
+        // Call user service to update bookmarkedCourseIds
+        try {
+            String unbookmarkUrl = userServiceUri + "/api/v1/users/" + userId + "/bookmark/" + courseId;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-Service-Key", "course-service-key");
+            HttpEntity<Void> request = new HttpEntity<>(headers);
+            restTemplate.exchange(unbookmarkUrl, HttpMethod.DELETE, request, Void.class);
+            log.info("Called user service to unbookmark course {} for user {}", courseId, userId);
+        } catch (Exception e) {
+            log.error("Failed to update user's bookmarked courses in user service: {}", e.getMessage(), e);
+        }
+        
+        log.info("Unbookmarked course {} for user {}", courseId, userId);
     }
 } 

@@ -7,7 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Lesson {
-
     @NonNull
     private String title;
 
@@ -16,6 +15,8 @@ public class Lesson {
 
     @NonNull
     private LessonContent content;
+
+    private String thumbnail;
 
     @Builder.Default
     private int order = 0; // The position of this lesson within its module

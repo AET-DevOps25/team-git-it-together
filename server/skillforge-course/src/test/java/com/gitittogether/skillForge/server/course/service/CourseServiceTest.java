@@ -2,8 +2,9 @@ package com.gitittogether.skillForge.server.course.service;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.model.course.Course;
-import com.gitittogether.skillForge.server.course.model.course.Level;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import com.gitittogether.skillForge.server.course.service.courses.CourseServiceImpl;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,9 +31,6 @@ public class CourseServiceTest {
 
     @Mock
     private com.gitittogether.skillForge.server.course.repository.course.UserCourseRepository userCourseRepository;
-
-    @Mock
-    private com.gitittogether.skillForge.server.course.repository.course.UserBookmarkRepository userBookmarkRepository;
 
     @InjectMocks
     private CourseServiceImpl courseService;
@@ -91,25 +90,25 @@ public class CourseServiceTest {
         when(courseRepository.findByIsPublicTrue()).thenReturn(Arrays.asList(publicCourse, publicPublishedCourse));
 
         // When
-        List<CourseResponse> result = courseService.getPublicCourses();
+        List<CourseSummaryResponse> result = courseService.getPublicCourses();
 
         // Then
         assertEquals(2, result.size());
-        assertTrue(result.stream().allMatch(CourseResponse::isPublic));
+        assertTrue(result.stream().allMatch(CourseSummaryResponse::isPublic));
         verify(courseRepository).findByIsPublicTrue();
     }
 
     @Test
     void testGetPublicPublishedCourses() {
         // Given
-        when(courseRepository.findByIsPublicTrueAndPublishedTrue()).thenReturn(Arrays.asList(publicPublishedCourse));
+        when(courseRepository.findByIsPublicTrueAndPublishedTrue()).thenReturn(Collections.singletonList(publicPublishedCourse));
 
         // When
         List<CourseResponse> result = courseService.getPublicPublishedCourses();
 
         // Then
         assertEquals(1, result.size());
-        CourseResponse course = result.get(0);
+        CourseResponse course = result.getFirst();
         assertTrue(course.isPublic());
         assertTrue(course.isPublished());
         assertEquals("Public Published Course", course.getTitle());

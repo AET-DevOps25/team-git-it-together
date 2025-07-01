@@ -7,8 +7,9 @@ import org.springframework.core.env.Environment;
 
 import java.util.Locale;
 
-@SpringBootApplication
-@Slf4j
+@SpringBootApplication(exclude = {
+        org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration.class
+})@Slf4j
 public class SkillForgeCourseService {
 
     public static void main(String[] args) {

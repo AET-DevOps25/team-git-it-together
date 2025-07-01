@@ -2,6 +2,7 @@ package com.gitittogether.skillForge.server.course.mapper.course;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.CourseProgress;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledCourse;
@@ -52,8 +53,7 @@ public class CourseMapper {
 
     public static Course requestToCourse(CourseRequest request) {
         if (request == null) return null;
-        return Course.builder()
-                .id(request.getId())
+        Course.CourseBuilder builder = Course.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .instructor(request.getInstructor())
@@ -66,8 +66,11 @@ public class CourseMapper {
                 .published(request.isPublished())
                 .isPublic(request.isPublic())
                 .language(request.getLanguage())
-                .rating(request.getRating())
-                .build();
+                .rating(request.getRating());
+        if (request.getId() != null && !request.getId().isBlank()) {
+            builder.id(request.getId());
+        }
+        return builder.build();
     }
 
     public static Course responseToCourse(CourseResponse response) {
@@ -101,5 +104,23 @@ public class CourseMapper {
                 .build();
     }
 
+    public static CourseSummaryResponse toCourseSummaryResponse(Course model) {
+        if (model == null) return null;
+        return CourseSummaryResponse.builder()
+                .id(model.getId())
+                .title(model.getTitle())
+                .description(model.getDescription())
+                .instructor(model.getInstructor())
+                .skills(model.getSkills())
+                .categories(model.getCategories())
+                .level(model.getLevel())
+                .isPublic(model.isPublic())
+                .published(model.isPublished())
+                .language(model.getLanguage())
+                .thumbnailUrl(model.getThumbnailUrl())
+                .numberOfEnrolledUsers(model.getNumberOfEnrolledUsers())
+                .rating(model.getRating())
+                .build();
+    }
 
 }

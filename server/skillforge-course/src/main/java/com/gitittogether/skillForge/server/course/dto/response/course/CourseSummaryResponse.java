@@ -1,7 +1,7 @@
 package com.gitittogether.skillForge.server.course.dto.response.course;
 
-import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,21 +14,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseResponse {
+public class CourseSummaryResponse {
     @NotBlank
     private String id;
     @NotBlank
     private String title;
+    @NotBlank
     private String description;
+    @NotBlank
     private String instructor;
     private List<String> skills;
-    private List<ModuleResponse> modules;
+    private String thumbnailUrl;
     private int numberOfEnrolledUsers;
     private List<String> categories;
     private Level level;
-    private String thumbnailUrl;
-    private boolean published;
     private boolean isPublic;
+    private boolean published;
     private Language language;
     private double rating;
-}
+} 

@@ -13,7 +13,6 @@ public class ModuleMapper {
         return ModuleResponse.builder()
                 .title(model.getTitle())
                 .description(model.getDescription())
-                .courseId(model.getCourseId())
                 .lessons(model.getLessons() == null ? null :
                         model.getLessons().stream()
                                 .map(LessonMapper::toLessonResponse)
@@ -27,7 +26,6 @@ public class ModuleMapper {
         return ModuleRequest.builder()
                 .title(model.getTitle())
                 .description(model.getDescription())
-                .courseId(model.getCourseId())
                 .lessons(model.getLessons() == null ? null :
                         model.getLessons().stream()
                                 .map(LessonMapper::toLessonRequest)
@@ -41,7 +39,6 @@ public class ModuleMapper {
         return Module.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .courseId(request.getCourseId())
                 .lessons(request.getLessons() == null ? null :
                         request.getLessons().stream()
                                 .map(LessonMapper::requestToLesson)
@@ -55,7 +52,6 @@ public class ModuleMapper {
         return Module.builder()
                 .title(response.getTitle())
                 .description(response.getDescription())
-                .courseId(response.getCourseId())
                 .lessons(response.getLessons() == null ? null :
                         response.getLessons().stream()
                                 .map(LessonMapper::respnseToLesson)

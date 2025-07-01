@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.course.model.course;
 
 import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -25,7 +26,8 @@ public class Course {
     private String description;
 
     @NonNull
-    private String instructor; // Reference to User who created the course - can be "AI" or a real user
+    @Builder.Default
+    private String instructor = "AI"; // Reference to User who created the course - can be "AI" or a real user in this case use ID of the user
 
     @Builder.Default
     private List<String> skills = new ArrayList<>(); // Skills that can be learned in this course
@@ -47,12 +49,14 @@ public class Course {
 
     private String thumbnailUrl;
 
-    private boolean published; // Indicates if the course is published (available for enrollment)
+    @Builder.Default
+    private boolean published = true; // Indicates if the course is published and available to users
 
     @Builder.Default
-    private boolean isPublic = false; // Indicates if the course is public (showcased on landing page)
+    private boolean isPublic = true; // Indicates if the course is public (showcased on landing page)
 
-    private Language language; // Language of the course content
+    @Builder.Default
+    private Language language = Language.EN; // Default language is English
 
     private double rating;
 }

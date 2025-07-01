@@ -1,4 +1,4 @@
-package com.gitittogether.skillForge.server.course.model.course;
+package com.gitittogether.skillForge.server.course.model.utils;
 
 public enum Level {
     BEGINNER,  // Suitable for those new to the topic

@@ -26,11 +26,13 @@ public class CategoryMapper {
 
     public static Category requestToCategory(CategoryRequest request) {
         if (request == null) return null;
-        return Category.builder()
-                .id(request.getId())
+        Category.CategoryBuilder builder = Category.builder()
                 .name(request.getName())
-                .description(request.getDescription())
-                .build();
+                .description(request.getDescription());
+        if (request.getId() != null && !request.getId().isBlank()) {
+            builder.id(request.getId());
+        }
+        return builder.build();
     }
 
     public static Category responseToCategory(CategoryResponse response) {

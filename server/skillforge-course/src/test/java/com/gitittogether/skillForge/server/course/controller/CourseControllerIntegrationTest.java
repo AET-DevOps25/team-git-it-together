@@ -1,9 +1,7 @@
 package com.gitittogether.skillForge.server.course.controller;
 
-import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
-import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.model.course.Course;
-import com.gitittogether.skillForge.server.course.model.course.Level;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +16,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

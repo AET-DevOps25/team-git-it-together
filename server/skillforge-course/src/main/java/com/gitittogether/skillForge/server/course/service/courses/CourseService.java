@@ -3,6 +3,7 @@ package com.gitittogether.skillForge.server.course.service.courses;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledCourseResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 
 import java.util.List;
 
@@ -29,14 +30,14 @@ public interface CourseService {
      *
      * @return List of all course responses.
      */
-    List<CourseResponse> getAllCourses();
+    List<CourseSummaryResponse> getAllCourses();
 
     /**
      * Retrieves all public courses for landing page display.
      *
      * @return List of public course responses.
      */
-    List<CourseResponse> getPublicCourses();
+    List<CourseSummaryResponse> getPublicCourses();
 
     /**
      * Retrieves all public and published courses for landing page display.
@@ -79,22 +80,6 @@ public interface CourseService {
     void unenrollUserFromCourse(String courseId, String userId);
 
     /**
-     * Bookmarks a course for a user.
-     *
-     * @param courseId The ID of the course to bookmark.
-     * @param userId The ID of the user.
-     */
-    void bookmarkCourseForUser(String courseId, String userId);
-
-    /**
-     * Unbookmarks a course for a user.
-     *
-     * @param courseId The ID of the course to unbookmark.
-     * @param userId The ID of the user.
-     */
-    void unbookmarkCourseForUser(String courseId, String userId);
-
-    /**
      * Marks a course as completed for a user.
      *
      * @param courseId The ID of the course to complete.
@@ -111,18 +96,18 @@ public interface CourseService {
     List<EnrolledCourseResponse> getUserEnrolledCourses(String userId);
 
     /**
-     * Retrieves all courses a user has bookmarked.
+     * Bookmarks a course for a user.
      *
+     * @param courseId The ID of the course to bookmark.
      * @param userId The ID of the user.
-     * @return List of bookmarked course responses.
      */
-    List<CourseResponse> getUserBookmarkedCourses(String userId);
+    void bookmarkCourse(String courseId, String userId);
 
     /**
-     * Retrieves all courses a user has completed.
+     * Unbookmarks a course for a user.
      *
+     * @param courseId The ID of the course to unbookmark.
      * @param userId The ID of the user.
-     * @return List of completed course responses.
      */
-    List<EnrolledCourseResponse> getUserCompletedCourses(String userId);
+    void unbookmarkCourse(String courseId, String userId);
 } 
