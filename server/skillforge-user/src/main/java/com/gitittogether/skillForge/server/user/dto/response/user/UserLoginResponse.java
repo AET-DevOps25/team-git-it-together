@@ -22,5 +22,6 @@ public class UserLoginResponse {
     @NotBlank
     private String email;
     private String profilePictureUrl;
+    @NotBlank
     private String jwtToken;
 }

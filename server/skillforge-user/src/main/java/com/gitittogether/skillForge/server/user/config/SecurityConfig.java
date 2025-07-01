@@ -11,6 +11,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
+import org.springframework.security.core.Authentication;
+import java.util.function.Supplier;
 
 
 @Configuration
@@ -51,17 +55,20 @@ public class SecurityConfig {
                         // Public endpoints: user registration, login, health checks, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users/logout").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
                         .requestMatchers(
                                 "/actuator/*",
                                 "/api/v1/users/health",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        // Inter-service communication endpoints (only from course service)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/enroll/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*/enroll/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/bookmark/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*/bookmark/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/complete/*").access(this::isInternalService)
                         // All other endpoints require authentication
                         .requestMatchers("/api/v1/users/**").authenticated()
-                        .requestMatchers("/api/v1/courses/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .exceptionHandling(eh -> eh.
@@ -70,5 +77,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private AuthorizationDecision isInternalService(Supplier<Authentication> authentication, RequestAuthorizationContext context) {
+        String serviceKey = context.getRequest().getHeader("X-Service-Key");
+        boolean hasValidServiceKey = "course-service-key".equals(serviceKey);
+        return new AuthorizationDecision(hasValidServiceKey);
     }
 }

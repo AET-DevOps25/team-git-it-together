@@ -40,3 +40,4 @@ out/
 *.local
 *.env
 *.env.*
+.apt_generated_tests

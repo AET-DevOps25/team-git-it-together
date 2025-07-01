@@ -44,13 +44,15 @@ public class User {
     @Builder.Default
     private List<Skill> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
 
-    // Course references - now using IDs instead of full objects
-    @Builder.Default
-    private List<String> enrolledCourseIds = new ArrayList<>(); // List of course IDs the user is enrolled in
-
+    // User's bookmarked courses (user domain)
     @Builder.Default
     private List<String> bookmarkedCourseIds = new ArrayList<>(); // List of course IDs the user has bookmarked
 
+    // User's enrolled courses (for quick lookups)
+    @Builder.Default
+    private List<String> enrolledCourseIds = new ArrayList<>(); // List of course IDs the user is enrolled in
+
+    // User's completed courses (for quick lookups)
     @Builder.Default
     private List<String> completedCourseIds = new ArrayList<>(); // List of course IDs the user has completed
 }

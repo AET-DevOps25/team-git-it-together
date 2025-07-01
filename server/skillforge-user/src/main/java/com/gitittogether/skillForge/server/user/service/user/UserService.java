@@ -30,7 +30,7 @@ public interface UserService {
      * @param userId The ID of the user whose profile is to be retrieved.
      * @return A response containing the user's profile information.
      */
-    UserProfileResponse getUserProfile(String userId);
+    UserProfileResponse getUser(String userId);
 
     /**
      * Updates the profile information of a user.
@@ -39,7 +39,7 @@ public interface UserService {
      * @param request The update request containing new profile details.
      * @return A response containing the updated user's profile information.
      */
-    UserProfileResponse updateUserProfile(String userId, UserProfileUpdateRequest request);
+    UserProfileResponse updateUser(String userId, UserProfileUpdateRequest request);
 
     /**
      * Deletes a user by their ID.
@@ -48,4 +48,51 @@ public interface UserService {
      * @return A boolean indicating whether the deletion was successful.
      */
     boolean deleteUser(String userId);
+
+    /**
+     * Bookmarks a course for a user.
+     *
+     * @param userId The ID of the user.
+     * @param courseId The ID of the course to bookmark.
+     */
+    void bookmarkCourse(String userId, String courseId);
+
+    /**
+     * Unbookmarks a course for a user.
+     *
+     * @param userId The ID of the user.
+     * @param courseId The ID of the course to unbookmark.
+     */
+    void unbookmarkCourse(String userId, String courseId);
+
+    /**
+     * Gets all bookmarked course IDs for a user.
+     *
+     * @param userId The ID of the user.
+     * @return List of bookmarked course IDs.
+     */
+    java.util.List<String> getBookmarkedCourseIds(String userId);
+
+    /**
+     * Enrolls a user in a course by adding the courseId to enrolledCourseIds.
+     * @param userId The user ID.
+     * @param courseId The course ID.
+     */
+    void enrollUserInCourse(String userId, String courseId);
+
+    /**
+     * Unenrolls a user from a course by removing the courseId from enrolledCourseIds.
+     * @param userId The user ID.
+     * @param courseId The course ID.
+     */
+    void unenrollUserFromCourse(String userId, String courseId);
+
+    /**
+     * Marks a course as completed for a user by adding the courseId to completedCourseIds.
+     * @param userId The user ID.
+     * @param courseId The course ID.
+     */
+    void completeCourse(String userId, String courseId);
+
+
 }

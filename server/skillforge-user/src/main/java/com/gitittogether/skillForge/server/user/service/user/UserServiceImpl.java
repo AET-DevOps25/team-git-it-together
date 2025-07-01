@@ -76,7 +76,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserProfileResponse getUserProfile(String userId) {
+    public UserProfileResponse getUser(String userId) {
         log.info("Fetching user profile: {}", userId);
 
         User user = userRepository.findById(userId)
@@ -87,7 +87,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserProfileResponse updateUserProfile(String userId, UserProfileUpdateRequest request) {
+    public UserProfileResponse updateUser(String userId, UserProfileUpdateRequest request) {
         log.info("Updating user profile: {}", userId);
 
         User user = userRepository.findById(userId)
@@ -240,4 +240,104 @@ public class UserServiceImpl implements UserService {
     private boolean isBlank(String str) {
         return str == null || str.trim().isEmpty();
     }
+
+    @Override
+    @Transactional
+    public void bookmarkCourse(String userId, String courseId) {
+        log.info("Bookmarking course {} for user {}", courseId, userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        if (user.getBookmarkedCourseIds() == null) {
+            user.setBookmarkedCourseIds(new ArrayList<>());
+        }
+        
+        if (user.getBookmarkedCourseIds().contains(courseId)) {
+            log.warn("User {} has already bookmarked course {}", userId, courseId);
+            throw new IllegalArgumentException("Course is already bookmarked");
+        }
+        
+        user.getBookmarkedCourseIds().add(courseId);
+        userRepository.save(user);
+        log.info("Bookmarked course {} for user {}", courseId, userId);
+    }
+
+    @Override
+    @Transactional
+    public void unbookmarkCourse(String userId, String courseId) {
+        log.info("Unbookmarking course {} for user {}", courseId, userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        if (user.getBookmarkedCourseIds() == null || !user.getBookmarkedCourseIds().contains(courseId)) {
+            log.warn("Course {} is not bookmarked for user {}", courseId, userId);
+            throw new IllegalArgumentException("Course is not bookmarked");
+        }
+        
+        user.getBookmarkedCourseIds().remove(courseId);
+        userRepository.save(user);
+        log.info("Unbookmarked course {} for user {}", courseId, userId);
+    }
+
+    @Override
+    public java.util.List<String> getBookmarkedCourseIds(String userId) {
+        log.info("Fetching bookmarked course IDs for user: {}", userId);
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        
+        return user.getBookmarkedCourseIds() != null ? user.getBookmarkedCourseIds() : new ArrayList<>();
+    }
+
+    @Override
+    @Transactional
+    public void enrollUserInCourse(String userId, String courseId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getEnrolledCourseIds() == null) {
+            user.setEnrolledCourseIds(new ArrayList<>());
+        }
+        if (!user.getEnrolledCourseIds().contains(courseId)) {
+            user.getEnrolledCourseIds().add(courseId);
+            userRepository.save(user);
+            log.info("Enrolled user {} in course {}", userId, courseId);
+        } else {
+            log.info("User {} is already enrolled in course {}", userId, courseId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void unenrollUserFromCourse(String userId, String courseId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getEnrolledCourseIds() != null && user.getEnrolledCourseIds().contains(courseId)) {
+            user.getEnrolledCourseIds().remove(courseId);
+            userRepository.save(user);
+            log.info("Unenrolled user {} from course {}", userId, courseId);
+        } else {
+            log.info("User {} is not enrolled in course {}", userId, courseId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void completeCourse(String userId, String courseId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        if (user.getCompletedCourseIds() == null) {
+            user.setCompletedCourseIds(new ArrayList<>());
+        }
+        if (!user.getCompletedCourseIds().contains(courseId)) {
+            user.getCompletedCourseIds().add(courseId);
+            userRepository.save(user);
+            log.info("Marked course {} as completed for user {}", courseId, userId);
+        } else {
+            log.info("Course {} is already marked as completed for user {}", courseId, userId);
+        }
+    }
+
+
 }
