@@ -36,7 +36,7 @@ public class Course {
     private List<Module> modules = new ArrayList<>();
 
     @Builder.Default
-    private List<String> enrolledUserIds = new ArrayList<>();
+    private List<EnrolledUserInfo> enrolledUsers = new ArrayList<>(); // List of enrolled users with progress and skills
 
     @Builder.Default
     private Integer numberOfEnrolledUsers = 0;

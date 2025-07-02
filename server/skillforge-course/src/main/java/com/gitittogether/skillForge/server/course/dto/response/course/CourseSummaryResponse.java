@@ -2,6 +2,7 @@ package com.gitittogether.skillForge.server.course.dto.response.course;
 
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
+import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,4 +33,5 @@ public class CourseSummaryResponse {
     private boolean published;
     private Language language;
     private double rating;
+    private List<EnrolledUserInfo> enrolledUsers;
 } 

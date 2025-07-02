@@ -2,8 +2,10 @@ package com.gitittogether.skillForge.server.course.controller.courses;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
-import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledCourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,9 +72,9 @@ public class CourseController {
     }
 
     @PostMapping("/{courseId}/enroll/{userId}")
-    public ResponseEntity<EnrolledCourseResponse> enrollUserInCourse(@PathVariable String courseId, @PathVariable String userId) {
+    public ResponseEntity<CourseResponse> enrollUserInCourse(@PathVariable String courseId, @PathVariable String userId) {
         log.info("Enrolling user {} in course {}", userId, courseId);
-        EnrolledCourseResponse response = courseService.enrollUserInCourse(courseId, userId);
+        CourseResponse response = courseService.enrollUserInCourse(courseId, userId);
         return ResponseEntity.ok(response);
     }
 
@@ -91,9 +93,9 @@ public class CourseController {
     }
 
     @GetMapping("/user/{userId}/enrolled")
-    public ResponseEntity<List<EnrolledCourseResponse>> getUserEnrolledCourses(@PathVariable String userId) {
+    public ResponseEntity<List<EnrolledUserInfoResponse>> getUserEnrolledCourses(@PathVariable String userId) {
         log.info("Fetching enrolled courses for user: {}", userId);
-        List<EnrolledCourseResponse> responses = courseService.getUserEnrolledCourses(userId);
+        List<EnrolledUserInfoResponse> responses = courseService.getUserEnrolledCourses(userId);
         return ResponseEntity.ok(responses);
     }
 
@@ -109,5 +111,61 @@ public class CourseController {
         log.info("Unbookmarking course {} for user {}", courseId, userId);
         courseService.unbookmarkCourse(courseId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<CourseResponse>> searchCourses(
+            @RequestParam(required = false) String instructor,
+            @RequestParam(required = false) Level level,
+            @RequestParam(required = false) Language language,
+            @RequestParam(required = false) String skill,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String title
+    ) {
+        log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}", instructor, level, language, skill, category, title);
+        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/instructor/{instructor}")
+    public ResponseEntity<List<CourseResponse>> getCoursesByInstructor(@PathVariable String instructor) {
+        log.info("Fetching courses by instructor: {}", instructor);
+        List<CourseResponse> responses = courseService.getCoursesByInstructor(instructor);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/level/{level}")
+    public ResponseEntity<List<CourseResponse>> getCoursesByLevel(@PathVariable com.gitittogether.skillForge.server.course.model.utils.Level level) {
+        log.info("Fetching courses by level: {}", level);
+        List<CourseResponse> responses = courseService.getCoursesByLevel(level);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/language/{language}")
+    public ResponseEntity<List<CourseResponse>> getCoursesByLanguage(@PathVariable com.gitittogether.skillForge.server.course.model.utils.Language language) {
+        log.info("Fetching courses by language: {}", language);
+        List<CourseResponse> responses = courseService.getCoursesByLanguage(language);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/skill/{skillName}")
+    public ResponseEntity<List<CourseResponse>> getCoursesBySkill(@PathVariable String skillName) {
+        log.info("Fetching courses by skill: {}", skillName);
+        List<CourseResponse> responses = courseService.getCoursesBySkill(skillName);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/category/{categoryName}")
+    public ResponseEntity<List<CourseResponse>> getCoursesByCategory(@PathVariable String categoryName) {
+        log.info("Fetching courses by category: {}", categoryName);
+        List<CourseResponse> responses = courseService.getCoursesByCategory(categoryName);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/search/title/{title}")
+    public ResponseEntity<List<CourseResponse>> searchCoursesByTitle(@PathVariable String title) {
+        log.info("Searching courses by fuzzy title: {}", title);
+        List<CourseResponse> responses = courseService.searchCoursesByTitleFuzzy(title);
+        return ResponseEntity.ok(responses);
     }
 } 

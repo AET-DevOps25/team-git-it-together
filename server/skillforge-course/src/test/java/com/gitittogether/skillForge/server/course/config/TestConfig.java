@@ -1,10 +1,6 @@
 package com.gitittogether.skillForge.server.course.config;
 
-import com.gitittogether.skillForge.server.course.repository.course.CategoryRepository;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
-import com.gitittogether.skillForge.server.course.repository.course.UserCourseRepository;
-import com.gitittogether.skillForge.server.course.service.courses.CategoryService;
-import com.gitittogether.skillForge.server.course.service.courses.CategoryServiceImpl;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
 import com.gitittogether.skillForge.server.course.service.courses.CourseServiceImpl;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -20,12 +16,7 @@ public class TestConfig {
     }
 
     @Bean
-    public CourseService courseService(CourseRepository courseRepository, UserCourseRepository userCourseRepository) {
-        return new CourseServiceImpl(courseRepository, userCourseRepository);
-    }
-
-    @Bean
-    public CategoryService categoryService(CategoryRepository categoryRepository) {
-        return new CategoryServiceImpl(categoryRepository);
+    public CourseService courseService(CourseRepository courseRepository) {
+        return new CourseServiceImpl(courseRepository);
     }
 } 

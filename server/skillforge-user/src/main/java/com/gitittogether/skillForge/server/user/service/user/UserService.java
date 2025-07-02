@@ -7,6 +7,8 @@ import com.gitittogether.skillForge.server.user.dto.response.user.UserLoginRespo
 import com.gitittogether.skillForge.server.user.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserRegisterResponse;
 
+import java.util.List;
+
 public interface UserService {
     /**
      * Registers a new user with the provided details.
@@ -40,7 +42,7 @@ public interface UserService {
      * @return A response containing the updated user's profile information.
      */
     UserProfileResponse updateUser(String userId, UserProfileUpdateRequest request);
-
+    
     /**
      * Deletes a user by their ID.
      *
@@ -52,7 +54,7 @@ public interface UserService {
     /**
      * Bookmarks a course for a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to bookmark.
      */
     void bookmarkCourse(String userId, String courseId);
@@ -60,7 +62,7 @@ public interface UserService {
     /**
      * Unbookmarks a course for a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to unbookmark.
      */
     void unbookmarkCourse(String userId, String courseId);
@@ -71,25 +73,28 @@ public interface UserService {
      * @param userId The ID of the user.
      * @return List of bookmarked course IDs.
      */
-    java.util.List<String> getBookmarkedCourseIds(String userId);
+    List<String> getBookmarkedCourseIds(String userId);
 
     /**
      * Enrolls a user in a course by adding the courseId to enrolledCourseIds.
-     * @param userId The user ID.
+     *
+     * @param userId   The user ID.
      * @param courseId The course ID.
      */
     void enrollUserInCourse(String userId, String courseId);
 
     /**
      * Unenrolls a user from a course by removing the courseId from enrolledCourseIds.
-     * @param userId The user ID.
+     *
+     * @param userId   The user ID.
      * @param courseId The course ID.
      */
     void unenrollUserFromCourse(String userId, String courseId);
 
     /**
      * Marks a course as completed for a user by adding the courseId to completedCourseIds.
-     * @param userId The user ID.
+     *
+     * @param userId   The user ID.
      * @param courseId The course ID.
      */
     void completeCourse(String userId, String courseId);

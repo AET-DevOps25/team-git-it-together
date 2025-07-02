@@ -4,8 +4,6 @@ import com.gitittogether.skillForge.server.course.dto.request.course.CourseReque
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.model.course.Course;
-import com.gitittogether.skillForge.server.course.model.course.CourseProgress;
-import com.gitittogether.skillForge.server.course.model.course.EnrolledCourse;
 
 import java.util.stream.Collectors;
 
@@ -28,6 +26,7 @@ public class CourseMapper {
                 .isPublic(model.isPublic())
                 .language(model.getLanguage())
                 .rating(model.getRating())
+                .enrolledUsers(model.getEnrolledUsers())
                 .build();
     }
 
@@ -53,7 +52,8 @@ public class CourseMapper {
 
     public static Course requestToCourse(CourseRequest request) {
         if (request == null) return null;
-        Course.CourseBuilder builder = Course.builder()
+        return Course.builder()
+                .id(request.getId())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .instructor(request.getInstructor())
@@ -66,11 +66,9 @@ public class CourseMapper {
                 .published(request.isPublished())
                 .isPublic(request.isPublic())
                 .language(request.getLanguage())
-                .rating(request.getRating());
-        if (request.getId() != null && !request.getId().isBlank()) {
-            builder.id(request.getId());
-        }
-        return builder.build();
+                .rating(request.getRating())
+                .enrolledUsers(request.getEnrolledUsers().stream().map(EnrolledUserInfoMapper::requestToEnrolledUserInfo).collect(Collectors.toList()))
+                .build();
     }
 
     public static Course responseToCourse(CourseResponse response) {
@@ -90,17 +88,7 @@ public class CourseMapper {
                 .isPublic(response.isPublic())
                 .language(response.getLanguage())
                 .rating(response.getRating())
-                .build();
-    }
-
-    public static EnrolledCourse toNewEnrolledCourse(CourseResponse response, String userId) {
-        if (response == null) return null;
-        return EnrolledCourse.builder()
-                .course(responseToCourse(response))
-                .progress(CourseProgress.builder()
-                        .courseId(response.getId())
-                        .userId(userId)
-                        .build())
+                .enrolledUsers(response.getEnrolledUsers())
                 .build();
     }
 
@@ -112,14 +100,15 @@ public class CourseMapper {
                 .description(model.getDescription())
                 .instructor(model.getInstructor())
                 .skills(model.getSkills())
+                .thumbnailUrl(model.getThumbnailUrl())
+                .numberOfEnrolledUsers(model.getNumberOfEnrolledUsers())
                 .categories(model.getCategories())
                 .level(model.getLevel())
                 .isPublic(model.isPublic())
                 .published(model.isPublished())
                 .language(model.getLanguage())
-                .thumbnailUrl(model.getThumbnailUrl())
-                .numberOfEnrolledUsers(model.getNumberOfEnrolledUsers())
                 .rating(model.getRating())
+                .enrolledUsers(model.getEnrolledUsers())
                 .build();
     }
 

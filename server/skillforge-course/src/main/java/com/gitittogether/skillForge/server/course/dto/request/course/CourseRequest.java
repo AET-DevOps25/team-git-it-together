@@ -1,13 +1,14 @@
 package com.gitittogether.skillForge.server.course.dto.request.course;
 
-import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +35,9 @@ public class CourseRequest {
     @Builder.Default
     private List<ModuleRequest> modules = new ArrayList<>(); // Modules in this course
 
+    @Valid
     @Builder.Default
-    private List<String> enrolledUserIds = new ArrayList<>(); // Optional on creation
+    private List<EnrolledUserInfoRequest> enrolledUsers = new ArrayList<>(); // Optional on creation
 
     @Builder.Default
     private Integer numberOfEnrolledUsers = 0;

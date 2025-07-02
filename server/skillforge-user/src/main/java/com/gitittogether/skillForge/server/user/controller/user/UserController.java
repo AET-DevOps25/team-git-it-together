@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -109,7 +111,7 @@ public class UserController {
     /**
      * Bookmarks a course for a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to bookmark.
      * @return ResponseEntity indicating the result of the bookmark operation.
      */
@@ -123,7 +125,7 @@ public class UserController {
     /**
      * Unbookmarks a course for a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to unbookmark.
      * @return ResponseEntity indicating the result of the unbookmark operation.
      */
@@ -137,7 +139,7 @@ public class UserController {
     /**
      * Marks a course as completed for a user.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to mark as completed.
      * @return ResponseEntity indicating the result of the complete operation.
      */
@@ -157,14 +159,14 @@ public class UserController {
     @GetMapping("/{userId}/bookmarks")
     public ResponseEntity<?> getBookmarkedCourseIds(@PathVariable String userId) {
         log.info("🔖 Fetching bookmarked course IDs for user: {}", userId);
-        java.util.List<String> bookmarkedCourseIds = userService.getBookmarkedCourseIds(userId);
+        List<String> bookmarkedCourseIds = userService.getBookmarkedCourseIds(userId);
         return ResponseEntity.ok(bookmarkedCourseIds);
     }
 
     /**
      * Enrolls a user in a course by adding the courseId to enrolledCourseIds.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to enroll in.
      * @return ResponseEntity indicating the result of the enroll operation.
      */
@@ -178,7 +180,7 @@ public class UserController {
     /**
      * Unenrolls a user from a course by removing the courseId from enrolledCourseIds.
      *
-     * @param userId The ID of the user.
+     * @param userId   The ID of the user.
      * @param courseId The ID of the course to unenroll from.
      * @return ResponseEntity indicating the result of the unenroll operation.
      */

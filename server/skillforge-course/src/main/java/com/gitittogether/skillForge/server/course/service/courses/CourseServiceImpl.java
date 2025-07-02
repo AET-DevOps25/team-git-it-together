@@ -2,26 +2,28 @@ package com.gitittogether.skillForge.server.course.service.courses;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
-import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledCourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
-import com.gitittogether.skillForge.server.course.mapper.course.EnrolledCourseMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
-import com.gitittogether.skillForge.server.course.model.course.EnrolledCourse;
+import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
-import com.gitittogether.skillForge.server.course.repository.course.UserCourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,19 +33,20 @@ import java.util.stream.Collectors;
 public class CourseServiceImpl implements CourseService {
 
     private final CourseRepository courseRepository;
-    private final UserCourseRepository userCourseRepository;
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${user.service.uri:http://localhost:8082}")
     private String userServiceUri;
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     @Override
     @Transactional
     public CourseResponse createCourse(CourseRequest request) {
         log.info("Creating new course: {}", request.getTitle());
-        
+
         Course course = CourseMapper.requestToCourse(request);
         Course savedCourse = courseRepository.save(course);
-        
+
         log.info("Created course with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
     }
@@ -51,10 +54,10 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponse getCourse(String courseId) {
         log.info("Fetching course: {}", courseId);
-        
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
-        
+
         return CourseMapper.toCourseResponse(course);
     }
 
@@ -72,14 +75,14 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public CourseResponse updateCourse(String courseId, CourseRequest request) {
         log.info("Updating course: {}", courseId);
-        
+
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
-        
+
         Course updatedCourse = CourseMapper.requestToCourse(request);
         updatedCourse.setId(courseId);
         Course savedCourse = courseRepository.save(updatedCourse);
-        
+
         log.info("Updated course with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
     }
@@ -88,48 +91,40 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void deleteCourse(String courseId) {
         log.info("Deleting course: {}", courseId);
-        
+
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found with ID: " + courseId);
         }
-        
-        // Delete all user enrollments for this course
-        userCourseRepository.deleteByCourseId(courseId);
-        
+
         courseRepository.deleteById(courseId);
         log.info("Deleted course with ID: {}", courseId);
     }
 
     @Override
     @Transactional
-    public EnrolledCourseResponse enrollUserInCourse(String courseId, String userId) {
+    public CourseResponse enrollUserInCourse(String courseId, String userId) {
         log.info("Enrolling user {} in course {}", userId, courseId);
-        
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
-        
+
         // Check if user is already enrolled
-        if (userCourseRepository.existsByCourseIdAndProgressUserId(courseId, userId)) {
+        boolean alreadyEnrolled = course.getEnrolledUsers().stream().anyMatch(u -> u.getUserId().equals(userId));
+        if (alreadyEnrolled) {
             log.warn("User {} is already enrolled in course {}", userId, courseId);
             throw new IllegalArgumentException("User is already enrolled in this course");
         }
-        
-        EnrolledCourse enrolledCourse = EnrolledCourse.builder()
-                .course(course)
-                .progress(com.gitittogether.skillForge.server.course.model.course.CourseProgress.builder()
-                        .courseId(courseId)
-                        .userId(userId)
-                        .enrolledAt(LocalDateTime.now())
-                        .lastAccessedAt(LocalDateTime.now())
-                        .build())
+
+        // Create EnrolledUserInfo
+        EnrolledUserInfo enrolledUser = EnrolledUserInfo.builder()
+                .userId(userId)
+                .progress(0.0f)
+                .skills(new ArrayList<>(course.getSkills()))
                 .build();
-        
-        EnrolledCourse savedEnrolledCourse = userCourseRepository.save(enrolledCourse);
-        
-        // Update course enrollment count
+        course.getEnrolledUsers().add(enrolledUser);
         course.setNumberOfEnrolledUsers(course.getNumberOfEnrolledUsers() + 1);
-        courseRepository.save(course);
-        
+        Course savedCourse = courseRepository.save(course);
+
         // Call user service to update enrolledCourseIds
         try {
             String enrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
@@ -141,52 +136,54 @@ public class CourseServiceImpl implements CourseService {
         } catch (Exception e) {
             log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
         }
-        
+
         log.info("Enrolled user {} in course {}", userId, courseId);
-        return EnrolledCourseMapper.toEnrolledCourseResponse(savedEnrolledCourse);
+        // Build response
+        return CourseMapper.toCourseResponse(savedCourse);
     }
 
     @Override
     @Transactional
     public void unenrollUserFromCourse(String courseId, String userId) {
         log.info("Unenrolling user {} from course {}", userId, courseId);
-        EnrolledCourse enrolledCourse = userCourseRepository.findByCourseIdAndProgressUserId(courseId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User is not enrolled in course"));
-        userCourseRepository.delete(enrolledCourse);
-        // Update course enrollment count
-        Course course = courseRepository.findById(courseId).orElse(null);
-        if (course != null) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
+        boolean removed = course.getEnrolledUsers().removeIf(u -> u.getUserId().equals(userId));
+        if (removed) {
             course.setNumberOfEnrolledUsers(Math.max(0, course.getNumberOfEnrolledUsers() - 1));
             courseRepository.save(course);
+            // Call user service to update enrolledCourseIds
+            try {
+                String unenrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("X-Service-Key", "course-service-key");
+                HttpEntity<Void> request = new HttpEntity<>(headers);
+                restTemplate.exchange(unenrollUrl, HttpMethod.DELETE, request, Void.class);
+                log.info("Called user service to remove course {} from user {}'s enrolled courses", courseId, userId);
+            } catch (Exception e) {
+                log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
+            }
+            log.info("Unenrolled user {} from course {}", userId, courseId);
+        } else {
+            throw new ResourceNotFoundException("User is not enrolled in course");
         }
-        // Call user service to update enrolledCourseIds
-        try {
-            String unenrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Service-Key", "course-service-key");
-            HttpEntity<Void> request = new HttpEntity<>(headers);
-            restTemplate.exchange(unenrollUrl, HttpMethod.DELETE, request, Void.class);
-            log.info("Called user service to remove course {} from user {}'s enrolled courses", courseId, userId);
-        } catch (Exception e) {
-            log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
-        }
-        log.info("Unenrolled user {} from course {}", userId, courseId);
     }
 
     @Override
     @Transactional
     public void completeCourseForUser(String courseId, String userId) {
         log.info("Completing course {} for user {}", courseId, userId);
-        
-        EnrolledCourse enrolledCourse = userCourseRepository.findByCourseIdAndProgressUserId(courseId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User is not enrolled in course"));
-        
-        enrolledCourse.getProgress().setCompleted(true);
-        enrolledCourse.getProgress().setCompletedAt(LocalDateTime.now());
-        enrolledCourse.getProgress().setProgress(100.0);
-        
-        userCourseRepository.save(enrolledCourse);
-        
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
+        course.getEnrolledUsers().stream()
+                .filter(u -> u.getUserId().equals(userId))
+                .findFirst()
+                .ifPresentOrElse(
+                        u -> u.setProgress(100.0f),
+                        () -> {
+                            throw new ResourceNotFoundException("User is not enrolled in course");
+                        }
+                );
         // Call user service to update completedCourseIds
         try {
             String completeUrl = userServiceUri + "/api/v1/users/" + userId + "/complete/" + courseId;
@@ -198,24 +195,36 @@ public class CourseServiceImpl implements CourseService {
         } catch (Exception e) {
             log.error("Failed to update user's completed courses in user service: {}", e.getMessage(), e);
         }
-        
+
         log.info("Completed course {} for user {}", courseId, userId);
+        courseRepository.save(course);
     }
 
+    // Better use the route in the user service to get enrolled courses easier
     @Override
-    public List<EnrolledCourseResponse> getUserEnrolledCourses(String userId) {
+    public List<EnrolledUserInfoResponse> getUserEnrolledCourses(String userId) {
         log.info("Fetching enrolled courses for user: {}", userId);
-        
-        List<EnrolledCourse> enrolledCourses = userCourseRepository.findByProgressUserId(userId);
-        return enrolledCourses.stream()
-                .map(EnrolledCourseMapper::toEnrolledCourseResponse)
-                .collect(Collectors.toList());
+        List<Course> allCourses = courseRepository.findAll();
+        List<EnrolledUserInfoResponse> responses = new ArrayList<>();
+        for (Course course : allCourses) {
+            course.getEnrolledUsers().stream()
+                    .filter(u -> u.getUserId().equals(userId))
+                    .findFirst()
+                    .ifPresent(enrolledUser -> {
+                        responses.add(EnrolledUserInfoResponse.builder()
+                                .userId(enrolledUser.getUserId())
+                                .progress(enrolledUser.getProgress())
+                                .skills(enrolledUser.getSkills())
+                                .build());
+                    });
+        }
+        return responses;
     }
 
     @Override
     public List<CourseSummaryResponse> getPublicCourses() {
         log.info("Fetching public courses for landing page");
-        
+
         List<Course> publicCourses = courseRepository.findByIsPublicTrue();
         return publicCourses.stream()
                 .map(CourseMapper::toCourseSummaryResponse)
@@ -225,7 +234,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<CourseResponse> getPublicPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
-        
+
         List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
         return publicPublishedCourses.stream()
                 .map(CourseMapper::toCourseResponse)
@@ -236,12 +245,12 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void bookmarkCourse(String courseId, String userId) {
         log.info("Bookmarking course {} for user {}", courseId, userId);
-        
+
         // Verify course exists
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found with ID: " + courseId);
         }
-        
+
         // Call user service to update bookmarkedCourseIds
         try {
             String bookmarkUrl = userServiceUri + "/api/v1/users/" + userId + "/bookmark/" + courseId;
@@ -253,7 +262,7 @@ public class CourseServiceImpl implements CourseService {
         } catch (Exception e) {
             log.error("Failed to update user's bookmarked courses in user service: {}", e.getMessage(), e);
         }
-        
+
         log.info("Bookmarked course {} for user {}", courseId, userId);
     }
 
@@ -261,12 +270,12 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void unbookmarkCourse(String courseId, String userId) {
         log.info("Unbookmarking course {} for user {}", courseId, userId);
-        
+
         // Verify course exists
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found with ID: " + courseId);
         }
-        
+
         // Call user service to update bookmarkedCourseIds
         try {
             String unbookmarkUrl = userServiceUri + "/api/v1/users/" + userId + "/bookmark/" + courseId;
@@ -278,7 +287,88 @@ public class CourseServiceImpl implements CourseService {
         } catch (Exception e) {
             log.error("Failed to update user's bookmarked courses in user service: {}", e.getMessage(), e);
         }
-        
+
         log.info("Unbookmarked course {} for user {}", courseId, userId);
+    }
+
+    @Override
+    public List<CourseResponse> getCoursesByInstructor(String instructor) {
+        return courseRepository.findByInstructor(instructor)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> getCoursesByLevel(com.gitittogether.skillForge.server.course.model.utils.Level level) {
+        return courseRepository.findByLevel(level)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> getCoursesByLanguage(com.gitittogether.skillForge.server.course.model.utils.Language language) {
+        return courseRepository.findByLanguage(language)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> getCoursesBySkill(String skillName) {
+        return courseRepository.findBySkillsContainingIgnoreCase(skillName)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> getCoursesByCategory(String categoryName) {
+        return courseRepository.findByCategoriesContainingIgnoreCase(categoryName)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> searchCoursesByTitleFuzzy(String title) {
+        return courseRepository.findByTitleContainingIgnoreCase(title)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> searchCoursesByTitle(String title) {
+        return courseRepository.findByTitle(title)
+                .stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title) {
+        Query query = new Query();
+        if (instructor != null && !instructor.isBlank()) {
+            query.addCriteria(Criteria.where("instructor").is(instructor));
+        }
+        if (level != null) {
+            query.addCriteria(Criteria.where("level").is(level));
+        }
+        if (language != null) {
+            query.addCriteria(Criteria.where("language").is(language));
+        }
+        if (skill != null && !skill.isBlank()) {
+            query.addCriteria(Criteria.where("skills").regex(skill, "i"));
+        }
+        if (category != null && !category.isBlank()) {
+            query.addCriteria(Criteria.where("categories").regex(category, "i"));
+        }
+        if (title != null && !title.isBlank()) {
+            query.addCriteria(Criteria.where("title").regex(title, "i"));
+        }
+        List<Course> courses = mongoTemplate.find(query, Course.class);
+        return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());
     }
 } 
