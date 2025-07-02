@@ -144,13 +144,22 @@ curl http://localhost:8082/actuator/health
 curl http://localhost:8083/actuator/health
 ```
 
-- **Test rate limiting**:
+- **Test The Gateway**:
 
 ```bash
-cd server/scripts/
+cd server/testing-scripts
+python3 test_gateway.py
+```
+
+- **Test rate limiting (already tested in the gateway test)**
+
+```bash
+cd server/testing-scripts
 chmod +x test-rate-limiting.sh
 ./test-rate-limiting.sh
 ```
+
+This will generate a report in the `test-results-<timestamp>` directory and a TESTING_REPORT.md file.
 
 
 ## 📊 **Rate Limiting Configuration**
