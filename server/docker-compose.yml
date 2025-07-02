@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # Redis for rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: skillforge-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - skillforge-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway (public access)
+  gateway:
+    build:
+      context: ./skillforge-gateway
+      dockerfile: Dockerfile
+    container_name: skillforge-gateway
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_EXPIRATION_MS=86400000
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=60
+      - RATE_LIMIT_REQUESTS_PER_SECOND=10
+      - RATE_LIMIT_BURST=20
+    depends_on:
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      course-service:
+        condition: service_started
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # User Service (internal access only)
+  user-service:
+    build:
+      context: ./skillforge-user
+      dockerfile: Dockerfile
+    container_name: skillforge-user-service
+    # No ports exposed - only accessible through gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT_USER=8082
+      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_EXPIRATION_MS=86400000
+      - MONGODB_URI=mongodb://mongo:27017/skillforge_users
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Course Service (internal access only)
+  course-service:
+    build:
+      context: ./skillforge-course
+      dockerfile: Dockerfile
+    container_name: skillforge-course-service
+    # No ports exposed - only accessible through gateway
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT_COURSES=8083
+      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_EXPIRATION_MS=86400000
+      - MONGODB_URI=mongodb://mongo:27017/skillforge_courses
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: skillforge-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  redis_data:
+  mongo_data:
+
+networks:
+  skillforge-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 
