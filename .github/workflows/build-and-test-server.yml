@@ -42,16 +42,6 @@ jobs:
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
         run: ./gradlew build --no-daemon
-      - name: Upload Checkstyle HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-report-gateway
-          path: build/reports/checkstyle/**/*.html
-      - name: Upload SpotBugs HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotbugs-report-gateway
-          path: build/reports/spotbugs/**/*.html
 
   test-user-service:
     name: Build & Test User Service
@@ -77,16 +67,6 @@ jobs:
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
         run: ./gradlew build --no-daemon
-      - name: Upload Checkstyle HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-report-user
-          path: build/reports/checkstyle/**/*.html
-      - name: Upload SpotBugs HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotbugs-report-user
-          path: build/reports/spotbugs/**/*.html
 
   test-course-service:
     name: Build & Test Course Service
@@ -112,13 +92,3 @@ jobs:
           REDIS_PORT: 6379
           REDIS_PASSWORD: ""
         run: ./gradlew build --no-daemon
-      - name: Upload Checkstyle HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: checkstyle-report-course
-          path: build/reports/checkstyle/**/*.html
-      - name: Upload SpotBugs HTML report
-        uses: actions/upload-artifact@v4
-        with:
-          name: spotbugs-report-course
-          path: build/reports/spotbugs/**/*.html
