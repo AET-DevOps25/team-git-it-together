@@ -28,9 +28,6 @@ spring:
   # Disable security for faster tests
   security:
     enabled: false
-  
-  main:
-    web-application-type: none
 
 # JWT configuration for tests
 jwt:
