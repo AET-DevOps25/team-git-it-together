@@ -61,14 +61,14 @@ jobs:
               JWT_SECRET=${{ secrets.JWT_SECRET }}
               JWT_EXPIRATION_MS=86400000
               SERVER_PORT_USER=8082
-              MONGO_URL=${{ secrets.MONGO_URL }}
+              MONGO_URL=mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@skillforge.szhyxck.mongodb.net/skillForge?retryWrites=true&w=majority&appName=SkillForge
           - id: course-service
             path: server/skillforge-course
             image: course-service
             name: Build and Push Course Service
             build-args: |
               SERVER_PORT_COURSES=8083
-              MONGO_URL=${{ secrets.MONGO_URL }}
+              MONGO_URL=mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@skillforge.szhyxck.mongodb.net/skillForge?retryWrites=true&w=majority&appName=SkillForge
           - id: genai
             path: genai
             image: genai
@@ -125,7 +125,7 @@ jobs:
           build-args: |
             ${{ matrix.build-args }}
             VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
-
+            MONGO_URL=mongodb+srv://${{ secrets.MONGO_USERNAME }}:${{ secrets.MONGO_PASSWORD }}@skillforge.szhyxck.mongodb.net/skillForge?retryWrites=true&w=majority&appName=SkillForge
 
       - name: Clean up dangling images
         run: |
