@@ -1,6 +1,5 @@
 package com.gitittogether.skillForge.server.user.dto.request.user;
 
-import com.gitittogether.skillForge.server.user.dto.request.skill.SkillRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,8 +18,8 @@ public class UserProfileUpdateRequest {
     private String email;
     private String profilePictureUrl;
     private String bio;
-    private List<SkillRequest> skills;
-    private List<SkillRequest> skillsInProgress;
+    private List<String> skills;
+    private List<String> skillsInProgress;
     
     // Course references - now using IDs instead of full objects
     private List<String> enrolledCourseIds;

@@ -1,6 +1,5 @@
 package com.gitittogether.skillForge.server.user.model.user;
 
-import com.gitittogether.skillForge.server.user.model.skill.Skill;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -39,10 +38,10 @@ public class User {
 
     // Skills
     @Builder.Default
-    private List<Skill> skills = new ArrayList<>(); // List of skills the user has mastered
+    private List<String> skills = new ArrayList<>(); // List of skills the user has mastered
 
     @Builder.Default
-    private List<Skill> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
+    private List<String> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
 
     // User's bookmarked courses (user domain)
     @Builder.Default
