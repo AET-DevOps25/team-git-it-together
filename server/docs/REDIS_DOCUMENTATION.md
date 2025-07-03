@@ -2,20 +2,25 @@
 
 ## 🎯 **Overview**
 
-Redis (Remote Dictionary Server) is an in-memory data structure store used in the SkillForge platform for **rate limiting** at the API Gateway level. This document explains how Redis works, why we use it, and how it's configured in our microservices architecture.
+Redis (Remote Dictionary Server) is an in-memory data structure store used in the SkillForge platform for **rate
+limiting** at the API Gateway level. This document explains how Redis works, why we use it, and how it's configured in
+our microservices architecture.
 
 ---
 
 ## 🏗️ **What is Redis?**
 
 ### **Definition**
+
 Redis is an **open-source, in-memory data structure store** that can be used as:
+
 - **Database** - Persistent storage with snapshots
 - **Cache** - Fast data retrieval
 - **Message broker** - Pub/sub messaging
 - **Rate limiter** - Request counting and throttling
 
 ### **Key Characteristics**
+
 - **In-Memory**: Data stored in RAM for ultra-fast access
 - **Persistent**: Can save data to disk for durability
 - **Atomic Operations**: Thread-safe operations
@@ -27,6 +32,7 @@ Redis is an **open-source, in-memory data structure store** that can be used as:
 ## 🔧 **Why Redis for Rate Limiting?**
 
 ### **Problems Without Rate Limiting**
+
 ```
 ❌ Unlimited API requests
 ❌ Potential DoS attacks
@@ -36,6 +42,7 @@ Redis is an **open-source, in-memory data structure store** that can be used as:
 ```
 
 ### **Benefits of Redis-Based Rate Limiting**
+
 ```
 ✅ Distributed rate limiting across multiple gateway instances
 ✅ Ultra-fast request counting (sub-millisecond)
@@ -50,6 +57,7 @@ Redis is an **open-source, in-memory data structure store** that can be used as:
 ## 🏛️ **Redis Architecture in SkillForge**
 
 ### **System Architecture**
+
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Client        │    │   API Gateway   │    │   Redis         │
@@ -69,6 +77,7 @@ Redis is an **open-source, in-memory data structure store** that can be used as:
 ```
 
 ### **Rate Limiting Flow**
+
 1. **Request Arrives**: Client sends HTTP request to API Gateway
 2. **Client Identification**: Gateway identifies client (IP or custom header)
 3. **Redis Check**: Gateway checks Redis for current rate limit count
@@ -81,6 +90,7 @@ Redis is an **open-source, in-memory data structure store** that can be used as:
 ## ⚙️ **Redis Configuration**
 
 ### **Connection Configuration**
+
 ```yaml
 spring:
   redis:
@@ -97,6 +107,7 @@ spring:
 ```
 
 ### **Rate Limiting Configuration**
+
 ```yaml
 rate:
   limit:
@@ -108,6 +119,7 @@ rate:
 ### **Environment-Specific Settings**
 
 #### **Development Environment**
+
 ```yaml
 rate:
   limit:
@@ -117,6 +129,7 @@ rate:
 ```
 
 #### **Production Environment**
+
 ```yaml
 rate:
   limit:
@@ -130,23 +143,25 @@ rate:
 ## 🔍 **How Redis Rate Limiting Works**
 
 ### **1. Client Identification**
+
 ```java
 private String getClientId(ServerHttpRequest request) {
     // Try to get client ID from header first
     String clientId = request.getHeaders().getFirst("X-Client-ID");
-    
+
     if (clientId == null) {
         // Use IP address as fallback
-        String ipAddress = request.getRemoteAddress() != null ? 
-            request.getRemoteAddress().getAddress().getHostAddress() : "unknown";
+        String ipAddress = request.getRemoteAddress() != null ?
+                request.getRemoteAddress().getAddress().getHostAddress() : "unknown";
         clientId = "ip:" + ipAddress;
     }
-    
+
     return clientId;
 }
 ```
 
 ### **2. Rate Limit Key Generation**
+
 ```java
 // Key format: rate_limit:{client_id}:{window_type}
 String perSecondKey = "rate_limit:" + clientId + ":second";
@@ -155,6 +170,7 @@ String burstKey = "rate_limit:" + clientId + ":burst";
 ```
 
 ### **3. Redis Operations**
+
 ```java
 private Mono<Boolean> checkLimit(String key, int limit, Duration window) {
     return redisTemplate.opsForValue().increment(key)
@@ -171,13 +187,24 @@ private Mono<Boolean> checkLimit(String key, int limit, Duration window) {
 ```
 
 ### **4. Multi-Level Rate Limiting**
+
 ```java
 // Check all rate limits
 return Mono.zip(
-    checkLimit(perSecondKey, requestsPerSecond, Duration.ofSeconds(1)),
-    checkLimit(perMinuteKey, requestsPerMinute, Duration.ofMinutes(1)),
-    checkLimit(burstKey, burstCapacity, Duration.ofSeconds(5))
-).map(results -> results.getT1() && results.getT2() && results.getT3());
+        checkLimit(perSecondKey, requestsPerSecond, Duration.ofSeconds(1)),
+
+checkLimit(perMinuteKey, requestsPerMinute, Duration.ofMinutes(1)),
+
+checkLimit(burstKey, burstCapacity, Duration.ofSeconds(5))
+        ).
+
+map(results ->results.
+
+getT1() &&results.
+
+getT2() &&results.
+
+getT3());
 ```
 
 ---
@@ -185,6 +212,7 @@ return Mono.zip(
 ## 📊 **Redis Data Structures Used**
 
 ### **1. String (Key-Value)**
+
 ```redis
 # Rate limit counters
 rate_limit:192.168.1.100:second -> "15"
@@ -193,6 +221,7 @@ rate_limit:client123:burst -> "8"
 ```
 
 ### **2. Expiration (TTL)**
+
 ```redis
 # Automatic expiration after time window
 EXPIRE rate_limit:192.168.1.100:second 1
@@ -201,6 +230,7 @@ EXPIRE rate_limit:client123:burst 5
 ```
 
 ### **3. Atomic Operations**
+
 ```redis
 # Increment counter atomically
 INCR rate_limit:192.168.1.100:second
@@ -215,6 +245,7 @@ EXPIRE rate_limit:192.168.1.100:second 1
 ## 🚀 **Redis Commands and Operations**
 
 ### **Basic Redis Commands**
+
 ```bash
 # Connect to Redis
 redis-cli
@@ -247,6 +278,7 @@ MONITOR
 ```
 
 ### **Rate Limiting Specific Commands**
+
 ```bash
 # Check current rate limit for a client
 GET rate_limit:192.168.1.100:second
@@ -269,23 +301,25 @@ DEL rate_limit:*
 ## 🔧 **Redis Configuration in SkillForge**
 
 ### **1. RedisConfig.java**
+
 ```java
+
 @Configuration
 public class RedisConfig {
 
     @Bean
     public ReactiveRedisTemplate<String, String> reactiveRedisTemplate(
             ReactiveRedisConnectionFactory connectionFactory) {
-        
+
         StringRedisSerializer serializer = new StringRedisSerializer();
-        
-        RedisSerializationContext<String, String> serializationContext = 
-            RedisSerializationContext.<String, String>newSerializationContext()
-                .key(serializer)
-                .value(serializer)
-                .hashKey(serializer)
-                .hashValue(serializer)
-                .build();
+
+        RedisSerializationContext<String, String> serializationContext =
+                RedisSerializationContext.<String, String>newSerializationContext()
+                        .key(serializer)
+                        .value(serializer)
+                        .hashKey(serializer)
+                        .hashValue(serializer)
+                        .build();
 
         return new ReactiveRedisTemplate<>(connectionFactory, serializationContext);
     }
@@ -293,15 +327,17 @@ public class RedisConfig {
 ```
 
 ### **2. RateLimitingConfig.java**
+
 ```java
+
 @Configuration
 public class RateLimitingConfig {
 
     @Bean
     public RedisRateLimiter redisRateLimiter(ReactiveRedisConnectionFactory connectionFactory) {
         return new RedisRateLimiter(
-            requestsPerSecond,  // replenishRate (tokens per second)
-            burstCapacity       // burstCapacity
+                requestsPerSecond,  // replenishRate (tokens per second)
+                burstCapacity       // burstCapacity
         );
     }
 
@@ -310,14 +346,14 @@ public class RateLimitingConfig {
     public KeyResolver userKeyResolver() {
         return exchange -> {
             String clientId = exchange.getRequest().getHeaders().getFirst("X-Client-ID");
-            
+
             if (clientId != null && !clientId.isEmpty()) {
                 return Mono.just(clientId);
             }
-            
-            String ipAddress = exchange.getRequest().getRemoteAddress() != null ? 
-                exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
-            
+
+            String ipAddress = exchange.getRequest().getRemoteAddress() != null ?
+                    exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
+
             return Mono.just("ip:" + ipAddress);
         };
     }
@@ -329,6 +365,7 @@ public class RateLimitingConfig {
 ## 📈 **Redis Performance and Monitoring**
 
 ### **Performance Metrics**
+
 ```bash
 # Check Redis memory usage
 INFO memory
@@ -344,6 +381,7 @@ INFO keyspace
 ```
 
 ### **Rate Limiting Monitoring**
+
 ```bash
 # Monitor rate limiting keys
 redis-cli keys "rate_limit:*"
@@ -359,6 +397,7 @@ redis-cli mget rate_limit:192.168.1.100:second rate_limit:192.168.1.100:minute
 ```
 
 ### **Health Checks**
+
 ```bash
 # Check Redis connectivity
 redis-cli ping
@@ -377,6 +416,7 @@ redis-cli time
 ### **Common Issues**
 
 #### **1. Redis Connection Issues**
+
 ```bash
 # Check if Redis is running
 docker ps | grep redis
@@ -392,6 +432,7 @@ docker exec skillforge-redis redis-cli config get "*"
 ```
 
 #### **2. Rate Limiting Not Working**
+
 ```bash
 # Check rate limiting configuration
 curl http://localhost:8081/actuator/env | grep rate.limit
@@ -410,6 +451,7 @@ done
 ```
 
 #### **3. Redis Memory Issues**
+
 ```bash
 # Check Redis memory usage
 redis-cli info memory
@@ -425,6 +467,7 @@ redis-cli keys "rate_limit:*" | xargs redis-cli del
 ```
 
 ### **Debug Commands**
+
 ```bash
 # Enable Redis slow log
 redis-cli config set slowlog-log-slower-than 1000
@@ -447,6 +490,7 @@ redis-cli --latency-history
 ## 🔒 **Redis Security**
 
 ### **Authentication**
+
 ```yaml
 spring:
   redis:
@@ -454,6 +498,7 @@ spring:
 ```
 
 ### **Network Security**
+
 ```yaml
 # Docker network isolation
 networks:
@@ -465,6 +510,7 @@ networks:
 ```
 
 ### **Redis Security Best Practices**
+
 1. **Use Strong Passwords**: Always set Redis password
 2. **Network Isolation**: Run Redis in private network
 3. **Disable Dangerous Commands**: Disable FLUSHALL, CONFIG, etc.
@@ -476,15 +522,18 @@ networks:
 ## 📚 **Redis Learning Resources**
 
 ### **Official Documentation**
+
 - [Redis Official Documentation](https://redis.io/documentation)
 - [Redis Commands Reference](https://redis.io/commands)
 - [Redis Data Types](https://redis.io/topics/data-types)
 
 ### **Spring Boot Redis**
+
 - [Spring Boot Redis Documentation](https://spring.io/projects/spring-data-redis)
 - [Spring Cloud Gateway Rate Limiting](https://cloud.spring.io/spring-cloud-gateway/reference/html/#the-redis-rate-limiter)
 
 ### **Rate Limiting Patterns**
+
 - [Token Bucket Algorithm](https://en.wikipedia.org/wiki/Token_bucket)
 - [Sliding Window Rate Limiting](https://en.wikipedia.org/wiki/Rate_limiting)
 - [Distributed Rate Limiting](https://redis.io/topics/patterns-distributed-locks)
@@ -502,4 +551,5 @@ Redis in the SkillForge platform serves as a **high-performance, distributed rat
 - ✅ **Offers sub-millisecond performance** for rate limit checks
 - ✅ **Automatically manages** rate limit windows and expiration
 
-The implementation uses Redis's **atomic operations** and **automatic expiration** to provide reliable, scalable rate limiting that protects our microservices while maintaining excellent performance. 
+The implementation uses Redis's **atomic operations** and **automatic expiration** to provide reliable, scalable rate
+limiting that protects our microservices while maintaining excellent performance. 

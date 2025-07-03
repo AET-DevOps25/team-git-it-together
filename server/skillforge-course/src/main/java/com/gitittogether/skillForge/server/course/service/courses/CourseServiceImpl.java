@@ -210,13 +210,11 @@ public class CourseServiceImpl implements CourseService {
             course.getEnrolledUsers().stream()
                     .filter(u -> u.getUserId().equals(userId))
                     .findFirst()
-                    .ifPresent(enrolledUser -> {
-                        responses.add(EnrolledUserInfoResponse.builder()
-                                .userId(enrolledUser.getUserId())
-                                .progress(enrolledUser.getProgress())
-                                .skills(enrolledUser.getSkills())
-                                .build());
-                    });
+                    .ifPresent(enrolledUser -> responses.add(EnrolledUserInfoResponse.builder()
+                            .userId(enrolledUser.getUserId())
+                            .progress(enrolledUser.getProgress())
+                            .skills(enrolledUser.getSkills())
+                            .build()));
         }
         return responses;
     }
