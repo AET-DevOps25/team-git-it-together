@@ -276,12 +276,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserProfileResponse> getUsersWithSkill(String skillName) {
-        return userRepository.findBySkillsName(skillName).stream().map(UserMapper::toUserProfileResponse).toList();
+        return userRepository.findBySkills(skillName).stream().map(UserMapper::toUserProfileResponse).toList();
     }
 
     @Override
     public List<UserProfileResponse> getUsersWithSkillInProgress(String skillName) {
-        return userRepository.findBySkillsInProgressName(skillName).stream().map(UserMapper::toUserProfileResponse).toList();
+        return userRepository.findBySkillsInProgress(skillName).stream().map(UserMapper::toUserProfileResponse).toList();
     }
 
     @Override

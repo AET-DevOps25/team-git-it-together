@@ -17,9 +17,9 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     boolean existsByUsername(String username);
 
-    List<User> findBySkillsName(String skillName);
+    List<User> findBySkills(String skill);
 
-    List<User> findBySkillsInProgressName(String skillName);
+    List<User> findBySkillsInProgress(String skill);
 
     List<User> findByEnrolledCourseIdsContaining(String courseId);
 
