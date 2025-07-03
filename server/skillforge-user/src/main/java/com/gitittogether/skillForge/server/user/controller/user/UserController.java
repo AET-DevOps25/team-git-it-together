@@ -6,6 +6,7 @@ import com.gitittogether.skillForge.server.user.dto.request.user.UserRegisterReq
 import com.gitittogether.skillForge.server.user.dto.response.user.UserLoginResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserRegisterResponse;
+import com.gitittogether.skillForge.server.user.dto.response.utils.ApiError;
 import com.gitittogether.skillForge.server.user.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 
@@ -63,12 +65,31 @@ public class UserController {
     @GetMapping("/{userId}/profile")
     public ResponseEntity<?> getUserProfile(@PathVariable String userId) {
         log.info("🔍 Fetching profile for user ID: {}", userId);
-        UserProfileResponse userProfile = userService.getUser(userId);
-        if (userProfile == null) {
-            log.warn("❌ User profile not found for ID: {}", userId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        try {
+            UserProfileResponse userProfile = userService.getUser(userId);
+            if (userProfile == null) {
+                log.warn("❌ User profile not found for ID: {}", userId);
+                ApiError error = ApiError.builder()
+                        .status(HttpStatus.NOT_FOUND.value())
+                        .error("Not Found")
+                        .message("User not found")
+                        .path("/api/v1/users/" + userId + "/profile")
+                        .timestamp(Instant.now())
+                        .build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+            return ResponseEntity.ok(userProfile);
+        } catch (Exception e) {
+            log.error("❌ Error fetching user profile for ID: {} - {}", userId, e.getMessage());
+            ApiError error = ApiError.builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message(e.getMessage())
+                    .path("/api/v1/users/" + userId + "/profile")
+                    .timestamp(Instant.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(userProfile);
     }
 
     /**
@@ -83,7 +104,14 @@ public class UserController {
         log.info("🔄 Updating profile for user ID: {}", userId);
         if (request == null) {
             log.warn("❌ Update request is null");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Update request cannot be null");
+            ApiError error = ApiError.builder()
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .error("Bad Request")
+                    .message("Update request cannot be null")
+                    .path("/api/v1/users/" + userId + "/profile")
+                    .timestamp(Instant.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
         UserProfileResponse userProfile = userService.updateUser(userId, request);
         return ResponseEntity.status(HttpStatus.OK).body(userProfile);
@@ -101,7 +129,14 @@ public class UserController {
         boolean deleted = userService.deleteUser(userId);
         if (!deleted) {
             log.warn("❌ Failed to delete user profile for ID: {}", userId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            ApiError error = ApiError.builder()
+                    .status(HttpStatus.NOT_FOUND.value())
+                    .error("Not Found")
+                    .message("User not found")
+                    .path("/api/v1/users/" + userId + "/profile")
+                    .timestamp(Instant.now())
+                    .build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
         } else {
             log.info("✅ Successfully deleted user profile for ID: {}", userId);
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
