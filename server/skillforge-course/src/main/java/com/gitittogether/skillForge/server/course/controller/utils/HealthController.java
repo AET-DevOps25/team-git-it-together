@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
+
 @RestController
 @RequestMapping("/api/v1/courses/health")
 @Slf4j
@@ -34,7 +36,16 @@ public class HealthController {
         log.info("⚙️  Course service health check endpoint called");
         try {
             // Parse database name from URI
-            String databaseName = mongoUri.substring(mongoUri.lastIndexOf("/") + 1);
+            String databaseName;
+            try {
+                URI uri = new URI(mongoUri);
+                String path = uri.getPath();
+                databaseName = path.substring(path.lastIndexOf("/") + 1);
+            } catch (Exception e) {
+                log.error("❌ Invalid MongoDB URI '{}': {}", mongoUri, e.getMessage());
+                throw new IllegalArgumentException("Invalid MongoDB URI", e);
+            }
+            
             log.info("Pinging MongoDB database: {}", databaseName);
             Document pingResult = mongoClient
                     .getDatabase(databaseName)

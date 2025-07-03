@@ -9,6 +9,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+
 @Profile(value = {"dev", "prod", "docker"})
 @Slf4j
 @Component
@@ -26,7 +28,15 @@ public class MongoConnectionChecker implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         // Parse database name from URI
-        String databaseName = mongoUri.substring(mongoUri.lastIndexOf("/") + 1);
+        String databaseName;
+        try {
+            URI uri = new URI(mongoUri);
+            String path = uri.getPath();
+            databaseName = path.substring(path.lastIndexOf("/") + 1);
+        } catch (Exception e) {
+            log.error("❌ Invalid MongoDB URI '{}': {}", mongoUri, e.getMessage());
+            throw new IllegalArgumentException("Invalid MongoDB URI", e);
+        }
         log.info("🔌 Checking MongoDB connection to database '{}'", databaseName);
         try {
             Document pingResult = mongoClient
