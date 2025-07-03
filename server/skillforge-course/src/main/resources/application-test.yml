@@ -8,12 +8,7 @@ spring:
       on-profile: test
   data:
     mongodb:
-      database: test-db
-      # Use embedded MongoDB for tests with default values
-      host: localhost
-      port: 27017
-      username: ${MONGODB_USERNAME:testuser}
-      password: ${MONGODB_PASSWORD:testpass}
+      uri: mongodb://testuser:testpass@localhost:27017/test-db?authSource=admin
 
 jwt:
   secret: ${JWT_SECRET:test-secret}

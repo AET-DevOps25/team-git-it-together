@@ -14,10 +14,10 @@ server:
 
 user:
   service:
-    uri: http://user-service:${SERVER_PORT_USER:8082}
+    uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
 course:
   service:
-    uri: http://course-service:${SERVER_PORT_COURSES:8083}
+    uri: http://${SERVER_HOST_COURSE:course-service}:${SERVER_PORT_COURSES:8083}
 
 # Rate limiting configuration for production
 rate:

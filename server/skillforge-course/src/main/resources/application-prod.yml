@@ -9,5 +9,7 @@ spring:
 
   data:
     mongodb:
-      database: ${MONGODB_DATABASE}
-      uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_DATABASE}.szhyxck.mongodb.net/?retryWrites=true&w=majority&appName=SkillForge
+      uri: ${MONGO_URL}
+
+      #       uri: mongodb+srv://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_DATABASE}.szhyxck.mongodb.net/?retryWrites=true&w=majority&appName=SkillForge
+      #       database: ${MONGODB_DATABASE}
