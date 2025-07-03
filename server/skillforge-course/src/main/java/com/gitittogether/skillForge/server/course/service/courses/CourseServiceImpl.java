@@ -130,7 +130,7 @@ public class CourseServiceImpl implements CourseService {
             String enrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Service-Key", "course-service-key");
-            HttpEntity<Void> request = new HttpEntity<>(headers);
+            HttpEntity<List<String>> request = new HttpEntity<>(course.getSkills(), headers);
             restTemplate.postForEntity(enrollUrl, request, Void.class);
             log.info("Called user service to add course {} to user {}'s enrolled courses", courseId, userId);
         } catch (Exception e) {
@@ -157,7 +157,7 @@ public class CourseServiceImpl implements CourseService {
                 String unenrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("X-Service-Key", "course-service-key");
-                HttpEntity<Void> request = new HttpEntity<>(headers);
+                HttpEntity<List<String>> request = new HttpEntity<>(course.getSkills(), headers);
                 restTemplate.exchange(unenrollUrl, HttpMethod.DELETE, request, Void.class);
                 log.info("Called user service to remove course {} from user {}'s enrolled courses", courseId, userId);
             } catch (Exception e) {
@@ -189,7 +189,7 @@ public class CourseServiceImpl implements CourseService {
             String completeUrl = userServiceUri + "/api/v1/users/" + userId + "/complete/" + courseId;
             HttpHeaders headers = new HttpHeaders();
             headers.set("X-Service-Key", "course-service-key");
-            HttpEntity<Void> request = new HttpEntity<>(headers);
+            HttpEntity<List<String>> request = new HttpEntity<>(course.getSkills(), headers);
             restTemplate.postForEntity(completeUrl, request, Void.class);
             log.info("Called user service to mark course {} as completed for user {}", courseId, userId);
         } catch (Exception e) {
