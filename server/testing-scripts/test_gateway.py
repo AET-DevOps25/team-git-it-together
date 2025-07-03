@@ -81,7 +81,7 @@ class SimpleGatewayTester:
                     "status_code": response.status,
                     "headers": dict(response.headers),
                     "data": response_data,
-                    "latency": (end_time - start_time) * 1000,
+                    "latency": (end_time - start_time) * 1000 if start_time else 0,
                     "success": True
                 }
         except urllib.error.HTTPError as e:
