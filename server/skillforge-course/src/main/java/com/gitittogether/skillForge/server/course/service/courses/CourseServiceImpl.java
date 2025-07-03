@@ -43,7 +43,11 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public CourseResponse createCourse(CourseRequest request) {
         log.info("Creating new course: {}", request.getTitle());
-
+        // Check if course with same title already exists
+        if (courseRepository.findByTitle(request.getTitle()) != null) {
+            log.warn("Course with title '{}' already exists", request.getTitle());
+            throw new IllegalArgumentException("Course with this title already exists");
+        }
         Course course = CourseMapper.requestToCourse(request);
         Course savedCourse = courseRepository.save(course);
 
