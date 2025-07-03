@@ -10,6 +10,13 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -32,15 +39,13 @@ public class JwtAuthenticationFilter implements GatewayFilter {
             final String token = getAuthHeader(request);
             if (token == null) {
                 log.warn("JWT Filter: No Authorization header found for secured request {} {}", method, path);
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+                return writeJsonError(exchange, 401, "Unauthorized", "Missing or invalid Authorization header", path);
             }
             
             log.debug("JWT Filter: Token found, validating...");
             if (!jwtUtil.isTokenValid(token)) {
                 log.warn("JWT Filter: Invalid token for request {} {}", method, path);
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+                return writeJsonError(exchange, 401, "Unauthorized", "Invalid JWT token", path);
             }
 
             try {
@@ -56,8 +61,7 @@ public class JwtAuthenticationFilter implements GatewayFilter {
             } catch (Exception e) {
                 log.error("JWT Filter: Error extracting claims from token for request {} {}: {}", 
                          method, path, e.getMessage(), e);
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+                return writeJsonError(exchange, 401, "Unauthorized", "Invalid JWT token: " + e.getMessage(), path);
             }
         } else {
             log.info("JWT Filter: Request {} {} is not secured, allowing through", method, path);
@@ -89,5 +93,28 @@ public class JwtAuthenticationFilter implements GatewayFilter {
         }
         log.debug("JWT Filter: No valid Authorization header found");
         return null;
+    }
+
+    private Mono<Void> writeJsonError(ServerWebExchange exchange, int status, String error, String message, String path) {
+        exchange.getResponse().setStatusCode(HttpStatus.valueOf(status));
+        exchange.getResponse().getHeaders().set("Content-Type", "application/json");
+        Map<String, Object> errorBody = new HashMap<>();
+        errorBody.put("timestamp", Instant.now().toString());
+        errorBody.put("status", status);
+        errorBody.put("error", error);
+        errorBody.put("message", message);
+        errorBody.put("path", path);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            byte[] bytes = mapper.writeValueAsBytes(errorBody);
+            DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+            DataBuffer buffer = bufferFactory.wrap(bytes);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        } catch (Exception e) {
+            byte[] fallback = ("{\"error\":\"" + error + "\"}").getBytes(StandardCharsets.UTF_8);
+            DataBufferFactory bufferFactory = exchange.getResponse().bufferFactory();
+            DataBuffer buffer = bufferFactory.wrap(fallback);
+            return exchange.getResponse().writeWith(Mono.just(buffer));
+        }
     }
 }
