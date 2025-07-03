@@ -42,7 +42,7 @@ public interface UserService {
      * @return A response containing the updated user's profile information.
      */
     UserProfileResponse updateUser(String userId, UserProfileUpdateRequest request);
-    
+
     /**
      * Deletes a user by their ID.
      *
@@ -80,24 +80,52 @@ public interface UserService {
      *
      * @param userId   The user ID.
      * @param courseId The course ID.
+     * @param skills   The list of skills associated with the course.
      */
-    void enrollUserInCourse(String userId, String courseId);
+    void enrollUserInCourse(String userId, String courseId, List<String> skills);
 
     /**
      * Unenrolls a user from a course by removing the courseId from enrolledCourseIds.
      *
      * @param userId   The user ID.
      * @param courseId The course ID.
+     * @param skills   The list of skills associated with the course.
      */
-    void unenrollUserFromCourse(String userId, String courseId);
+    void unenrollUserFromCourse(String userId, String courseId, List<String> skills);
 
     /**
      * Marks a course as completed for a user by adding the courseId to completedCourseIds.
      *
      * @param userId   The user ID.
      * @param courseId The course ID.
+     * @param skills   The list of skills learned in the course.
      */
-    void completeCourse(String userId, String courseId);
+    void completeCourse(String userId, String courseId, List<String> skills);
 
+    // User skills
+    List<String> getUserSkills(String userId);
 
+    List<String> getUserSkillsInProgress(String userId);
+
+    // User course IDs
+    List<String> getUserEnrolledCourseIds(String userId);
+
+    List<String> getUserCompletedCourseIds(String userId);
+
+    List<String> getUserBookmarkedCourseIds(String userId);
+
+    // User queries
+    List<UserProfileResponse> getUsersWithSkill(String skillName);
+
+    List<UserProfileResponse> getUsersWithSkillInProgress(String skillName);
+
+    List<UserProfileResponse> getUsersEnrolledInCourse(String courseId);
+
+    List<UserProfileResponse> getUsersCompletedCourse(String courseId);
+
+    List<UserProfileResponse> getUsersBookmarkedCourse(String courseId);
+
+    List<UserProfileResponse> searchUsersByUsername(String username);
+
+    List<UserProfileResponse> searchUsersByEmail(String email);
 }
