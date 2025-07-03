@@ -5,10 +5,7 @@ import com.gitittogether.skillForge.server.user.dto.request.user.UserRegisterReq
 import com.gitittogether.skillForge.server.user.dto.response.user.UserLoginResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserRegisterResponse;
-import com.gitittogether.skillForge.server.user.mapper.skill.SkillMapper;
 import com.gitittogether.skillForge.server.user.model.user.User;
-
-import java.util.stream.Collectors;
 
 public class UserMapper {
 
@@ -66,16 +63,9 @@ public class UserMapper {
                 .email(model.getEmail())
                 .profilePictureUrl(model.getProfilePictureUrl())
                 .bio(model.getBio())
-                .skills(
-                        model.getSkills() != null ? model.getSkills().stream()
-                                .map(SkillMapper::toSkillResponse)
-                                .collect(Collectors.toList()) : null
-                )
-                .skillsInProgress(
-                        model.getSkillsInProgress() != null ? model.getSkillsInProgress().stream()
-                                .map(SkillMapper::toSkillResponse)
-                                .collect(Collectors.toList()) : null
-                )
+                // Skills is a list of Sting
+                .skills(model.getSkills())
+                .skillsInProgress(model.getSkillsInProgress())
                 .enrolledCourseIds(model.getEnrolledCourseIds())
                 .bookmarkedCourseIds(model.getBookmarkedCourseIds())
                 .completedCourseIds(model.getCompletedCourseIds())
