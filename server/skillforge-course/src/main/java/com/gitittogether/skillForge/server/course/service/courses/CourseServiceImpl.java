@@ -6,8 +6,11 @@ import com.gitittogether.skillForge.server.course.dto.response.course.CourseSumm
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
+import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
+import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
+import com.gitittogether.skillForge.server.course.model.course.Module;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,10 +88,57 @@ public class CourseServiceImpl implements CourseService {
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
 
-        Course updatedCourse = CourseMapper.requestToCourse(request);
-        updatedCourse.setId(courseId);
-        Course savedCourse = courseRepository.save(updatedCourse);
+        if (request.getTitle() != null) existingCourse.setTitle(request.getTitle());
+        if (request.getDescription() != null) existingCourse.setDescription(request.getDescription());
+        if (request.getInstructor() != null) existingCourse.setInstructor(request.getInstructor());
 
+        // Merge skills
+        if (request.getSkills() != null && !request.getSkills().isEmpty()) {
+            Set<String> mergedSkills = new HashSet<>(existingCourse.getSkills());
+            mergedSkills.addAll(request.getSkills());
+            existingCourse.setSkills(new ArrayList<>(mergedSkills));
+        }
+
+        // Merge categories
+        if (request.getCategories() != null && !request.getCategories().isEmpty()) {
+            Set<String> mergedCategories = new HashSet<>(existingCourse.getCategories());
+            mergedCategories.addAll(request.getCategories());
+            existingCourse.setCategories(new ArrayList<>(mergedCategories));
+        }
+
+        // Merge modules by title (add new modules only)
+        if (request.getModules() != null && !request.getModules().isEmpty()) {
+            List<Module> existingModules = existingCourse.getModules();
+            Set<String> existingTitles = existingModules.stream().map(Module::getTitle).collect(Collectors.toSet());
+            List<Module> newModules = request.getModules().stream()
+                .map(ModuleMapper::requestToModule)
+                .filter(m -> !existingTitles.contains(m.getTitle()))
+                .toList();
+            existingModules.addAll(newModules);
+            existingCourse.setModules(existingModules);
+        }
+
+        // Merge enrolledUsers by userId (add new users only)
+        if (request.getEnrolledUsers() != null && !request.getEnrolledUsers().isEmpty()) {
+            List<EnrolledUserInfo> existingUsers = existingCourse.getEnrolledUsers();
+            Set<String> existingUserIds = existingUsers.stream().map(EnrolledUserInfo::getUserId).collect(Collectors.toSet());
+            List<EnrolledUserInfo> newUsers = request.getEnrolledUsers().stream()
+                .map(EnrolledUserInfoMapper::requestToEnrolledUserInfo)
+                .filter(u -> !existingUserIds.contains(u.getUserId()))
+                .toList();
+            existingUsers.addAll(newUsers);
+            existingCourse.setEnrolledUsers(existingUsers);
+        }
+
+        if (request.getNumberOfEnrolledUsers() != null) existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
+        if (request.getLevel() != null) existingCourse.setLevel(request.getLevel());
+        if (request.getThumbnailUrl() != null) existingCourse.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getLanguage() != null) existingCourse.setLanguage(request.getLanguage());
+        existingCourse.setPublished(request.isPublished());
+        existingCourse.setPublic(request.isPublic());
+        if (request.getRating() != 0.0) existingCourse.setRating(request.getRating());
+
+        Course savedCourse = courseRepository.save(existingCourse);
         log.info("Updated course with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
     }
