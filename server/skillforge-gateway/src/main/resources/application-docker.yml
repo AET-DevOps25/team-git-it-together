@@ -30,7 +30,7 @@ gateway:
   cors:
     allowed-origins: "*"
   health:
-    uri: http://gateway:${SERVER_PORT_GATEWAY:8081}
+    uri: http://${SERVER_HOST_GATEWAY:server-gateway}:${SERVER_PORT_GATEWAY:8081}
 
 logging:
   level:

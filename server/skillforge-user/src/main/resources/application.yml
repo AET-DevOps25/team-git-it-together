@@ -26,8 +26,8 @@ management:
         include: health,info,metrics,prometheus
 
 jwt:
-  secret: ${JWT_SECRET}
-  expirationMs: ${JWT_EXPIRATION_MS}
+  secret: ${JWT_SECRET:dev-secret-key-for-development-only-change-in-production}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}
 
 logging:
   level:
