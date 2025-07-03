@@ -26,9 +26,9 @@ public class GatewayConfig {
             @Value("${course.service.uri}") String courseServiceUri,
             @Value("${gateway.health.uri}") String gatewayHealthUri
     ) {
-        log.info("GatewayConfig: Configuring routes with user service URI: {} and course service URI: {}", 
+        log.info("GatewayConfig: Configuring routes with user service URI: {} and course service URI: {}",
                 userServiceUri, courseServiceUri);
-        
+
         RouteLocator routeLocator = builder.routes()
                 // Health check routes (no rate limiting, no auth) - must come first
                 .route("gateway-health", r -> r.path("/actuator/health")
@@ -37,7 +37,7 @@ public class GatewayConfig {
                         .uri(userServiceUri))
                 .route("course-health", r -> r.path("/api/v1/courses/health")
                         .uri(courseServiceUri))
-                
+
                 // User service routes that are public (no auth)
                 .route("user-service-auth", r -> r.path("/api/v1/users/login", "/api/v1/users/register")
                         .filters(f -> f
@@ -48,7 +48,7 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(userServiceUri))
-                
+
                 .route("user-service-protected", r -> r.path("/api/v1/users/**")
                         .filters(f -> f
                                 .filter(jwtFilter)
@@ -59,19 +59,8 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(userServiceUri))
-                
-                // Course service routes
+                // The Public course service routes (no JWT required)
                 .route("course-service-public", r -> r.path("/api/v1/courses/public/**")
-                        .filters(f -> f
-                                .requestRateLimiter(config -> config
-                                        .setRateLimiter(redisRateLimiter)
-                                        .setKeyResolver(userKeyResolver)
-                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
-                                        .setDenyEmptyKey(false)
-                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
-                        .uri(courseServiceUri))
-                // Categories route in courses are public
-                .route("course-service-categories", r -> r.path("/api/v1/courses/categories/**")
                         .filters(f -> f
                                 .requestRateLimiter(config -> config
                                         .setRateLimiter(redisRateLimiter)
@@ -92,7 +81,7 @@ public class GatewayConfig {
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
                 .build();
-        
+
         log.info("GatewayConfig: Routes configured successfully with Redis-based rate limiting and JWT authentication");
         return routeLocator;
     }
