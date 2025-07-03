@@ -39,13 +39,15 @@ services:
       context: ./skillforge-user
       dockerfile: Dockerfile
     container_name: skillforge-user-service
+    env_file:
+      - .env
     # No ports exposed - only accessible through gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT_USER=8082
-      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION_MS=86400000
-      - MONGO_URL=mongodb://mongo:27017/skillforge
+      - MONGO_URL={MONGO_URL}
     depends_on:
       mongo:
         condition: service_healthy
@@ -63,13 +65,15 @@ services:
       context: ./skillforge-course
       dockerfile: Dockerfile
     container_name: skillforge-course-service
+    env_file:
+      - .env
     # No ports exposed - only accessible through gateway
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT_COURSES=8083
-      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION_MS=86400000
-      - MONGO_URL=mongodb://mongo:27017/skillforge
+      - MONGO_URL={MONGO_URL}
     depends_on:
       mongo:
         condition: service_healthy
@@ -87,13 +91,15 @@ services:
       context: ./skillforge-gateway
       dockerfile: Dockerfile
     container_name: skillforge-gateway
+    env_file:
+      - .env
     ports:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=${JWT_SECRET:-your-super-secure-jwt-secret-key-here}
+      - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION_MS=86400000
       - RATE_LIMIT_REQUESTS_PER_MINUTE=60
       - RATE_LIMIT_REQUESTS_PER_SECOND=10
