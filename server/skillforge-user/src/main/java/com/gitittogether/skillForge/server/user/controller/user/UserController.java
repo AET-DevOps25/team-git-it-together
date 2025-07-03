@@ -110,6 +110,8 @@ public class UserController {
 
     /**
      * Bookmarks a course for a user.
+     * This is an inter-service endpoint that allows the course service to bookmark a course for a user.
+     * This endpoint is protected and can only be accessed by the course service using a service key.
      *
      * @param userId   The ID of the user.
      * @param courseId The ID of the course to bookmark.
@@ -124,6 +126,8 @@ public class UserController {
 
     /**
      * Unbookmarks a course for a user.
+     * This is an inter-service endpoint that allows the course service to unbookmark a course for a user.
+     * This endpoint is protected and can only be accessed by the course service using a service key.
      *
      * @param userId   The ID of the user.
      * @param courseId The ID of the course to unbookmark.
@@ -138,15 +142,17 @@ public class UserController {
 
     /**
      * Marks a course as completed for a user.
+     * This is an inter-service endpoint that allows the course service to mark a course as completed for a user.
+     * This endpoint is protected and can only be accessed by the course service using a service key.
      *
      * @param userId   The ID of the user.
      * @param courseId The ID of the course to mark as completed.
      * @return ResponseEntity indicating the result of the complete operation.
      */
     @PostMapping("/{userId}/complete/{courseId}")
-    public ResponseEntity<?> completeCourse(@PathVariable String userId, @PathVariable String courseId) {
+    public ResponseEntity<?> completeCourse(@PathVariable String userId, @PathVariable String courseId, @RequestBody List<String> skills) {
         log.info("Marking course {} as completed for user {} (user service)", courseId, userId);
-        userService.completeCourse(userId, courseId);
+        userService.completeCourse(userId, courseId, skills);
         return ResponseEntity.ok().build();
     }
 
@@ -165,29 +171,146 @@ public class UserController {
 
     /**
      * Enrolls a user in a course by adding the courseId to enrolledCourseIds.
+     * This is an inter-service endpoint that allows the course service to enroll a user in a course.
+     * This endpoint is protected and can only be accessed by the course service using a service key.
      *
      * @param userId   The ID of the user.
      * @param courseId The ID of the course to enroll in.
      * @return ResponseEntity indicating the result of the enroll operation.
      */
     @PostMapping("/{userId}/enroll/{courseId}")
-    public ResponseEntity<?> enrollUserInCourse(@PathVariable String userId, @PathVariable String courseId) {
+    public ResponseEntity<?> enrollUserInCourse(@PathVariable String userId, @PathVariable String courseId, @RequestBody List<String> skills) {
         log.info("Enrolling user {} in course {} (user service)", userId, courseId);
-        userService.enrollUserInCourse(userId, courseId);
+        userService.enrollUserInCourse(userId, courseId, skills);
         return ResponseEntity.ok().build();
     }
 
     /**
      * Unenrolls a user from a course by removing the courseId from enrolledCourseIds.
+     * This is an inter-service endpoint that allows the course service to unenroll a user from a course.
+     * This endpoint is protected and can only be accessed by the course service using a service key.
      *
      * @param userId   The ID of the user.
      * @param courseId The ID of the course to unenroll from.
      * @return ResponseEntity indicating the result of the unenroll operation.
      */
     @DeleteMapping("/{userId}/enroll/{courseId}")
-    public ResponseEntity<?> unenrollUserFromCourse(@PathVariable String userId, @PathVariable String courseId) {
+    public ResponseEntity<?> unenrollUserFromCourse(@PathVariable String userId, @PathVariable String courseId, @RequestBody List<String> skills) {
         log.info("Unenrolling user {} from course {} (user service)", userId, courseId);
-        userService.unenrollUserFromCourse(userId, courseId);
+        userService.unenrollUserFromCourse(userId, courseId, skills);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{userId}/skills")
+    public ResponseEntity<?> getUserSkills(@PathVariable String userId) {
+        log.info("Fetching skills for user: {}", userId);
+        return ResponseEntity.ok(userService.getUserSkills(userId));
+    }
+
+    @GetMapping("/{userId}/skills-in-progress")
+    public ResponseEntity<?> getUserSkillsInProgress(@PathVariable String userId) {
+        log.info("Fetching skills in progress for user: {}", userId);
+        return ResponseEntity.ok(userService.getUserSkillsInProgress(userId));
+    }
+
+    @GetMapping("/{userId}/courses/enrolled")
+    public ResponseEntity<?> getUserEnrolledCourses(@PathVariable String userId) {
+        log.info("Fetching enrolled course IDs for user: {}", userId);
+        return ResponseEntity.ok(userService.getUserEnrolledCourseIds(userId));
+    }
+
+    @GetMapping("/{userId}/courses/completed")
+    public ResponseEntity<?> getUserCompletedCourses(@PathVariable String userId) {
+        log.info("Fetching completed course IDs for user: {}", userId);
+        return ResponseEntity.ok(userService.getUserCompletedCourseIds(userId));
+    }
+
+    @GetMapping("/{userId}/courses/bookmarked")
+    public ResponseEntity<?> getUserBookmarkedCourses(@PathVariable String userId) {
+        log.info("Fetching bookmarked course IDs for user: {}", userId);
+        return ResponseEntity.ok(userService.getUserBookmarkedCourseIds(userId));
+    }
+
+    /**
+     * Fetches users with a specific skill.
+     *
+     * @param skill The skill to filter users by.
+     * @return ResponseEntity with the list of users having the specified skill.
+     */
+    @GetMapping("/with-skill")
+    public ResponseEntity<?> getUsersWithSkill(@RequestParam String skill) {
+        log.info("Fetching users with skill: {}", skill);
+        return ResponseEntity.ok(userService.getUsersWithSkill(skill));
+    }
+
+    /**
+     * Fetches users with a specific skill in progress.
+     *
+     * @param skill The skill to filter users by.
+     * @return ResponseEntity with the list of users having the specified skill in progress.
+     */
+    @GetMapping("/with-skill-in-progress")
+    public ResponseEntity<?> getUsersWithSkillInProgress(@RequestParam String skill) {
+        log.info("Fetching users with skill in progress: {}", skill);
+        return ResponseEntity.ok(userService.getUsersWithSkillInProgress(skill));
+    }
+
+    /**
+     * Fetches users enrolled in a specific course.
+     *
+     * @param courseId The ID of the course to filter users by.
+     * @return ResponseEntity with the list of users enrolled in the specified course.
+     */
+    @GetMapping("/enrolled-in/{courseId}")
+    public ResponseEntity<?> getUsersEnrolledInCourse(@PathVariable String courseId) {
+        log.info("Fetching users enrolled in course: {}", courseId);
+        return ResponseEntity.ok(userService.getUsersEnrolledInCourse(courseId));
+    }
+
+    /**
+     * Fetches users who have completed a specific course.
+     *
+     * @param courseId The ID of the course to filter users by.
+     * @return ResponseEntity with the list of users who completed the specified course.
+     */
+    @GetMapping("/completed/{courseId}")
+    public ResponseEntity<?> getUsersCompletedCourse(@PathVariable String courseId) {
+        log.info("Fetching users who completed course: {}", courseId);
+        return ResponseEntity.ok(userService.getUsersCompletedCourse(courseId));
+    }
+
+    /**
+     * Fetches users who have bookmarked a specific course.
+     *
+     * @param courseId The ID of the course to filter users by.
+     * @return ResponseEntity with the list of users who bookmarked the specified course.
+     */
+    @GetMapping("/bookmarked/{courseId}")
+    public ResponseEntity<?> getUsersBookmarkedCourse(@PathVariable String courseId) {
+        log.info("Fetching users who bookmarked course: {}", courseId);
+        return ResponseEntity.ok(userService.getUsersBookmarkedCourse(courseId));
+    }
+
+    @GetMapping("/search/user/{username}")
+    public ResponseEntity<?> searchUsersByUsername(@PathVariable String username) {
+        log.info("Searching users by username: {}", username);
+        List<UserProfileResponse> users = userService.searchUsersByUsername(username);
+        if (users.isEmpty()) {
+            log.warn("No users found with username: {}", username);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users found");
+        }
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/search/email/{email}")
+    public ResponseEntity<?> searchUsersByEmail(@PathVariable String email) {
+        log.info("Searching users by email: {}", email);
+        List<UserProfileResponse> users = userService.searchUsersByEmail(email);
+        if (users.isEmpty()) {
+            log.warn("No users found with email: {}", email);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No users found");
+        }
+        return ResponseEntity.ok(users);
+    }
+
 }
