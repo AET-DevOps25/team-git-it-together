@@ -44,27 +44,14 @@ jobs:
             path: server/skillforge-gateway
             image: server-gateway
             name: Build and Push Server Gateway
-            build-args: |
-              REDIS_HOST=redis
-              REDIS_PORT=6379
-              SERVER_PORT_GATEWAY=8081
-              SERVER_PORT_USER=8082
-              SERVER_PORT_COURSES=8083
-              RATE_LIMIT_REQUESTS_PER_MINUTE=60
-              RATE_LIMIT_REQUESTS_PER_SECOND=10
-              RATE_LIMIT_BURST=20
           - id: user-service
             path: server/skillforge-user
             image: user-service
             name: Build and Push User Service
-            build-args: |
-              SERVER_PORT_USER=8082
           - id: course-service
             path: server/skillforge-course
             image: course-service
             name: Build and Push Course Service
-            build-args: |
-              SERVER_PORT_COURSES=8083
           - id: genai
             path: genai
             image: genai
