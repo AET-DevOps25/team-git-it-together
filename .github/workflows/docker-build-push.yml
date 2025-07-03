@@ -58,8 +58,6 @@ jobs:
             image: user-service
             name: Build and Push User Service
             build-args: |
-              JWT_SECRET=${{ secrets.JWT_SECRET }}
-              JWT_EXPIRATION_MS=86400000
               SERVER_PORT_USER=8082
           - id: course-service
             path: server/skillforge-course
