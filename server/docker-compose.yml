@@ -2,7 +2,7 @@ services:
 
   # MongoDB - No username or password - For Development Only
   mongo:
-    image: mongo:7
+    image: mongo:7.0
     container_name: skillforge-mongo
     ports:
       - "27017:27017"
@@ -86,7 +86,7 @@ services:
       retries: 3
 
   # API Gateway (public access)
-  gateway:
+  server-gateway:
     build:
       context: ./skillforge-gateway
       dockerfile: Dockerfile
@@ -104,6 +104,12 @@ services:
       - RATE_LIMIT_REQUESTS_PER_MINUTE=60
       - RATE_LIMIT_REQUESTS_PER_SECOND=10
       - RATE_LIMIT_BURST=20
+      - SERVER_HOST_USER=user-service
+      - SERVER_PORT_USER=8082
+      - SERVER_HOST_COURSE=course-service
+      - SERVER_PORT_COURSE=8083
+      - SERVER_HOST_GATEWAY=server-gateway
+      - SERVER_PORT_GATEWAY=8081
     depends_on:
       redis:
         condition: service_healthy
