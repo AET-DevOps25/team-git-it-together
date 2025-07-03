@@ -16,8 +16,8 @@ public class MongoConnectionChecker implements ApplicationRunner {
 
     private final MongoClient mongoClient;
 
-    @Value("${spring.data.mongodb.database}")
-    private String databaseName;
+    @Value("${spring.data.mongodb.uri}")
+    private String mongoUri;
 
     public MongoConnectionChecker(MongoClient mongoClient) {
         this.mongoClient = mongoClient;
@@ -25,6 +25,8 @@ public class MongoConnectionChecker implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        // Parse database name from URI
+        String databaseName = mongoUri.substring(mongoUri.lastIndexOf("/") + 1);
         log.info("🔌 Checking MongoDB connection to database '{}'", databaseName);
         try {
             Document pingResult = mongoClient

@@ -17,8 +17,8 @@ public class HealthController {
 
     private final MongoClient mongoClient;
 
-    @Value("${spring.data.mongodb.database:skill_forge_dev}")
-    private String databaseName;
+    @Value("${spring.data.mongodb.uri}")
+    private String mongoUri;
 
     public HealthController(MongoClient mongoClient) {
         this.mongoClient = mongoClient;
@@ -31,24 +31,21 @@ public class HealthController {
      */
     @GetMapping
     public ResponseEntity<String> getHealth() {
-        log.info("⚙️  Health check endpoint called");
-
+        log.info("⚙️  User service health check endpoint called");
         try {
+            // Parse database name from URI
+            String databaseName = mongoUri.substring(mongoUri.lastIndexOf("/") + 1);
             log.info("Pinging MongoDB database: {}", databaseName);
             Document pingResult = mongoClient
                     .getDatabase(databaseName)
                     .runCommand(new Document("ping", 1));
-
             log.info("✅ MongoDB ping succeeded: {}", pingResult.toJson());
-
-            return ResponseEntity.ok("Server is up — MongoDB ping OK: " + pingResult.toJson());
-
+            return ResponseEntity.ok("User service is up — MongoDB ping OK: " + pingResult.toJson());
         } catch (Exception e) {
             log.error("❌ MongoDB ping failed", e);
-
             return ResponseEntity
                     .status(HttpStatus.SERVICE_UNAVAILABLE)
-                    .body("Server is up — but MongoDB ping failed: " + e.getMessage());
+                    .body("User service is up — but MongoDB ping failed: " + e.getMessage());
         }
     }
 }

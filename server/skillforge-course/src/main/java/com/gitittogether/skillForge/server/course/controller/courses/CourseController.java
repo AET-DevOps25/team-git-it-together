@@ -22,18 +22,6 @@ public class CourseController {
 
     private final CourseService courseService;
 
-    /**
-     * Health check endpoint to verify if the service is running.
-     *
-     * @return ResponseEntity with a simple message indicating the service is running.
-     */
-    @GetMapping("/health")
-    public ResponseEntity<String> healthCheck() {
-        log.info("Health check endpoint called");
-        return ResponseEntity.ok("Course service is up and running!");
-    }
-
-
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
         log.info("Creating new course: {}", request.getTitle());
