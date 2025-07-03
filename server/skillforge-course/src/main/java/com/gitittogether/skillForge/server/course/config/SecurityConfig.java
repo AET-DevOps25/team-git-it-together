@@ -35,7 +35,10 @@ public class SecurityConfig {
                         // Public endpoints: health checks, public courses, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/categories/**").permitAll()
+                        // Docs endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/docs/**").permitAll()
                         .requestMatchers(
+                                "/api/v1/courses/docs/**",
                                 "/actuator/*",
                                 "/api/v1/courses/health",
                                 "/swagger-ui/**",

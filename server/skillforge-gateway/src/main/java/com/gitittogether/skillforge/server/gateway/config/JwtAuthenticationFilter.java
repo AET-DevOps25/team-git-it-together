@@ -77,7 +77,8 @@ public class JwtAuthenticationFilter implements GatewayFilter {
         String path = request.getURI().getPath();
         boolean secured = !path.contains("/api/v1/users/login") &&
                          !path.contains("/api/v1/users/register") &&
-                         !path.contains("/api/v1/courses/public");
+                         !path.contains("/api/v1/courses/public") &&
+                         !path.contains("/docs");
         
         log.info("JWT Filter: Path {} is secured: {}", path, secured);
         return secured;

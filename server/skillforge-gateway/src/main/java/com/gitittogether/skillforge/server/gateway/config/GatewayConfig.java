@@ -38,6 +38,12 @@ public class GatewayConfig {
                 .route("course-health", r -> r.path("/api/v1/courses/health")
                         .uri(courseServiceUri))
 
+                // Swagger documentation routes (no auth, no rate limiting) - MUST come before general routes
+                .route("user-service-docs", r -> r.path("/api/v1/users/docs", "/api/v1/users/docs/**")
+                        .uri(userServiceUri))
+                .route("course-service-docs", r -> r.path("/api/v1/courses/docs", "/api/v1/courses/docs/**")
+                        .uri(courseServiceUri))
+
                 // User service routes that are public (no auth)
                 .route("user-service-auth", r -> r.path("/api/v1/users/login", "/api/v1/users/register")
                         .filters(f -> f
@@ -49,16 +55,6 @@ public class GatewayConfig {
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(userServiceUri))
 
-                .route("user-service-protected", r -> r.path("/api/v1/users/**")
-                        .filters(f -> f
-                                .filter(jwtFilter)
-                                .requestRateLimiter(config -> config
-                                        .setRateLimiter(redisRateLimiter)
-                                        .setKeyResolver(userKeyResolver)
-                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
-                                        .setDenyEmptyKey(false)
-                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
-                        .uri(userServiceUri))
                 // The Public course service routes (no JWT required)
                 .route("course-service-public", r -> r.path("/api/v1/courses/public/**")
                         .filters(f -> f
@@ -69,6 +65,19 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
+
+                // Protected user service routes (requires JWT)
+                .route("user-service-protected", r -> r.path("/api/v1/users/**")
+                        .filters(f -> f
+                                .filter(jwtFilter)
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(userServiceUri))
+
                 // Protected course service routes (requires JWT)
                 .route("course-service-protected", r -> r.path("/api/v1/courses/**")
                         .filters(f -> f
