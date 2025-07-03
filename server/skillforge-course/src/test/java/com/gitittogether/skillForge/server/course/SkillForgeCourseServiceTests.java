@@ -16,6 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
     "spring.data.mongodb.enabled=false",
+    "spring.data.mongodb.uri=mongodb://localhost:27017/testdb",
     "spring.security.enabled=false",
     "logging.level.root=WARN",
     "logging.level.com.gitittogether.skillForge.server.course=WARN"

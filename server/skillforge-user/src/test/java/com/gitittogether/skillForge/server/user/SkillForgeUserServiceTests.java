@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Import;
 @ActiveProfiles("test")
 @TestPropertySource(properties = {
     "spring.data.mongodb.enabled=false",
+    "spring.data.mongodb.uri=mongodb://localhost:27017/testdb",
     "spring.security.enabled=false",
     "jwt.secret=test-jwt-secret-key-for-testing-only",
     "jwt.expirationMs=3600000",
