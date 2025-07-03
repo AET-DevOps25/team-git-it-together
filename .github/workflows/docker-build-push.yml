@@ -1,15 +1,8 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches: [main, test]
-    paths:
-      - 'client/**'
-      - 'server/skillforge-gateway/**'
-      - 'server/skillforge-user/**'
-      - 'genai/**'
   pull_request:
-    branches: [main, test]
+    branches: [main, test, dev]
     paths:
       - 'client/**'
       - 'server/skillforge-gateway/**'
@@ -50,12 +43,31 @@ jobs:
             path: server/skillforge-gateway
             image: server-gateway
             name: Build and Push Server Gateway
-            build-args: ""
+            build-args: |
+              REDIS_HOST=redis
+              REDIS_PORT=6379
+              SERVER_PORT_GATEWAY=8081
+              SERVER_PORT_USER=8082
+              SERVER_PORT_COURSES=8083
+              RATE_LIMIT_REQUESTS_PER_MINUTE=60
+              RATE_LIMIT_REQUESTS_PER_SECOND=10
+              RATE_LIMIT_BURST=20
           - id: user-service
             path: server/skillforge-user
             image: user-service
             name: Build and Push User Service
-            build-args: ""
+            build-args: |
+              JWT_SECRET=${{ secrets.JWT_SECRET }}
+              JWT_EXPIRATION_MS=86400000
+              SERVER_PORT_USER=8082
+              MONGO_URL=${{ secrets.MONGO_URL }}
+          - id: course-service
+            path: server/skillforge-course
+            image: course-service
+            name: Build and Push Course Service
+            build-args: |
+              SERVER_PORT_COURSES=8083
+              MONGO_URL=${{ secrets.MONGO_URL }}
           - id: genai
             path: genai
             image: genai
