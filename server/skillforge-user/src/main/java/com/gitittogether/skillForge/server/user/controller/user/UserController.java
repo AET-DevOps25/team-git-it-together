@@ -27,6 +27,17 @@ public class UserController {
     private final UserService userService;
 
     /**
+     * Health check endpoint to verify if the user service is running.
+     *
+     * @return ResponseEntity with a simple message indicating the service is up.
+     */
+    @GetMapping("/health")
+    public ResponseEntity<String> healthCheck() {
+        log.info("🩺 Health check endpoint hit");
+        return ResponseEntity.ok("User service is up and running!");
+    }
+
+    /**
      * User registration endpoint.
      * Accepts a UserRegisterRequest and returns a UserRegisterResponse.
      *
