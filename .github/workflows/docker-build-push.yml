@@ -136,3 +136,12 @@ jobs:
       - name: Output image URL
         run: |
           echo "Image URL: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}"
+      - name: Post workflow summary
+        if: always()
+        run: |
+          echo "## Docker Build & Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Image: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
