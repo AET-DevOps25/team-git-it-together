@@ -99,3 +99,31 @@ REDIS_PORT=6379
 - All services are discoverable by Docker Compose service name (e.g., `mongo`, `redis`).
 
 ---
+
+## Environment Variables Summary (All Services)
+
+| Service           | Variable                      | Description                                 | Example/Default                                 | Required in Prod |
+|-------------------|-------------------------------|---------------------------------------------|-------------------------------------------------|------------------|
+| skillforge-course | SERVER_PORT_COURSES           | HTTP port                                   | 8083                                            | No               |
+|                   | MONGO_URL                     | MongoDB connection string                   | mongodb://user:pass@host:27017/db?authSource=admin | Yes           |
+| skillforge-user   | SERVER_PORT_USER              | HTTP port                                   | 8082                                            | No               |
+|                   | JWT_SECRET                    | JWT signing secret                          | dev-secret-key-for-development-only-change-in-production | Yes        |
+|                   | JWT_EXPIRATION_MS             | JWT expiration (ms)                         | 86400000                                        | No               |
+|                   | MONGO_URL                     | MongoDB connection string                   | mongodb://user:pass@host:27017/db?authSource=admin | Yes           |
+| skillforge-gateway| SERVER_PORT_GATEWAY           | HTTP port                                   | 8081                                            | No               |
+|                   | REDIS_HOST                    | Redis host                                  | redis                                            | Yes              |
+|                   | REDIS_PORT                    | Redis port                                  | 6379                                            | Yes              |
+|                   | SERVER_PORT_USER              | User service port                           | 8082                                            | Yes              |
+|                   | SERVER_PORT_COURSES           | Course service port                         | 8083                                            | Yes              |
+|                   | RATE_LIMIT_REQUESTS_PER_MINUTE| Rate limit (per min)                        | 60                                              | No               |
+|                   | RATE_LIMIT_REQUESTS_PER_SECOND| Rate limit (per sec)                        | 10                                              | No               |
+|                   | RATE_LIMIT_BURST              | Rate limit burst                            | 20                                              | No               |
+
+**Note:**
+- For production, always set secrets (passwords, JWT, etc.) via your CI/CD or deployment platform, never hardcoded.
+- For local/dev, defaults are provided but can be overridden in your shell or `.env` files.
+- `MONGO_URL` is now the only MongoDB variable used for all services.
+- Redis is always deployed locally with no password for this use case; set `REDIS_HOST=redis` and `REDIS_PORT=6379`.
+- `REDIS_*` variables are only required for the gateway service.
+
+---
