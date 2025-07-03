@@ -1,13 +1,8 @@
 name: Build and Test Server
 
 on:
-  push:
-    paths:
-      - 'server/skillforge-gateway/**'
-      - 'server/skillforge-user/**'
-      - 'server/skillforge-course/**'
   pull_request:
-    branches: [main]
+    branches: [main, test, dev]
     paths:
       - 'server/skillforge-gateway/**'
       - 'server/skillforge-user/**'
@@ -21,6 +16,11 @@ jobs:
   test-gateway:
     name: Build & Test Gateway
     runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
     defaults:
       run:
         working-directory: server/skillforge-gateway
@@ -35,17 +35,19 @@ jobs:
       - uses: ./.github/actions/create-dotenv
       - name: Build and test
         env:
-          SPRING_PROFILE_ACTIVES: test
-          JWT_SECRET: test-jwt-secret
-          JWT_EXPIRATION_MS: 3600000
-          REDIS_HOST: localhost
+          SPRING_PROFILES_ACTIVE: test
+          REDIS_HOST: redis
           REDIS_PORT: 6379
-          REDIS_PASSWORD: ""
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build --no-daemon --scan
 
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-user
@@ -60,17 +62,20 @@ jobs:
       - uses: ./.github/actions/create-dotenv
       - name: Build and test
         env:
-          SPRING_PROFILE_ACTIVES: test
+          SPRING_PROFILES_ACTIVE: test
           JWT_SECRET: test-jwt-secret
           JWT_EXPIRATION_MS: 3600000
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          REDIS_PASSWORD: ""
-        run: ./gradlew build --no-daemon
+          MONGO_URL: mongodb://localhost:27017/test
+        run: ./gradlew build --no-daemon --scan
 
   test-course-service:
     name: Build & Test Course Service
     runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-course
@@ -85,10 +90,6 @@ jobs:
       - uses: ./.github/actions/create-dotenv
       - name: Build and test
         env:
-          SPRING_PROFILE_ACTIVES: test
-          JWT_SECRET: test-jwt-secret
-          JWT_EXPIRATION_MS: 3600000
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          REDIS_PASSWORD: ""
-        run: ./gradlew build --no-daemon
+          SPRING_PROFILES_ACTIVE: test
+          MONGO_URL: mongodb://localhost:27017/test
+        run: ./gradlew build --no-daemon --scan
