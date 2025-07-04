@@ -71,6 +71,8 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SERVER_PORT_COURSES=8083
+      - SERVER_HOST_USER=user-service
+      - SERVER_PORT_USER=8082
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION_MS=86400000
       - MONGO_URL=${MONGO_URL}
