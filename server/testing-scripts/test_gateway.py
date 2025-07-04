@@ -44,7 +44,7 @@ class SimpleGatewayTester:
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         log_message = f"[{timestamp}] {message}"
         print(log_message)
-        with open(f"{self.test_results_dir}/test.log", "a") as f:
+        with open(f"{self.test_results_dir}/test.log", "a", encoding="utf-8") as f:
             f.write(log_message + "\n")
 
     def log_success(self, message: str):
