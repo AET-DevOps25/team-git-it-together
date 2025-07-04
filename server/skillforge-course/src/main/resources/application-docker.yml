@@ -7,11 +7,10 @@ spring:
   config:
     activate:
       on-profile: docker
+  data:
+    mongodb:
+      uri: ${MONGO_URL}
 
 user:
   service:
     uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
-
-  data:
-    mongodb:
-      uri: ${MONGO_URL}
