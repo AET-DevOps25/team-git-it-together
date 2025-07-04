@@ -168,4 +168,17 @@ public class CourseController {
         List<CourseResponse> responses = courseService.searchCoursesByTitleFuzzy(title);
         return ResponseEntity.ok(responses);
     }
+
+    @GetMapping("/generate")
+    public ResponseEntity<String> generateCourse(@RequestParam List<String> skills, @RequestParam String userId) {
+        // !!! TODO CHANGE RETURN TYPE TO COURSE RESPONSE WHEN IMPLEMENTED !!!
+        // TODO: 1. Validation of the request parameters
+        // TODO: 2. Mapping of the request to match the request on the Genai side (optional)
+        // TODO 3. Call the Genai service to generate the course
+        // Course generatedCourse = genAiService.generateCourse(skills, userId); // Check how we call other services in enrollment for example
+        // TODO 4. save the course as private and not published (we can directly call the createCourse method)
+        // TODO 5. enroll the user in the course (call the enrollUserInCourse method)
+        log.info("Generating course with skills: {}", skills);
+        return ResponseEntity.ok("Course generation is not yet implemented");
+    }
 } 
