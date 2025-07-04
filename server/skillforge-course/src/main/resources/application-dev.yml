@@ -10,8 +10,8 @@ spring:
 
   data:
     mongodb:
-      database: ${MONGODB_DATABASE:skillForge}
-      uri: ${MONGO_URL}
+      database: ${MONGODB_DATABASE:skillforge}
+      uri: ${MONGO_URL:mongodb://localhost:27017/skillforge}
 
       # uri: mongodb://${MONGODB_USERNAME:skillForgeDevops25}:${MONGODB_PASSWORD:PickleR1cK!}@${MONGODB_HOST:localhost}:27017/${MONGODB_DATABASE:skillForge}?authSource=admin
 
