@@ -1,16 +1,37 @@
-# -------------- This is a Docker Compose file for running the Skill Forge application stack locally --------------
+# docker-compose up --build -d
+# docker-compose down --volumes --remove-orphans
+
 services:
-  # ─── MongoDB ──────────────────────────────────────
+  reverse-proxy:
+    image: traefik:v3.4
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.traefik.address=:8085"
+      - "--api=true"
+      - "--api.insecure=true"
+    ports:
+      - "80:80"
+      - "8085:8085"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - skillforge-network
+  
+  # ─── MongoDB (Local) ──────────────────────────────────────────────────────────
   mongo:
     image: mongo:7.0
-    container_name: mongo
+    container_name: skillforge-mongo
     restart: unless-stopped
     ports:
       - "${MONGODB_EXPOSED_PORT:-27017}:27017"
     env_file:
       - .env
     environment:
-      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-skillforge-dev}
+      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE:-skillforge}
       MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-root}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password}
     volumes:
@@ -26,10 +47,10 @@ services:
     networks:
       - skillforge-network
 
-  # ─── Redis ──────────────────────────────────────
+  # ─── Redis ──────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: redis
+    container_name: skillforge-redis
     ports:
       - "6379:6379"
     volumes:
@@ -42,23 +63,23 @@ services:
       retries: 3
     networks:
       - skillforge-network
-  
+
   # ─── Spring Boot Server: User Service ──────────────────────────────
-  user-service:
+  skillforge-user-service:
     build:
       context: ./server/skillforge-user
       dockerfile: Dockerfile
-    image: user-service:latest
-    container_name: user-service
+    image: skillforge-user-service:latest
+    container_name: skillforge-user-service
     restart: unless-stopped
     # No ports exposed - only accessible through gateway
     env_file:
       - .env
     environment:
-      SPRING_PROFILE_ACTIVES: docker
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-skillforge-dev}
-      MONGO_URL: ${MONGO_URL}
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/skillforge-dev}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
     depends_on:
@@ -74,20 +95,23 @@ services:
       - skillforge-network
 
   # ─── Spring Boot Server: Course Service ──────────────────────────────
-  course-service:
+  skillforge-course-service:
     build:
       context: ./server/skillforge-course
       dockerfile: Dockerfile
-    image: course-service:latest
-    container_name: course-service
+    image: skillforge-course-service:latest
+    container_name: skillforge-course-service
     restart: unless-stopped
     # No ports exposed - only accessible through gateway
     env_file:
       - .env
     environment:
-      SPRING_PROFILE_ACTIVES: docker
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       SERVER_PORT_COURSE: ${SERVER_PORT_COURSE:-8083}
-      MONGO_URL: ${MONGO_URL}
+      SERVER_HOST_USER: ${SERVER_HOST_USER:-skillforge-user-service}
+      SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-skillforge-dev}
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/skillforge-dev}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
     depends_on:
@@ -102,146 +126,161 @@ services:
     networks:
       - skillforge-network
 
-  # ─── Spring Boot Server: Gateway ──────────────────────────────
-  gateway:
+  # ─── Spring Boot Server: Gateway ────────────────────────────────────── : http://server.localhost:8081/api/v1/
+  skillforge-gateway:
     build:
       context: ./server/skillforge-gateway
       dockerfile: Dockerfile
-    image: gateway:latest
-    container_name: gateway
+    image: skillforge-gateway:latest
+    container_name: skillforge-gateway
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT_GATEWAY:-8081}:${SERVER_PORT_GATEWAY:-8081}"
+      - "${SERVER_PORT_GATEWAY:-8081}:8081"
     env_file:
       - .env
     environment:
-      SPRING_PROFILE_ACTIVES: docker
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
       RATE_LIMIT_REQUESTS_PER_MINUTE: 60
       RATE_LIMIT_REQUESTS_PER_SECOND: 10
       RATE_LIMIT_BURST: 20
-      SERVER_HOST_USER: ${SERVER_HOST_USER:-user-service}
+      SERVER_HOST_USER: ${SERVER_HOST_USER:-skillforge-user-service}
       SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
-      SERVER_HOST_COURSE: ${SERVER_HOST_COURSE:-course-service}
+      SERVER_HOST_COURSE: ${SERVER_HOST_COURSE:-skillforge-course-service}
       SERVER_PORT_COURSE: ${SERVER_PORT_COURSE:-8083}
-      SERVER_HOST_GATEWAY: ${SERVER_HOST_GATEWAY:-gateway}
+      SERVER_HOST_GATEWAY: ${SERVER_HOST_GATEWAY:-skillforge-gateway}
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY:-8081}
     depends_on:
       redis:
         condition: service_healthy
-      user-service:
+      skillforge-user-service:
         condition: service_started
-      course-service:
+      skillforge-course-service:
         condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY:-8081}/actuator/health || exit 1"]
-      interval: 360s
+      interval: 10s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST:-server.localhost}`)"
+      - "traefik.http.routers.gateway-api.entrypoints=web"
+      - "traefik.http.services.gateway.loadbalancer.server.port=8081"
     networks:
       - skillforge-network
-  
-  # ─── Client (Frontend) ──────────────────────────────
-  client:
+
+  # ─── SkillForge Client ──────────────────────────────────────────────────: http://client.localhost:3000/
+  skillforge-client:
     build:
       context: ./client
       dockerfile: Dockerfile
       args:
+        VITE_PORT: ${VITE_PORT:-3000}
+        BUILD_MODE: ${BUILD_MODE:-production}
         VITE_APP_NAME: ${VITE_APP_NAME:-SkillForge.ai}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-1.0.0}
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
         VITE_API_VERSION: ${VITE_API_VERSION:-v1}
-        # VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
-        VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-gateway}
+        VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-skillforge-gateway}
         VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
-        BUILD_MODE: ${BUILD_MODE:-production}
-        VITE_PORT: ${VITE_PORT:-3000}
-    image: client:latest
-    container_name: client
+        VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
+    container_name: skillforge-client
+    restart: unless-stopped
+    ports:
+      - "${VITE_PORT:-3000}:3000"
+    env_file:
+      - .env
     environment:
       VITE_PORT: ${VITE_PORT:-3000}
+      BUILD_MODE: ${BUILD_MODE:-production}
       VITE_APP_NAME: "${VITE_APP_NAME:-SkillForge.ai}"
       VITE_APP_VERSION: "${VITE_APP_VERSION:-1.0.0}"
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
       VITE_API_VERSION: ${VITE_API_VERSION:-v1}
-      VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-gateway}
+      VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-skillforge-gateway}
       VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
-      #VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
-    restart: unless-stopped
-    ports:
-      - "${VITE_PORT:-3000}:3000"
+      VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST:-client.localhost}`)"
+      - "traefik.http.routers.client.entrypoints=web"
+      - "traefik.http.services.client.loadbalancer.server.port=3000"
     depends_on:
-      gateway:
+      skillforge-gateway:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fs http://localhost:${VITE_PORT:-3000} || exit 1"]
-      interval: 30s
+      interval: 10s
       timeout: 10s
       retries: 3
       start_period: 40s
     networks:
       - skillforge-network
-  
-  # ─── Weaviate ──────────────────────────────
-  weaviate-db:
-      image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
-      container_name: weaviate
-      restart: unless-stopped
-      command:
-        - --host
-        - 0.0.0.0
-        - --port
-        - "8080"
-        - --scheme
-        - http
-      ports:
-        - "${WEAVIATE_EXPOSED_HTTP_PORT:-8080}:8080"
-        - "${WEAVIATE_EXPOSED_GRPC_PORT:-50051}:50051"
-      environment:
-        QUERY_DEFAULTS_LIMIT: 25
-        AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
-        PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
-        BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
-        ENABLE_API_BASED_MODULES: 'true'
-        CLUSTER_HOSTNAME: 'node1'
-      volumes:
-        - weaviate-genai-data:/var/lib/weaviate
-      healthcheck:
-        test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/v1/.well-known/ready || exit 1"]
-        interval: 10s
-        timeout: 5s
-        retries: 10
-        start_period: 10s
-      networks:
-        - skillforge-network
 
-  # ─── GenAI ──────────────────────────────
-  genai:
+  # ─── Weaviate ──────────────────────────────────────────────────────────
+  skillforge-weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
+    container_name: skillforge-weaviate
+    restart: on-failure
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --scheme
+      - http
+    ports:
+      - "8088:8080"
+      - "50051:50051"
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
+      ENABLE_API_BASED_MODULES: 'true'
+      CLUSTER_HOSTNAME: 'node1'
+    volumes:
+      - weaviate-genai-data:/var/lib/weaviate
+    healthcheck:
+        test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/v1/.well-known/ready || exit 1"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 50s
+    networks:
+      - skillforge-network
+
+  # ─── GenAI Service ──────────────────────────────────────────────────────────: http://genai.localhost:8888/
+  skillforge-genai:
     build:
       context: ./genai
       dockerfile: Dockerfile
       args:
-        GENAI_APP_NAME: ${GENAI_APP_NAME:-SkillForge GenAI}
-        GENAI_APP_VERSION: ${GENAI_APP_VERSION:-1.0.0}
+        GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
+        GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0}"
         GENAI_PORT: ${GENAI_PORT:-8888}
         UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
         CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
-    image: genai:latest
-    container_name: genai
+    container_name: skillforge-genai
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      WEAVIATE_HOST: ${WEAVIATE_HOST:-weaviate-db}
+      WEAVIATE_HOST: skillforge-weaviate
       WEAVIATE_HTTP_PORT: 8080
       WEAVIATE_GRPC_PORT: 50051
       GENAI_PORT: ${GENAI_PORT:-8888}
-      GENAI_APP_NAME: ${GENAI_APP_NAME:-SkillForge GenAI}
-      GENAI_APP_VERSION: ${GENAI_APP_VERSION:-1.0.0}
+      GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
+      GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0}"
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
+      IS_DEV_MODE: ${IS_DEV_MODE:-0}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -249,16 +288,23 @@ services:
     ports:
       - "${GENAI_PORT:-8888}:${GENAI_PORT:-8888}"
     depends_on:
-      weaviate-db:
+      skillforge-weaviate:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT:-8888}/ping || exit 1"]
-      interval: 60s
+      interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 50s
     networks:
       - skillforge-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.genai.rule=Host(`${GENAI_HOST:-genai.localhost}`)"
+      - "traefik.http.routers.genai.entrypoints=web"
+      - "traefik.http.services.genai.loadbalancer.server.port=8888"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigin=${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
 volumes:
   mongo-data:

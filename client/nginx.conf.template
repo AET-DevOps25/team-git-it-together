@@ -1,5 +1,5 @@
 # Nginx config – rendered at runtime via envsubst
-# `${API_INTERNAL_HOST}` is replaced with the environment variable value when the
+# `${VITE_API_INTERNAL_HOST}` is replaced with the environment variable value when the
 # container starts (handled automatically by the nginx docker-entrypoint).
 
 # in server_name, we use "_" to catch all.
