@@ -118,3 +118,15 @@ def load_json_file(path: str) -> Optional[List[Dict]]:
         print_status(f"Failed to load file {path}: {e}", "ERROR")
         return None
 
+
+def load_course_files(directory: str) -> List[Dict]:
+    files = sorted(f for f in os.listdir(directory) if f.startswith("course_") and f.endswith(".json"))
+    data = []
+    for fpath in files:
+        try:
+            with open(os.path.join(directory, fpath), 'r') as f:
+                data.append(json.load(f))
+        except Exception as e:
+            print_status(f"Failed to load {fpath}: {e}", "ERROR")
+    return data
+
