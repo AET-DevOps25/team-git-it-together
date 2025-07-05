@@ -477,3 +477,59 @@ function {topic.lower().replace(' ', '_')}Example() {{
     def generate_image_id(self) -> str:
         """Generate a realistic Unsplash image ID"""
         return ''.join(random.choices(string.digits, k=10)) + '-' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
+
+    def generate_course(self, course_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate a complete course with modules and lessons"""
+        
+        # Generate modules
+        modules = []
+        for i, module_data in enumerate(course_data["modules"]):
+            # module_id = str(uuid.uuid4())  # No longer needed
+            lessons = []
+            
+            # Generate lessons for this module
+            for j, lesson_data in enumerate(module_data["lessons"]):
+                lesson = {
+                    "id": str(uuid.uuid4()),  # Keep lesson id unless told otherwise
+                    "title": lesson_data["title"],
+                    "description": lesson_data["description"],
+                    "content": self.generate_lesson_content(
+                        lesson_data["content_type"], 
+                        lesson_data["title"]
+                    ),
+                    "thumbnail": f"https://images.unsplash.com/photo-{self.generate_image_id()}",
+                    "order": j
+                }
+                lessons.append(lesson)
+            
+            module = {
+                # "id": module_id,  # Remove
+                # "courseId": course_id,  # Remove
+                "title": module_data["title"],
+                "description": module_data["description"],
+                "lessons": lessons,
+                "order": i
+            }
+            modules.append(module)
+        
+        # Create course request
+        course_request = {
+            # "id": course_id,  # Remove
+            "title": course_data["title"],
+            "description": course_data["description"],
+            "instructor": course_data["instructor"],
+            "skills": course_data["skills"],
+            "modules": modules,
+            "enrolledUserIds": [],
+            "numberOfEnrolledUsers": 0,
+            "categories": course_data["categories"],
+            "level": course_data["level"],
+            "thumbnailUrl": course_data.get("thumbnailUrl", f"https://images.unsplash.com/photo-{self.generate_image_id()}"),
+            "published": course_data["published"],
+            "isPublic": course_data["isPublic"],
+            "language": course_data["language"],
+            "rating": course_data["rating"]
+        }
+        
+        return course_request
+    
