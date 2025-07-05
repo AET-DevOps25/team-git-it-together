@@ -977,3 +977,6 @@ function {topic.lower().replace(' ', '_')}Example() {{
         print("🚀 To seed your database, run: ./{self.output_dir}/seed_database.sh")
         print("📖 For detailed instructions, see: {self.output_dir}/README.md")
 
+if __name__ == "__main__":
+    generator = SeedDataGenerator()
+    generator.run() 
