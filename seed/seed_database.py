@@ -109,3 +109,12 @@ def get_existing_courses() -> List[Dict]:
     ok, _, parsed = make_request(f"{COURSES_ENDPOINT}", headers=get_auth_headers())
     return parsed if ok and isinstance(parsed, list) else []
 
+
+def load_json_file(path: str) -> Optional[List[Dict]]:
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        print_status(f"Failed to load file {path}: {e}", "ERROR")
+        return None
+
