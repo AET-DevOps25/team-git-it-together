@@ -100,3 +100,7 @@ def login_user() -> bool:
     print_status(f"Login failed: {res}", "ERROR")
     return False
 
+
+def get_auth_headers():
+    return {"Authorization": f"Bearer {JWT_TOKEN}"}
+
