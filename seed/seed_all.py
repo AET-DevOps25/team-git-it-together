@@ -14,3 +14,5 @@ subprocess.run(["python", generator], check=True)
 # Run seeder
 print("🌱 Seeding the database...")
 subprocess.run(["python", seeder], check=True)
+
+print("✅ Done!")
