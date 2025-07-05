@@ -23,3 +23,4 @@ JWT_TOKEN = ""
 # Endpoints
 USERS_ENDPOINT = f"{API_URL}/users"
 COURSES_ENDPOINT = f"{API_URL}/courses"
+
