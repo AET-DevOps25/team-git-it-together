@@ -68,3 +68,21 @@ def check_services() -> bool:
     ]
     return all(check_health(name, url) for name, url in services)
 
+
+def register_user() -> bool:
+    print_status(f"Registering user: {USERNAME}", "USER")
+    register_data = {
+        "username": USERNAME,
+        "email": f"{USERNAME}@example.com",
+        "password": PASSWORD,
+        "firstName": "Max",
+        "lastName": "Tester"
+    }
+    ok, res, parsed = make_request(f"{USERS_ENDPOINT}/register", "POST", register_data)
+    if ok and (parsed or "already exists" in res.lower()):
+        print_status("User registered or already exists", "SUCCESS")
+        return True
+    print_status(f"Registration failed: {res}", "ERROR")
+    return False
+
+
