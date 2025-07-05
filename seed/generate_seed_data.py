@@ -937,3 +937,8 @@ function {topic.lower().replace(' ', '_')}Example() {{
         self.courses = courses
         return courses
     
+    def save_categories(self):
+        """Save categories to JSON file"""
+        with open(f"{self.output_dir}/categories.json", "w") as f:
+            json.dump(self.categories, f, indent=2)
+    
