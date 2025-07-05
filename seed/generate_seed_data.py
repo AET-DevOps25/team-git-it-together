@@ -468,3 +468,9 @@ function {topic.lower().replace(' ', '_')}Example() {{
     </div>
 </div>
         """
+
+
+    def generate_video_id(self) -> str:
+        """Generate a realistic YouTube video ID"""
+        return ''.join(random.choices(string.ascii_letters + string.digits, k=11))
+
