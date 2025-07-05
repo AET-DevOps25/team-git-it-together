@@ -10,3 +10,7 @@ seeder = os.path.join(script_dir, "seed_database.py")
 # Run generator
 print("🚀 Generating seed data...")
 subprocess.run(["python", generator], check=True)
+
+# Run seeder
+print("🌱 Seeding the database...")
+subprocess.run(["python", seeder], check=True)
