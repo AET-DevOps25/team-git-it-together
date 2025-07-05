@@ -42,3 +42,26 @@ class SeedDataGenerator:
         ]
         self.categories = categories_data
         return categories_data
+
+        
+    def generate_lesson_content(self, lesson_type: str, topic: str) -> Dict[str, Any]:
+        """Generate realistic lesson content based on type and topic"""
+        
+        if lesson_type == "TEXT":
+            content = self.generate_text_content(topic)
+        elif lesson_type == "HTML":
+            content = self.generate_html_content(topic)
+        elif lesson_type == "VIDEO":
+            content = f"https://www.youtube.com/watch?v={self.generate_video_id()}"
+        elif lesson_type == "IMAGE":
+            content = f"https://images.unsplash.com/photo-{self.generate_image_id()}"
+        elif lesson_type == "URL":
+            content = f"https://docs.example.com/{topic.lower().replace(' ', '-')}"
+        else:
+            content = self.generate_text_content(topic)
+        
+        return {
+            "type": lesson_type,
+            "content": content
+        }
+    
