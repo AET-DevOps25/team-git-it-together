@@ -533,3 +533,407 @@ function {topic.lower().replace(' ', '_')}Example() {{
         
         return course_request
     
+    def generate_all_courses(self) -> List[Dict[str, Any]]:
+        """Generate all courses with realistic content"""
+        
+        courses_data = [
+            {
+                "title": "Complete Python Programming Masterclass",
+                "description": "Master Python programming from basics to advanced concepts. Learn web development, data analysis, automation, and more with hands-on projects.",
+                "instructor": "Dr. Sarah Chen",
+                "skills": ["Python", "Programming", "Web Development", "Data Analysis", "Automation"],
+                "modules": [
+                    {
+                        "title": "Python Fundamentals",
+                        "description": "Learn the basics of Python programming language",
+                        "lessons": [
+                            {"title": "Introduction to Python", "description": "Overview of Python and its applications", "content_type": "TEXT"},
+                            {"title": "Variables and Data Types", "description": "Understanding Python variables and basic data types", "content_type": "HTML"},
+                            {"title": "Control Flow", "description": "Learn about loops, conditionals, and program flow", "content_type": "TEXT"},
+                            {"title": "Functions and Modules", "description": "Creating reusable code with functions", "content_type": "VIDEO"}
+                        ]
+                    },
+                    {
+                        "title": "Object-Oriented Programming",
+                        "description": "Master OOP concepts in Python",
+                        "lessons": [
+                            {"title": "Classes and Objects", "description": "Understanding classes and object creation", "content_type": "TEXT"},
+                            {"title": "Inheritance and Polymorphism", "description": "Advanced OOP concepts", "content_type": "HTML"},
+                            {"title": "Encapsulation and Abstraction", "description": "Data hiding and abstraction principles", "content_type": "VIDEO"}
+                        ]
+                    },
+                    {
+                        "title": "Web Development with Flask",
+                        "description": "Build web applications using Flask framework",
+                        "lessons": [
+                            {"title": "Flask Basics", "description": "Introduction to Flask web framework", "content_type": "TEXT"},
+                            {"title": "Routing and Templates", "description": "Creating routes and HTML templates", "content_type": "HTML"},
+                            {"title": "Database Integration", "description": "Connecting Flask with databases", "content_type": "VIDEO"},
+                            {"title": "Building a Complete Web App", "description": "Create a full-featured web application", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Programming & Development"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.8
+            },
+            {
+                "title": "Data Science Fundamentals with Python",
+                "description": "Learn data science from scratch. Master pandas, numpy, matplotlib, and scikit-learn for data analysis and machine learning.",
+                "instructor": "Prof. Michael Rodriguez",
+                "skills": ["Data Science", "Python", "Pandas", "NumPy", "Machine Learning", "Data Visualization"],
+                "modules": [
+                    {
+                        "title": "Data Analysis Basics",
+                        "description": "Introduction to data analysis concepts and tools",
+                        "lessons": [
+                            {"title": "Introduction to Data Science", "description": "Overview of data science field and applications", "content_type": "TEXT"},
+                            {"title": "Working with Pandas", "description": "Data manipulation and analysis with pandas", "content_type": "HTML"},
+                            {"title": "Data Visualization", "description": "Creating charts and graphs with matplotlib", "content_type": "VIDEO"},
+                            {"title": "Statistical Analysis", "description": "Basic statistical concepts and calculations", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Machine Learning Introduction",
+                        "description": "Basic machine learning concepts and algorithms",
+                        "lessons": [
+                            {"title": "ML Fundamentals", "description": "Understanding machine learning basics", "content_type": "TEXT"},
+                            {"title": "Supervised Learning", "description": "Classification and regression algorithms", "content_type": "HTML"},
+                            {"title": "Model Evaluation", "description": "Assessing model performance and accuracy", "content_type": "VIDEO"}
+                        ]
+                    }
+                ],
+                "categories": ["Data Science & Analytics"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.9
+            },
+            {
+                "title": "Modern Web Development with React",
+                "description": "Build modern, responsive web applications using React. Learn hooks, context, routing, and state management.",
+                "instructor": "Alex Johnson",
+                "skills": ["React", "JavaScript", "Web Development", "Frontend", "UI/UX"],
+                "modules": [
+                    {
+                        "title": "React Fundamentals",
+                        "description": "Core React concepts and component-based architecture",
+                        "lessons": [
+                            {"title": "Introduction to React", "description": "Understanding React and its ecosystem", "content_type": "TEXT"},
+                            {"title": "Components and Props", "description": "Building reusable React components", "content_type": "HTML"},
+                            {"title": "State and Lifecycle", "description": "Managing component state and lifecycle", "content_type": "VIDEO"},
+                            {"title": "Hooks and Functional Components", "description": "Modern React with hooks", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Advanced React Patterns",
+                        "description": "Advanced patterns and best practices",
+                        "lessons": [
+                            {"title": "Context API", "description": "Global state management with Context", "content_type": "TEXT"},
+                            {"title": "Custom Hooks", "description": "Creating reusable custom hooks", "content_type": "HTML"},
+                            {"title": "Performance Optimization", "description": "Optimizing React application performance", "content_type": "VIDEO"}
+                        ]
+                    }
+                ],
+                "categories": ["Web Development"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.7
+            },
+            {
+                "title": "DevOps and CI/CD Pipeline",
+                "description": "Master DevOps practices, Docker, Kubernetes, and continuous integration/deployment pipelines.",
+                "instructor": "Emma Wilson",
+                "skills": ["DevOps", "Docker", "Kubernetes", "CI/CD", "Cloud Computing", "Infrastructure"],
+                "modules": [
+                    {
+                        "title": "DevOps Fundamentals",
+                        "description": "Core DevOps principles and practices",
+                        "lessons": [
+                            {"title": "Introduction to DevOps", "description": "Understanding DevOps culture and practices", "content_type": "TEXT"},
+                            {"title": "Version Control with Git", "description": "Advanced Git workflows and collaboration", "content_type": "HTML"},
+                            {"title": "Containerization with Docker", "description": "Building and managing Docker containers", "content_type": "VIDEO"},
+                            {"title": "Container Orchestration", "description": "Managing containers with Kubernetes", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "CI/CD Implementation",
+                        "description": "Building automated deployment pipelines",
+                        "lessons": [
+                            {"title": "Continuous Integration", "description": "Setting up automated testing and building", "content_type": "TEXT"},
+                            {"title": "Continuous Deployment", "description": "Automated deployment strategies", "content_type": "HTML"},
+                            {"title": "Monitoring and Logging", "description": "Application monitoring and log management", "content_type": "VIDEO"}
+                        ]
+                    }
+                ],
+                "categories": ["DevOps & Cloud"],
+                "level": "ADVANCED",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.6
+            },
+            {
+                "title": "Cybersecurity Fundamentals",
+                "description": "Learn essential cybersecurity concepts, ethical hacking, and defense strategies to protect systems and data.",
+                "instructor": "David Kim",
+                "skills": ["Cybersecurity", "Ethical Hacking", "Network Security", "Penetration Testing", "Security Analysis"],
+                "modules": [
+                    {
+                        "title": "Security Fundamentals",
+                        "description": "Basic cybersecurity concepts and principles",
+                        "lessons": [
+                            {"title": "Introduction to Cybersecurity", "description": "Overview of security threats and defenses", "content_type": "TEXT"},
+                            {"title": "Network Security Basics", "description": "Protecting network infrastructure", "content_type": "HTML"},
+                            {"title": "Cryptography Fundamentals", "description": "Understanding encryption and security protocols", "content_type": "VIDEO"},
+                            {"title": "Security Best Practices", "description": "Implementing security measures", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Ethical Hacking",
+                        "description": "Penetration testing and vulnerability assessment",
+                        "lessons": [
+                            {"title": "Penetration Testing Methodology", "description": "Systematic approach to security testing", "content_type": "TEXT"},
+                            {"title": "Vulnerability Assessment", "description": "Identifying and analyzing security weaknesses", "content_type": "HTML"},
+                            {"title": "Exploitation Techniques", "description": "Understanding attack vectors and methods", "content_type": "VIDEO"}
+                        ]
+                    }
+                ],
+                "categories": ["Cybersecurity"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.5
+            },
+            {
+                "title": "JavaScript Full Stack Development",
+                "description": "Master JavaScript for both frontend and backend development. Learn Node.js, Express, and modern JavaScript frameworks.",
+                "instructor": "Maria Garcia",
+                "skills": ["JavaScript", "Node.js", "Express", "MongoDB", "Full Stack", "Web Development"],
+                "modules": [
+                    {
+                        "title": "JavaScript Fundamentals",
+                        "description": "Core JavaScript concepts and modern ES6+ features",
+                        "lessons": [
+                            {"title": "JavaScript Basics", "description": "Variables, functions, and control structures", "content_type": "TEXT"},
+                            {"title": "ES6+ Features", "description": "Arrow functions, destructuring, and modules", "content_type": "HTML"},
+                            {"title": "Asynchronous JavaScript", "description": "Promises, async/await, and callbacks", "content_type": "VIDEO"},
+                            {"title": "DOM Manipulation", "description": "Working with the browser DOM", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Node.js Backend Development",
+                        "description": "Building server-side applications with Node.js",
+                        "lessons": [
+                            {"title": "Node.js Introduction", "description": "Server-side JavaScript runtime", "content_type": "TEXT"},
+                            {"title": "Express.js Framework", "description": "Building RESTful APIs with Express", "content_type": "HTML"},
+                            {"title": "Database Integration", "description": "Connecting to MongoDB and other databases", "content_type": "VIDEO"},
+                            {"title": "Authentication & Authorization", "description": "Implementing user authentication", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Web Development", "Programming & Development"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.7
+            },
+            {
+                "title": "Machine Learning with Python",
+                "description": "Deep dive into machine learning algorithms, neural networks, and AI applications using Python and popular ML libraries.",
+                "instructor": "Dr. James Anderson",
+                "skills": ["Machine Learning", "Python", "TensorFlow", "Scikit-learn", "Neural Networks", "AI"],
+                "modules": [
+                    {
+                        "title": "Machine Learning Basics",
+                        "description": "Foundational concepts and algorithms",
+                        "lessons": [
+                            {"title": "Introduction to ML", "description": "Overview of machine learning field", "content_type": "TEXT"},
+                            {"title": "Supervised Learning", "description": "Classification and regression algorithms", "content_type": "HTML"},
+                            {"title": "Unsupervised Learning", "description": "Clustering and dimensionality reduction", "content_type": "VIDEO"},
+                            {"title": "Model Evaluation", "description": "Metrics and validation techniques", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Deep Learning with Neural Networks",
+                        "description": "Building and training neural networks",
+                        "lessons": [
+                            {"title": "Neural Network Basics", "description": "Understanding neural network architecture", "content_type": "TEXT"},
+                            {"title": "TensorFlow & Keras", "description": "Building models with TensorFlow", "content_type": "HTML"},
+                            {"title": "Convolutional Neural Networks", "description": "Image recognition and computer vision", "content_type": "VIDEO"},
+                            {"title": "Natural Language Processing", "description": "Text processing and language models", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Artificial Intelligence", "Data Science & Analytics"],
+                "level": "ADVANCED",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.8
+            },
+            {
+                "title": "Mobile App Development with React Native",
+                "description": "Build cross-platform mobile applications using React Native. Learn to create apps for both iOS and Android.",
+                "instructor": "Sophie Chen",
+                "skills": ["React Native", "Mobile Development", "JavaScript", "iOS", "Android", "Cross-platform"],
+                "modules": [
+                    {
+                        "title": "React Native Fundamentals",
+                        "description": "Core concepts and setup",
+                        "lessons": [
+                            {"title": "Introduction to React Native", "description": "Cross-platform mobile development", "content_type": "TEXT"},
+                            {"title": "Components and Navigation", "description": "Building mobile UI components", "content_type": "HTML"},
+                            {"title": "State Management", "description": "Managing app state with Redux", "content_type": "VIDEO"},
+                            {"title": "Platform APIs", "description": "Accessing device features", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Advanced Mobile Features",
+                        "description": "Advanced mobile development techniques",
+                        "lessons": [
+                            {"title": "Push Notifications", "description": "Implementing push notifications", "content_type": "TEXT"},
+                            {"title": "Offline Support", "description": "Building offline-capable apps", "content_type": "HTML"},
+                            {"title": "Performance Optimization", "description": "Optimizing app performance", "content_type": "VIDEO"},
+                            {"title": "App Store Deployment", "description": "Publishing to app stores", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Mobile Development"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.6
+            },
+            {
+                "title": "UI/UX Design Principles",
+                "description": "Master user interface and user experience design. Learn design principles, tools, and best practices for creating engaging digital experiences.",
+                "instructor": "Lisa Thompson",
+                "skills": ["UI/UX Design", "Figma", "User Research", "Prototyping", "Design Systems", "User Testing"],
+                "modules": [
+                    {
+                        "title": "Design Fundamentals",
+                        "description": "Core design principles and concepts",
+                        "lessons": [
+                            {"title": "Introduction to UI/UX", "description": "Understanding design principles", "content_type": "TEXT"},
+                            {"title": "User Research", "description": "Conducting user research and interviews", "content_type": "HTML"},
+                            {"title": "Information Architecture", "description": "Organizing content and navigation", "content_type": "VIDEO"},
+                            {"title": "Wireframing", "description": "Creating low-fidelity prototypes", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Advanced Design Techniques",
+                        "description": "Advanced design and prototyping",
+                        "lessons": [
+                            {"title": "High-Fidelity Design", "description": "Creating detailed UI designs", "content_type": "TEXT"},
+                            {"title": "Prototyping with Figma", "description": "Building interactive prototypes", "content_type": "HTML"},
+                            {"title": "Design Systems", "description": "Creating consistent design systems", "content_type": "VIDEO"},
+                            {"title": "User Testing", "description": "Testing and validating designs", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Design & UX"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.7
+            },
+            {
+                "title": "Blockchain Development Fundamentals",
+                "description": "Learn blockchain technology, smart contracts, and decentralized applications. Master Solidity and Ethereum development.",
+                "instructor": "Robert Zhang",
+                "skills": ["Blockchain", "Solidity", "Ethereum", "Smart Contracts", "Web3", "Cryptocurrency"],
+                "modules": [
+                    {
+                        "title": "Blockchain Basics",
+                        "description": "Understanding blockchain technology",
+                        "lessons": [
+                            {"title": "Introduction to Blockchain", "description": "Blockchain fundamentals and concepts", "content_type": "TEXT"},
+                            {"title": "Cryptography in Blockchain", "description": "Cryptographic principles", "content_type": "HTML"},
+                            {"title": "Consensus Mechanisms", "description": "Proof of Work vs Proof of Stake", "content_type": "VIDEO"},
+                            {"title": "Ethereum Platform", "description": "Understanding Ethereum blockchain", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Smart Contract Development",
+                        "description": "Building smart contracts with Solidity",
+                        "lessons": [
+                            {"title": "Solidity Programming", "description": "Smart contract programming language", "content_type": "TEXT"},
+                            {"title": "Smart Contract Security", "description": "Security best practices", "content_type": "HTML"},
+                            {"title": "DApp Development", "description": "Building decentralized applications", "content_type": "VIDEO"},
+                            {"title": "DeFi Protocols", "description": "Understanding DeFi applications", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Blockchain & Cryptocurrency"],
+                "level": "ADVANCED",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.5
+            },
+            {
+                "title": "Digital Marketing and Growth Hacking",
+                "description": "Master digital marketing strategies, SEO, social media marketing, and growth hacking techniques for business success.",
+                "instructor": "Amanda Foster",
+                "skills": ["Digital Marketing", "SEO", "Social Media Marketing", "Growth Hacking", "Analytics", "Content Marketing"],
+                "modules": [
+                    {
+                        "title": "Digital Marketing Fundamentals",
+                        "description": "Core marketing concepts and strategies",
+                        "lessons": [
+                            {"title": "Marketing Fundamentals", "description": "Understanding marketing principles", "content_type": "TEXT"},
+                            {"title": "SEO Optimization", "description": "Search engine optimization techniques", "content_type": "HTML"},
+                            {"title": "Social Media Marketing", "description": "Marketing on social platforms", "content_type": "VIDEO"},
+                            {"title": "Content Marketing", "description": "Creating engaging content strategies", "content_type": "TEXT"}
+                        ]
+                    },
+                    {
+                        "title": "Growth Hacking and Analytics",
+                        "description": "Data-driven growth strategies",
+                        "lessons": [
+                            {"title": "Growth Hacking Basics", "description": "Rapid growth strategies", "content_type": "TEXT"},
+                            {"title": "Marketing Analytics", "description": "Measuring and analyzing performance", "content_type": "HTML"},
+                            {"title": "Conversion Optimization", "description": "Improving conversion rates", "content_type": "VIDEO"},
+                            {"title": "Marketing Automation", "description": "Automating marketing processes", "content_type": "TEXT"}
+                        ]
+                    }
+                ],
+                "categories": ["Business & Marketing"],
+                "level": "INTERMEDIATE",
+                "thumbnailUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+                "published": True,
+                "isPublic": True,
+                "language": "EN",
+                "rating": 4.4
+            }
+        ]
+        
+        courses = []
+        for course_data in courses_data:
+            course = self.generate_course(course_data)
+            courses.append(course)
+        
+        self.courses = courses
+        return courses
+    
