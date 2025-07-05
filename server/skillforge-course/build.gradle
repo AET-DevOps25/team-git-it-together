@@ -1,0 +1,95 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.0'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.gitittogether.skillforge.server'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'jakarta.validation:jakarta.validation-api:3.1.1'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+    testImplementation 'org.springframework.security:spring-security-test'
+    compileOnly 'org.projectlombok:lombok:1.18.32'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+    annotationProcessor 'org.projectlombok:lombok:1.18.32'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+def appName = System.getenv("APP_NAME") ?: project.findProperty("appName") ?: "skill-forge-server"
+
+test {
+    // Enable parallel test execution
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+
+    // JVM optimizations for faster startup
+    jvmArgs = [
+            '-Xmx512m',
+            '-Xms256m',
+            '-XX:+UseG1GC',
+            '-XX:MaxGCPauseMillis=200',
+            '-XX:+UseStringDeduplication',
+            '-XX:+OptimizeStringConcat',
+            '-Djava.security.egd=file:/dev/./urandom',
+            '-Dspring.profiles.active=test'
+    ]
+
+    // Test execution optimizations
+    forkEvery = 1
+    failFast = false
+
+    // Enable test logging
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat = 'full'
+        showStandardStreams = false
+    }
+
+    // Use JUnit Platform
+    useJUnitPlatform()
+
+    // Exclude slow tests if any
+    exclude '**/*IntegrationTest*'
+    exclude '**/*E2ETest*'
+}
+
+bootJar {
+    archiveFileName = "${appName}.jar"
+}
+
+// Configure Gradle daemon for better performance
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+}

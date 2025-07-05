@@ -1,0 +1,32 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  
+  # Disable unnecessary features for faster startup
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+  # Disable MongoDB for tests (will be mocked)
+  data:
+    mongodb:
+      enabled: false
+  
+  # Disable security for faster tests
+  security:
+    enabled: false
+  
+  # Disable web server for context load tests
+  main:
+    web-application-type: none
+  
+  # Disable JPA/Hibernate features
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+
+logging:
+  level:
+    com.gitittogether.skillForge.server.course: DEBUG
+    org.springframework.data.mongodb: DEBUG 

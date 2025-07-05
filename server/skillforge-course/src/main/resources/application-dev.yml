@@ -1,0 +1,25 @@
+server:
+  port: ${SERVER_PORT_COURSES:8083}
+  address: "0.0.0.0"
+
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE:skillforge}
+      uri: ${MONGO_URL:mongodb://localhost:27017/skillforge}
+
+user:
+  service:
+    uri: http://${SERVER_HOST_USER:localhost}:${SERVER_PORT_USER:8082}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: INFO
+    org.mongodb.driver: WARN

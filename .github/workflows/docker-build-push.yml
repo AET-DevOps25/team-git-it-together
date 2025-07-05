@@ -2,18 +2,20 @@ name: Build and Push Docker Images
 
 on:
   push:
-    branches: [main, test]
+    branches: [main, test, dev]
     paths:
       - 'client/**'
       - 'server/skillforge-gateway/**'
       - 'server/skillforge-user/**'
+      - 'server/skillforge-course/**'
       - 'genai/**'
   pull_request:
-    branches: [main, test]
+    branches: [main, test, dev]
     paths:
       - 'client/**'
       - 'server/skillforge-gateway/**'
       - 'server/skillforge-user/**'
+      - 'server/skillforge-course/**'
       - 'genai/**'
   workflow_dispatch:
   workflow_call:
@@ -28,9 +30,6 @@ env:
 jobs:
   build-and-push:
     name: ${{ matrix.name }}
-    environment: 
-      name: AWS
-    
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -53,12 +52,14 @@ jobs:
             path: server/skillforge-gateway
             image: server-gateway
             name: Build and Push Server Gateway
-            build-args: ""
           - id: user-service
             path: server/skillforge-user
             image: user-service
             name: Build and Push User Service
-            build-args: ""
+          - id: course-service
+            path: server/skillforge-course
+            image: course-service
+            name: Build and Push Course Service
           - id: genai
             path: genai
             image: genai
@@ -116,7 +117,6 @@ jobs:
             ${{ matrix.build-args }}
             VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
 
-
       - name: Clean up dangling images
         run: |
           docker image prune -f
@@ -127,3 +127,12 @@ jobs:
       - name: Output image URL
         run: |
           echo "Image URL: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}"
+      - name: Post workflow summary
+        if: always()
+        run: |
+          echo "## Docker Build & Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Image: ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}:${{ steps.set_tag.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY

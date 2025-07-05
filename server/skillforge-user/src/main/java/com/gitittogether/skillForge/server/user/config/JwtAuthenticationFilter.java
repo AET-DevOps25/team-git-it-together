@@ -14,6 +14,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import java.io.IOException;
 
@@ -29,41 +32,52 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
-    private final JwtUserDetailsService userDetailsService; // See below
+    private final JwtUserDetailsService userDetailsService;
+    @Autowired
+    private JwtAuthEntryPoint jwtAuthEntryPoint;
 
+    /**
+     * This filter runs for every request to check if the user is authenticated via JWT.
+     * It extracts the JWT from the Authorization header, validates it, and sets the authentication in the SecurityContext.
+     *
+     * @param request     The HTTP request
+     * @param response    The HTTP response
+     * @param filterChain The filter chain to continue processing
+     * @throws ServletException If an error occurs during filtering
+     * @throws IOException      If an I/O error occurs
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        try {
+            String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+            String jwt = null;
+            String userId = null;
 
-        String jwt = null;
-        String userId = null;
-
-        // JWT should be in the form "Bearer eyJ..."
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            try {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                jwt = authHeader.substring(7);
                 userId = jwtUtils.extractUserId(jwt);
-            } catch (Exception exception) {
-                // Log the exception if needed, but do not throw it
-                // This allows the filter chain to continue even if token extraction fails
-                log.error("Failed to extract user ID from JWT", exception);
             }
-        }
 
-        // Validate and set authentication in context
-        if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            if (jwtUtils.isTokenValid(jwt, userId)) {
-                UserDetails userDetails = userDetailsService.loadUserById(userId);
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails, null, userDetails.getAuthorities());
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (jwtUtils.isTokenValid(jwt, userId)) {
+                    UserDetails userDetails = userDetailsService.loadUserById(userId);
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails, null, userDetails.getAuthorities());
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                } else {
+                    throw new BadCredentialsException("JWT token is invalid");
+                }
             }
+            filterChain.doFilter(request, response);
+        } catch (AuthenticationException ex) {
+            log.warn("Authentication failure: {}", ex.getMessage());
+            SecurityContextHolder.clearContext();
+            jwtAuthEntryPoint.commence(request, response, ex);
         }
-
-        filterChain.doFilter(request, response);
     }
+
 }

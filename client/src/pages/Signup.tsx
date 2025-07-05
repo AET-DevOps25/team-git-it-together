@@ -75,7 +75,7 @@ const Signup = () => {
     }
     setIsLoading(true);
     try {
-      await register({
+      const registeredUser = await register({
         email: formData.email.trim(),
         username: formData.username.trim(),
         password: formData.password.trim(),
@@ -92,7 +92,8 @@ const Signup = () => {
         ),
         description: (
           <span className="text-green-600">
-            Welcome to {APP_NAME}, {formData.firstName.trim()}! The journey of learning begins now.
+            Welcome to {APP_NAME}, {registeredUser.firstName || registeredUser.username}! The
+            journey of learning begins now.
           </span>
         ),
         variant: 'success',

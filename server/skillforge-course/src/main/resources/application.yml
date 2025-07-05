@@ -1,0 +1,37 @@
+server:
+  port: ${SERVER_PORT_COURSES:8083}
+  address: "0.0.0.0"
+
+spring:
+  application:
+    name: SkillForge-course-service
+  profiles:
+    active: ${SPRING_PROFILE_ACTIVES:dev}
+  web:
+    resources:
+      add-mappings: false
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /docs/api
+  swagger-ui:
+    enabled: true
+    path: /docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,openapi,swagger-ui
+
+jwt:
+  secret: ${JWT_SECRET:dev-insecure-key-change-me}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: INFO
+    org.mongodb.driver: WARN

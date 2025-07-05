@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: docker
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 server:
   port: ${SERVER_PORT_GATEWAY:8081}
@@ -9,11 +14,28 @@ server:
 
 user:
   service:
-    uri: http://user-service:${SERVER_PORT_USER:8082}
+    uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
 course:
   service:
-    uri: http://course-service:${SERVER_PORT_COURSES:8083}
+    uri: http://${SERVER_HOST_COURSE:course-service}:${SERVER_PORT_COURSES:8083}
+
+#Overide Rate limiting configuration for Docker
+rate:
+  limit:
+    requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:60}
+    requests-per-second: ${RATE_LIMIT_REQUESTS_PER_SECOND:10}
+    burst: ${RATE_LIMIT_BURST:20}
 
 gateway:
   cors:
     allowed-origins: "*"
+  health:
+    uri: http://${SERVER_HOST_GATEWAY:server-gateway}:${SERVER_PORT_GATEWAY:8081}
+
+logging:
+  level:
+    com.gitittogether.skillforge.server.gateway: INFO
+    com.gitittogether.skillforge.server.gateway.config: INFO
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    org.springframework.data.redis: INFO

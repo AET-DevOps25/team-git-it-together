@@ -1,9 +1,5 @@
 package com.gitittogether.skillForge.server.user.dto.response.user;
 
-import com.gitittogether.skillForge.server.user.dto.response.course.CategoryResponse;
-import com.gitittogether.skillForge.server.user.dto.response.course.CourseResponse;
-import com.gitittogether.skillForge.server.user.dto.response.course.EnrolledCourseResponse;
-import com.gitittogether.skillForge.server.user.dto.response.skill.SkillResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,10 +25,11 @@ public class UserProfileResponse {
     private String email;
     private String profilePictureUrl;
     private String bio;
-    private List<CategoryResponse> interests;
-    private List<SkillResponse> skills;
-    private List<SkillResponse> skillsInProgress;
-    private List<EnrolledCourseResponse> enrolledCourses;
-    private List<CourseResponse> bookmarkedCourses;
-    private List<EnrolledCourseResponse> completedCourses;
+    private List<String> skills;
+    private List<String> skillsInProgress;
+    
+    // Course references - now using IDs instead of full objects
+    private List<String> enrolledCourseIds;
+    private List<String> bookmarkedCourseIds;
+    private List<String> completedCourseIds;
 }

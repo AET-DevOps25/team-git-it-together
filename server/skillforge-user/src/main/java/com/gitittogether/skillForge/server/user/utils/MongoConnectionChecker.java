@@ -16,6 +16,9 @@ public class MongoConnectionChecker implements ApplicationRunner {
 
     private final MongoClient mongoClient;
 
+    @Value("${spring.data.mongodb.uri}")
+    private String mongoUri;
+
     @Value("${spring.data.mongodb.database}")
     private String databaseName;
 

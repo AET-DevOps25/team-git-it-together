@@ -2,7 +2,6 @@ server:
   port: ${SERVER_PORT_USER:8082}
   address: "0.0.0.0"
 
-
 spring:
   config:
     activate:
@@ -10,5 +9,14 @@ spring:
 
   data:
     mongodb:
-      database: ${MONGODB_DATABASE}
-      uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:27017/${MONGODB_DATABASE}?authSource=admin
+      database: ${MONGODB_DATABASE:skillforge}
+      uri: ${MONGO_URL:mongodb://localhost:27017/skillforge}
+
+# uri: mongodb://${MONGODB_USERNAME:skillForgeDevops25}:${MONGODB_PASSWORD:PickleR1cK!}@${MONGODB_HOST:localhost}:27017/${MONGODB_DATABASE:skillForge}?authSource=admin
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: INFO
+    org.mongodb.driver: WARN
