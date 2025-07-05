@@ -51,3 +51,10 @@ def make_request(url: str, method="GET", data: Optional[Dict] = None,
     except Exception as e:
         return False, str(e), None
 
+
+def check_health(name: str, url: str) -> bool:
+    print_status(f"Checking {name}...", "HEALTH")
+    ok, _, _ = make_request(url)
+    print_status(f"{name} is {'running' if ok else 'not running'}", "SUCCESS" if ok else "ERROR")
+    return ok
+
