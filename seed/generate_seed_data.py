@@ -474,3 +474,6 @@ function {topic.lower().replace(' ', '_')}Example() {{
         """Generate a realistic YouTube video ID"""
         return ''.join(random.choices(string.ascii_letters + string.digits, k=11))
 
+    def generate_image_id(self) -> str:
+        """Generate a realistic Unsplash image ID"""
+        return ''.join(random.choices(string.digits, k=10)) + '-' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
