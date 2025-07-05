@@ -33,3 +33,21 @@ def print_status(msg: str, status: str = "INFO"):
     }
     print(f"{emojis.get(status, 'ℹ️')} {msg}")
 
+
+def make_request(url: str, method="GET", data: Optional[Dict] = None,
+                 headers: Optional[Dict] = None) -> Tuple[bool, str, Optional[Dict]]:
+    headers = headers or {}
+    data_bytes = json.dumps(data).encode() if data else None
+    if data:
+        headers['Content-Type'] = 'application/json'
+    req = urllib.request.Request(url, data=data_bytes, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as res:
+            txt = res.read().decode()
+            try: return True, txt, json.loads(txt)
+            except: return True, txt, None
+    except urllib.error.HTTPError as e:
+        return False, e.read().decode(), None
+    except Exception as e:
+        return False, str(e), None
+
