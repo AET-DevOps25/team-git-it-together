@@ -58,3 +58,13 @@ def check_health(name: str, url: str) -> bool:
     print_status(f"{name} is {'running' if ok else 'not running'}", "SUCCESS" if ok else "ERROR")
     return ok
 
+
+def check_services() -> bool:
+    print_status("Checking service health...", "HEALTH")
+    services = [
+        ("Gateway", f"{GATEWAY_URL}/actuator/health"),
+        ("User Service", f"{USERS_ENDPOINT}/health"),
+        ("Course Service", f"{COURSES_ENDPOINT}/health")
+    ]
+    return all(check_health(name, url) for name, url in services)
+
