@@ -942,3 +942,13 @@ function {topic.lower().replace(' ', '_')}Example() {{
         with open(f"{self.output_dir}/categories.json", "w") as f:
             json.dump(self.categories, f, indent=2)
     
+    def save_courses(self):
+        """Save each course to individual JSON files"""
+        for i, course in enumerate(self.courses):
+            # Create a safe filename by replacing problematic characters
+            safe_title = course['title'].lower().replace(' ', '_').replace('&', 'and').replace('/', '_').replace('\\', '_').replace(':', '_').replace('?', '').replace('!', '').replace('(', '').replace(')', '')
+            filename = f"{self.output_dir}/course_{i+1:02d}_{safe_title}.json"
+            with open(filename, "w") as f:
+                json.dump(course, f, indent=2)
+    
+    
