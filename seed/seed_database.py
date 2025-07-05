@@ -130,3 +130,24 @@ def load_course_files(directory: str) -> List[Dict]:
             print_status(f"Failed to load {fpath}: {e}", "ERROR")
     return data
 
+
+def create_courses() -> bool:
+    print_status("Creating courses...", "COURSE")
+    dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_courses")
+    if not os.path.exists(dir_path):
+        print_status(f"Missing directory: {dir_path}", "ERROR")
+        return False
+    existing = {c.get("title", "").lower() for c in get_existing_courses()}
+    for course in load_course_files(dir_path):
+        title = course.get("title", "")
+        if title.lower() in existing:
+            print_status(f"Skipping existing course: {title}", "SKIP")
+            continue
+        print_status(f"Creating: {title}", "INFO")
+        ok, res, parsed = make_request(COURSES_ENDPOINT, "POST", course, headers=get_auth_headers())
+        if ok and (parsed or "created" in res.lower()):
+            print_status(f"Created: {title}", "SUCCESS")
+        else:
+            print_status(f"Failed: {title} - {res}", "ERROR")
+    return True
+
