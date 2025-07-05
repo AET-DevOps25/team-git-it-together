@@ -4,12 +4,6 @@ Seed Data Generator for SkillForge Course Service
 This script generates realistic, detailed seed data for the Course service database,
 including courses, modules, lessons, and categories. The lessons contain authentic
 content that would be found in real learning platforms.
-
-Usage:
-    python seed-data-generator.py
-
-Output:
-    seed_courses/ directory with individual course JSON files
 """
 
 import json
@@ -26,11 +20,29 @@ BASE_URL = f"http://localhost:{COURSE_SERVICE_PORT}/api/v1"
 
 class SeedDataGenerator:
     def __init__(self):
+        self.categories = []
         self.courses = []
         self.output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seed_courses")
-
         os.makedirs(self.output_dir, exist_ok=True)
-    
+
+    def generate_categories(self) -> List[Dict[str, Any]]:
+        """Generate realistic course categories"""
+        categories_data = [
+            {"name": "Programming & Development", "description": "Learn programming languages, frameworks, and software development practices"},
+            {"name": "Data Science & Analytics", "description": "Master data analysis, machine learning, and statistical modeling"},
+            {"name": "Web Development", "description": "Build modern web applications with frontend and backend technologies"},
+            {"name": "Mobile Development", "description": "Create mobile applications for iOS and Android platforms"},
+            {"name": "DevOps & Cloud", "description": "Learn deployment, infrastructure, and cloud computing"},
+            {"name": "Cybersecurity", "description": "Understand security principles, ethical hacking, and defense strategies"},
+            {"name": "Design & UX", "description": "Master user experience design, UI/UX principles, and design tools"},
+            {"name": "Business & Marketing", "description": "Learn business strategies, digital marketing, and entrepreneurship"},
+            {"name": "Artificial Intelligence", "description": "Explore AI, machine learning, and neural networks"},
+            {"name": "Blockchain & Cryptocurrency", "description": "Understand blockchain technology, smart contracts, and crypto"}
+        ]
+        self.categories = categories_data
+        return categories_data
+
+        
     def generate_lesson_content(self, lesson_type: str, topic: str) -> Dict[str, Any]:
         """Generate realistic lesson content based on type and topic"""
         
@@ -455,27 +467,29 @@ function {topic.lower().replace(' ', '_')}Example() {{
     </div>
 </div>
         """
-    
+
+
     def generate_video_id(self) -> str:
         """Generate a realistic YouTube video ID"""
         return ''.join(random.choices(string.ascii_letters + string.digits, k=11))
-    
+
     def generate_image_id(self) -> str:
         """Generate a realistic Unsplash image ID"""
         return ''.join(random.choices(string.digits, k=10)) + '-' + ''.join(random.choices(string.ascii_lowercase + string.digits, k=6))
-    
+
     def generate_course(self, course_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a complete course with modules and lessons"""
         
         # Generate modules
         modules = []
         for i, module_data in enumerate(course_data["modules"]):
+            # module_id = str(uuid.uuid4())  # No longer needed
             lessons = []
             
             # Generate lessons for this module
             for j, lesson_data in enumerate(module_data["lessons"]):
                 lesson = {
-                    "id": str(uuid.uuid4()),
+                    "id": str(uuid.uuid4()),  # Keep lesson id unless told otherwise
                     "title": lesson_data["title"],
                     "description": lesson_data["description"],
                     "content": self.generate_lesson_content(
@@ -488,6 +502,8 @@ function {topic.lower().replace(' ', '_')}Example() {{
                 lessons.append(lesson)
             
             module = {
+                # "id": module_id,  # Remove
+                # "courseId": course_id,  # Remove
                 "title": module_data["title"],
                 "description": module_data["description"],
                 "lessons": lessons,
@@ -497,6 +513,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
         
         # Create course request
         course_request = {
+            # "id": course_id,  # Remove
             "title": course_data["title"],
             "description": course_data["description"],
             "instructor": course_data["instructor"],
@@ -504,6 +521,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
             "modules": modules,
             "enrolledUserIds": [],
             "numberOfEnrolledUsers": 0,
+            "categories": course_data["categories"],
             "level": course_data["level"],
             "thumbnailUrl": course_data.get("thumbnailUrl", f"https://images.unsplash.com/photo-{self.generate_image_id()}"),
             "published": course_data["published"],
@@ -554,6 +572,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Programming & Development"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&h=600&fit=crop",
                 "published": True,
@@ -587,6 +606,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Data Science & Analytics"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop",
                 "published": True,
@@ -620,6 +640,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Web Development"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&h=600&fit=crop",
                 "published": True,
@@ -653,6 +674,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["DevOps & Cloud"],
                 "level": "ADVANCED",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=800&h=600&fit=crop",
                 "published": True,
@@ -686,6 +708,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Cybersecurity"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=800&h=600&fit=crop",
                 "published": True,
@@ -720,6 +743,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Web Development", "Programming & Development"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&h=600&fit=crop",
                 "published": True,
@@ -754,6 +778,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Artificial Intelligence", "Data Science & Analytics"],
                 "level": "ADVANCED",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop",
                 "published": True,
@@ -788,6 +813,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Mobile Development"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=800&h=600&fit=crop",
                 "published": True,
@@ -822,6 +848,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Design & UX"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800&h=600&fit=crop",
                 "published": True,
@@ -856,6 +883,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Blockchain & Cryptocurrency"],
                 "level": "ADVANCED",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=800&h=600&fit=crop",
                 "published": True,
@@ -890,6 +918,7 @@ function {topic.lower().replace(' ', '_')}Example() {{
                         ]
                     }
                 ],
+                "categories": ["Business & Marketing"],
                 "level": "INTERMEDIATE",
                 "thumbnailUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
                 "published": True,
@@ -907,6 +936,11 @@ function {topic.lower().replace(' ', '_')}Example() {{
         self.courses = courses
         return courses
     
+    def save_categories(self):
+        """Save categories to JSON file"""
+        with open(f"{self.output_dir}/categories.json", "w") as f:
+            json.dump(self.categories, f, indent=2)
+    
     def save_courses(self):
         """Save each course to individual JSON files"""
         for i, course in enumerate(self.courses):
@@ -922,18 +956,23 @@ function {topic.lower().replace(' ', '_')}Example() {{
         print("🌱 Generating SkillForge Course Service seed data...")
         print("=" * 60)
         
+        # Generate categories
+        print("📂 Generating categories...")
+        self.generate_categories()
+        
         # Generate courses
         print("📚 Generating courses...")
         self.generate_all_courses()
         
         # Save files
         print("💾 Saving files...")
+        self.save_categories()
         self.save_courses()
         
         print("=" * 60)
         print("✅ Seed data generation completed!")
         print(f"📁 Output directory: {self.output_dir}/")
-        print(f"📊 Generated {len(self.courses)} courses")
+        print(f"📊 Generated {len(self.categories)} categories and {len(self.courses)} courses")
         print("🚀 To seed your database, run: ./{self.output_dir}/seed_database.sh")
         print("📖 For detailed instructions, see: {self.output_dir}/README.md")
 

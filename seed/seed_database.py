@@ -24,13 +24,15 @@ JWT_TOKEN = ""
 USERS_ENDPOINT = f"{API_URL}/users"
 COURSES_ENDPOINT = f"{API_URL}/courses"
 
+
 def print_status(msg: str, status: str = "INFO"):
     emojis = {
         "INFO": "ℹ️", "SUCCESS": "✅", "ERROR": "❌", "WARNING": "⚠️",
         "SKIP": "⏭️", "START": "🚀", "HEALTH": "🔍", "USER": "👤",
-        "LOGIN": "🔐", "COURSE": "📚", "COMPLETE": "🎉"
+        "LOGIN": "🔐", "COURSE": "📚", "CATEGORY": "📂", "COMPLETE": "🎉"
     }
     print(f"{emojis.get(status, 'ℹ️')} {msg}")
+
 
 def make_request(url: str, method="GET", data: Optional[Dict] = None,
                  headers: Optional[Dict] = None) -> Tuple[bool, str, Optional[Dict]]:
@@ -49,11 +51,13 @@ def make_request(url: str, method="GET", data: Optional[Dict] = None,
     except Exception as e:
         return False, str(e), None
 
+
 def check_health(name: str, url: str) -> bool:
     print_status(f"Checking {name}...", "HEALTH")
     ok, _, _ = make_request(url)
     print_status(f"{name} is {'running' if ok else 'not running'}", "SUCCESS" if ok else "ERROR")
     return ok
+
 
 def check_services() -> bool:
     print_status("Checking service health...", "HEALTH")
@@ -63,6 +67,7 @@ def check_services() -> bool:
         ("Course Service", f"{COURSES_ENDPOINT}/health")
     ]
     return all(check_health(name, url) for name, url in services)
+
 
 def register_user() -> bool:
     print_status(f"Registering user: {USERNAME}", "USER")
@@ -80,6 +85,8 @@ def register_user() -> bool:
     print_status(f"Registration failed: {res}", "ERROR")
     return False
 
+
+
 def login_user() -> bool:
     global JWT_TOKEN
     print_status(f"Logging in: {USERNAME}", "LOGIN")
@@ -93,12 +100,24 @@ def login_user() -> bool:
     print_status(f"Login failed: {res}", "ERROR")
     return False
 
+
 def get_auth_headers():
     return {"Authorization": f"Bearer {JWT_TOKEN}"}
+
 
 def get_existing_courses() -> List[Dict]:
     ok, _, parsed = make_request(f"{COURSES_ENDPOINT}", headers=get_auth_headers())
     return parsed if ok and isinstance(parsed, list) else []
+
+
+def load_json_file(path: str) -> Optional[List[Dict]]:
+    try:
+        with open(path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        print_status(f"Failed to load file {path}: {e}", "ERROR")
+        return None
+
 
 def load_course_files(directory: str) -> List[Dict]:
     files = sorted(f for f in os.listdir(directory) if f.startswith("course_") and f.endswith(".json"))
@@ -110,6 +129,7 @@ def load_course_files(directory: str) -> List[Dict]:
         except Exception as e:
             print_status(f"Failed to load {fpath}: {e}", "ERROR")
     return data
+
 
 def create_courses() -> bool:
     print_status("Creating courses...", "COURSE")
@@ -131,6 +151,7 @@ def create_courses() -> bool:
             print_status(f"Failed: {title} - {res}", "ERROR")
     return True
 
+
 def final_output():
     print_status("Database seeding completed!", "COMPLETE")
     print()
@@ -140,6 +161,7 @@ def final_output():
     if JWT_TOKEN:
         print(f"🔐 JWT Token: {JWT_TOKEN[:50]}...")
         print(f"🧪 Try: curl -H \"Authorization: Bearer {JWT_TOKEN}\" {COURSES_ENDPOINT}")
+
 
 def main():
     print_status("Starting SkillForge database seeding...", "START")
