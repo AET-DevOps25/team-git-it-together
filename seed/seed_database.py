@@ -162,3 +162,16 @@ def final_output():
         print(f"🔐 JWT Token: {JWT_TOKEN[:50]}...")
         print(f"🧪 Try: curl -H \"Authorization: Bearer {JWT_TOKEN}\" {COURSES_ENDPOINT}")
 
+
+def main():
+    print_status("Starting SkillForge database seeding...", "START")
+    print("=" * 60)
+    if not check_services():
+        sys.exit(1)
+    if not login_user() and (not register_user() or not login_user()):
+        sys.exit(1)
+    create_courses()
+    final_output()
+
+if __name__ == "__main__":
+    main()
