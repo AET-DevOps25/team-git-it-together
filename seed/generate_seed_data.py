@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Seed Data Generator for SkillForge Course Service
 
