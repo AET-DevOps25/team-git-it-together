@@ -18,8 +18,6 @@ public class ModuleResponse {
     private String title;
     @NotBlank
     private String description;
-    @NotBlank
-    private String courseId;
     @NotNull
     private List<LessonResponse> lessons;
     @NotBlank
