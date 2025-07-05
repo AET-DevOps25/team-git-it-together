@@ -104,3 +104,8 @@ def login_user() -> bool:
 def get_auth_headers():
     return {"Authorization": f"Bearer {JWT_TOKEN}"}
 
+
+def get_existing_courses() -> List[Dict]:
+    ok, _, parsed = make_request(f"{COURSES_ENDPOINT}", headers=get_auth_headers())
+    return parsed if ok and isinstance(parsed, list) else []
+
