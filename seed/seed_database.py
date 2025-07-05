@@ -24,3 +24,12 @@ JWT_TOKEN = ""
 USERS_ENDPOINT = f"{API_URL}/users"
 COURSES_ENDPOINT = f"{API_URL}/courses"
 
+
+def print_status(msg: str, status: str = "INFO"):
+    emojis = {
+        "INFO": "ℹ️", "SUCCESS": "✅", "ERROR": "❌", "WARNING": "⚠️",
+        "SKIP": "⏭️", "START": "🚀", "HEALTH": "🔍", "USER": "👤",
+        "LOGIN": "🔐", "COURSE": "📚", "CATEGORY": "📂", "COMPLETE": "🎉"
+    }
+    print(f"{emojis.get(status, 'ℹ️')} {msg}")
+
