@@ -151,3 +151,14 @@ def create_courses() -> bool:
             print_status(f"Failed: {title} - {res}", "ERROR")
     return True
 
+
+def final_output():
+    print_status("Database seeding completed!", "COMPLETE")
+    print()
+    print(f"🔗 API: {API_URL}")
+    print(f"📚 All courses: {COURSES_ENDPOINT}")
+    print(f"👤 User profile: {USERS_ENDPOINT}/profile")
+    if JWT_TOKEN:
+        print(f"🔐 JWT Token: {JWT_TOKEN[:50]}...")
+        print(f"🧪 Try: curl -H \"Authorization: Bearer {JWT_TOKEN}\" {COURSES_ENDPOINT}")
+
