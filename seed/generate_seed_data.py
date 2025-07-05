@@ -952,3 +952,28 @@ function {topic.lower().replace(' ', '_')}Example() {{
                 json.dump(course, f, indent=2)
     
     
+    def run(self):
+        """Run the complete seed data generation process"""
+        print("🌱 Generating SkillForge Course Service seed data...")
+        print("=" * 60)
+        
+        # Generate categories
+        print("📂 Generating categories...")
+        self.generate_categories()
+        
+        # Generate courses
+        print("📚 Generating courses...")
+        self.generate_all_courses()
+        
+        # Save files
+        print("💾 Saving files...")
+        self.save_categories()
+        self.save_courses()
+        
+        print("=" * 60)
+        print("✅ Seed data generation completed!")
+        print(f"📁 Output directory: {self.output_dir}/")
+        print(f"📊 Generated {len(self.categories)} categories and {len(self.courses)} courses")
+        print("🚀 To seed your database, run: ./{self.output_dir}/seed_database.sh")
+        print("📖 For detailed instructions, see: {self.output_dir}/README.md")
+
