@@ -86,3 +86,17 @@ def register_user() -> bool:
     return False
 
 
+
+def login_user() -> bool:
+    global JWT_TOKEN
+    print_status(f"Logging in: {USERNAME}", "LOGIN")
+    data = {"username": USERNAME, "password": PASSWORD}
+    ok, res, parsed = make_request(f"{USERS_ENDPOINT}/login", "POST", data)
+    if ok and parsed:
+        JWT_TOKEN = parsed.get("jwtToken") or parsed.get("token", "")
+        if JWT_TOKEN:
+            print_status("Login successful, JWT obtained", "SUCCESS")
+            return True
+    print_status(f"Login failed: {res}", "ERROR")
+    return False
+
