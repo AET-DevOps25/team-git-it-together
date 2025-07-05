@@ -2,13 +2,14 @@ server:
   port: ${SERVER_PORT_COURSES:8083}
   address: "0.0.0.0"
 
-
 spring:
   config:
     activate:
       on-profile: docker
+
   data:
     mongodb:
+      database: ${MONGODB_DATABASE}
       uri: ${MONGO_URL}
 
 user:
