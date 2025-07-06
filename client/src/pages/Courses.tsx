@@ -363,6 +363,13 @@ const Courses = () => {
                 <button
                   onClick={(event) => handleBookmark(course.id, event)}
                   disabled={bookmarking === course.id}
+                  aria-label={
+                    bookmarking === course.id
+                      ? 'Bookmarking course'
+                      : isCourseBookmarked(course.id)
+                      ? 'Remove bookmark from course'
+                      : 'Bookmark course'
+                  }
                   className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-md ${
                     isCourseBookmarked(course.id)
                       ? 'text-blue-600 shadow-md'
