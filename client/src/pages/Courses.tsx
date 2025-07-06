@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Clock, Users, Star, Loader2, Search, X, Bookmark, BookmarkCheck } from 'lucide-react';
+import { BookOpen, Users, Star, Loader2, Search, X, Bookmark, BookmarkCheck, Brain } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { AuthContext } from '@/contexts/AuthContext';
 import * as courseService from '@/services/course.service';
@@ -341,94 +341,110 @@ const Courses = () => {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {filteredCourses.map((course) => (
             <Card
-              key={course.id}
-              className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              onClick={() => navigate(`/courses/${course.id}`)}
-            >
-              <div className="relative aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-100 to-purple-100">
-                {course.thumbnailUrl ? (
-                  <img
-                    src={course.thumbnailUrl}
-                    alt={course.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-200 to-purple-200">
-                    <BookOpen className="h-12 w-12 text-gray-400" />
-                  </div>
-                )}
-                
-                {/* Bookmark Icon Overlay */}
-                {user && (
-                  <button
-                    onClick={(event) => handleBookmark(course.id, event)}
-                    disabled={bookmarking === course.id}
-                    className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-md ${
-                      isCourseBookmarked(course.id) 
-                        ? 'text-blue-600 shadow-md' 
-                        : 'text-gray-600 hover:text-blue-600'
-                    }`}
-                  >
-                    {bookmarking === course.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : isCourseBookmarked(course.id) ? (
-                      <BookmarkCheck className="h-4 w-4 fill-current" />
-                    ) : (
-                      <Bookmark className="h-4 w-4" />
-                    )}
-                  </button>
-                )}
-                
-                <div className="absolute left-4 top-4">
-                  <Badge className="bg-white/90 text-gray-800 hover:bg-white">
-                    {course.categories[0] || 'General'}
-                  </Badge>
+            key={course.id}
+            className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg h-full flex flex-col"
+            onClick={() => navigate(`/courses/${course.id}`)}
+          >
+            <div className="relative aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-100 to-purple-100 shrink-0">
+              {course.thumbnailUrl ? (
+                <img
+                  src={course.thumbnailUrl}
+                  alt={course.title}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-200 to-purple-200">
+                  <BookOpen className="h-12 w-12 text-gray-400" />
                 </div>
-                <div className="absolute left-4 bottom-4">
-                  <Badge variant="secondary" className="bg-white/90 text-gray-800">
-                    {course.level}
-                  </Badge>
-                </div>
+              )}
+          
+              {/* Bookmark Icon Overlay */}
+              {user && (
+                <button
+                  onClick={(event) => handleBookmark(course.id, event)}
+                  disabled={bookmarking === course.id}
+                  className={`absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-md ${
+                    isCourseBookmarked(course.id)
+                      ? 'text-blue-600 shadow-md'
+                      : 'text-gray-600 hover:text-blue-600'
+                  }`}
+                >
+                  {bookmarking === course.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isCourseBookmarked(course.id) ? (
+                    <BookmarkCheck className="h-4 w-4 fill-current" />
+                  ) : (
+                    <Bookmark className="h-4 w-4" />
+                  )}
+                </button>
+              )}
+          
+              <div className="absolute left-4 top-4">
+                <Badge className="bg-white/90 text-gray-800 hover:bg-white">
+                  {course.categories[0] || 'General'}
+                </Badge>
               </div>
-
-              <CardHeader>
+              <div className="absolute left-4 bottom-4">
+                <Badge variant="secondary" className="bg-white/90 text-gray-800">
+                  {course.level}
+                </Badge>
+              </div>
+            </div>
+          
+            <div className="flex flex-col flex-1 h-full">
+              <CardHeader className="pb-0">
                 <CardTitle className="text-lg transition-colors group-hover:text-blue-600 cursor-pointer">
                   {course.title}
                 </CardTitle>
-                <CardDescription className="text-sm">{course.description}</CardDescription>
+                <CardDescription className="text-sm line-clamp-2 min-h-[44px]">
+                  {course.description}
+                </CardDescription>
               </CardHeader>
-
-              <CardContent className="space-y-4">
-                <div className="text-sm text-gray-600">by {course.instructor}</div>
-
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4" />
-                    <span>{course.skills.length} skills</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Users className="h-4 w-4" />
-                    <span>{course.numberOfEnrolledUsers.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    <span>{course.rating}</span>
-                  </div>
+              <CardContent className="flex flex-col flex-1 justify-between h-full pt-0">
+                {/* Instructor always at the same spot */}
+                <div className="mb-1 text-sm text-gray-600 flex items-center gap-1 min-h-[24px]">
+                  <span>by</span>
+                  <span className="font-semibold text-gray-800">{course.instructor}</span>
                 </div>
-
-                <div className="flex items-center justify-between pt-4">
+          
+                {/* Stats row */}
+                <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                <div className="flex items-center space-x-1">
+                  <Brain className="h-4 w-4" />
+                  <span>{course.skills.length} skills</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Users className="h-4 w-4" />
+                  <span>{course.numberOfEnrolledUsers.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span>{course.rating}</span>
+                </div>
+              </div>
+          
+                {/* Spacer for flex alignment */}
+                <div className="flex-1" />
+          
+                {/* Bottom Action Row */}
+                <div className="flex items-center justify-between pt-4 mt-auto">
                   <span className="text-2xl font-bold text-green-600">Free</span>
-                  <Button 
-                    size="sm" 
+                  <Button
+                    size="sm"
                     className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => navigate(`/courses/${course.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/courses/${course.id}`);
+                    }}
                   >
                     <BookOpen className="mr-2 h-4 w-4" />
                     View Course
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </div>
+          </Card>
+          
           ))}
         </div>
 
