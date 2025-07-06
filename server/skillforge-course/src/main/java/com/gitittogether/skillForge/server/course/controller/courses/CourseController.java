@@ -57,6 +57,13 @@ public class CourseController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/private")
+    public ResponseEntity<List<CourseResponse>> getPrivateCourses() {
+        log.info("Fetching private courses (not public, not published)");
+        List<CourseResponse> responses = courseService.getPrivateCourses();
+        return ResponseEntity.ok(responses);
+    }
+
     @PutMapping("/{courseId}")
     public ResponseEntity<CourseResponse> updateCourse(@PathVariable String courseId, @RequestBody CourseRequest request) {
         log.info("Updating course: {}", courseId);

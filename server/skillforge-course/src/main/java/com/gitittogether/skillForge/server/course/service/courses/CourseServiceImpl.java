@@ -298,6 +298,18 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
+    public List<CourseResponse> getPrivateCourses() {
+        log.info("Fetching private courses for authenticated users");
+        List<Course> privateCourses = courseRepository.findByPublicFalseAndPublishedFalse();
+        // Fix enrollment counts for private courses
+        privateCourses.forEach(this::updateEnrollmentCount);
+
+        return privateCourses.stream()
+                .map(CourseMapper::toCourseResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void bookmarkCourse(String courseId, String userId) {
         log.info("Bookmarking course {} for user {}", courseId, userId);
