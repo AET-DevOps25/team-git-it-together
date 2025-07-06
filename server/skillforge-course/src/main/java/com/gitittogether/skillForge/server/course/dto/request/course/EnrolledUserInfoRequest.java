@@ -1,10 +1,10 @@
 package com.gitittogether.skillForge.server.course.dto.request.course;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.NotBlank;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,4 +20,8 @@ public class EnrolledUserInfoRequest {
     private float progress = 0.0f;
     @Builder.Default
     private List<String> skills = new ArrayList<>();
+    @Builder.Default
+    private int currentLesson = 0;
+    @Builder.Default
+    private int totalNumberOfLessons = 0;
 }

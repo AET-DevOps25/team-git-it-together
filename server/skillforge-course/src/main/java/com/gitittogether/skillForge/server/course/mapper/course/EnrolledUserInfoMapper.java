@@ -11,6 +11,8 @@ public class EnrolledUserInfoMapper {
                 .userId(model.getUserId())
                 .progress(model.getProgress())
                 .skills(model.getSkills())
+                .currentLesson(model.getCurrentLesson())
+                .totalNumberOfLessons(model.getTotalNumberOfLessons())
                 .build();
     }
 
@@ -20,6 +22,8 @@ public class EnrolledUserInfoMapper {
                 .userId(response.getUserId())
                 .progress(response.getProgress())
                 .skills(response.getSkills())
+                .currentLesson(response.getCurrentLesson())
+                .totalNumberOfLessons(response.getTotalNumberOfLessons())
                 .build();
     }
 
@@ -29,6 +33,8 @@ public class EnrolledUserInfoMapper {
                 .userId(request.getUserId())
                 .progress(request.getProgress())
                 .skills(request.getSkills())
+                .currentLesson(request.getCurrentLesson())
+                .totalNumberOfLessons(request.getTotalNumberOfLessons())
                 .build();
     }
 
@@ -38,6 +44,8 @@ public class EnrolledUserInfoMapper {
                 .userId(response.getUserId())
                 .progress(response.getProgress())
                 .skills(response.getSkills())
+                .currentLesson(response.getCurrentLesson())
+                .totalNumberOfLessons(response.getTotalNumberOfLessons())
                 .build();
     }
 

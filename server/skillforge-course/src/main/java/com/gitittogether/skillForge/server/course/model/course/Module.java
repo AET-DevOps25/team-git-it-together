@@ -21,4 +21,16 @@ public class Module {
 
     @Builder.Default
     private int order = 0;
+
+    public int getNumberOfLessons() {
+        return lessons != null ? lessons.size() : 0;
+    }
+
+    public void setLessonOrder(int startOrder) {
+        if (lessons != null && !lessons.isEmpty()) {
+            for (int i = 0; i < lessons.size(); i++) {
+                lessons.get(i).setOrder(startOrder + i);
+            }
+        }
+    }
 }

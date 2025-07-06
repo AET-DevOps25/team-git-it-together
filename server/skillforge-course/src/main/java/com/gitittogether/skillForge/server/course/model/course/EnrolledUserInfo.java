@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +18,8 @@ public class EnrolledUserInfo {
     private float progress = 0.0f;
     @Builder.Default
     private List<String> skills = new ArrayList<>();
+    @Builder.Default
+    private int currentLesson = 0;
+    @Builder.Default
+    private int totalNumberOfLessons = 0;
 } 
