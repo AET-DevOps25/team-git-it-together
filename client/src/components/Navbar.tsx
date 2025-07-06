@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { BookOpen, LogOut, Menu, X, User, Settings } from 'lucide-react';
+import { BookOpen, LogOut, Menu, X, User, Settings, Shield, FileText, Cookie } from 'lucide-react';
 import { APP_NAME } from '@/constants/app.ts';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -67,11 +67,16 @@ const Navbar = () => {
                 Dashboard
               </Link>
             )}
+            {user && (
+              <Link to="/ai-center" className="text-gray-700 transition-colors hover:text-blue-600">
+                AI Studio
+              </Link>
+            )}
             <Link to="/about" className="text-gray-700 transition-colors hover:text-blue-600">
               About
             </Link>
 
-            {/* Profile/Logout Menu */}
+            {/* Profile Menu */}
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -99,6 +104,19 @@ const Navbar = () => {
                   <DropdownMenuItem onClick={() => navigate('/dashboard')}>
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Dashboard</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/privacy')}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Privacy Policy</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/terms')}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    <span>Terms of Service</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/cookies')}>
+                    <Cookie className="mr-2 h-4 w-4" />
+                    <span>Cookie Policy</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout}>
@@ -145,6 +163,14 @@ const Navbar = () => {
                   className="text-gray-700 transition-colors hover:text-blue-600"
                 >
                   Dashboard
+                </Link>
+              )}
+              {user && (
+                <Link
+                  to="/ai-center"
+                  className="text-gray-700 transition-colors hover:text-blue-600"
+                >
+                  AI Studio
                 </Link>
               )}
               <Link to="/about" className="text-gray-700 transition-colors hover:text-blue-600">
