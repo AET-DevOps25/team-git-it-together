@@ -32,8 +32,9 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints: health checks, public courses, Swagger/OpenAPI
+                        // Public endpoints: health checks, public courses, search, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/categories/**").permitAll()
                         // Docs endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/docs/**").permitAll()
