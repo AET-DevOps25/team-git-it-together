@@ -151,3 +151,133 @@ export async function deleteUserAccount(userId: string): Promise<void> {
   setAuthToken(null); // Clear the auth token
   return;
 }
+
+/**
+ * Get the skills in progress for the currently authenticated user.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user whose skills in progress to fetch
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getUserSkillsInProgress(userId: string): Promise<string[]> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/skills-in-progress`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
+
+/**
+ * Get the enrolled course IDs for the currently authenticated user.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user whose enrolled course IDs to fetch
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getUserEnrolledCourseIds(userId: string): Promise<string[]> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/courses/enrolled`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
+
+/**
+ * Get the completed course IDs for the currently authenticated user.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user whose completed course IDs to fetch
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getUserCompletedCourseIds(userId: string): Promise<string[]> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/courses/completed`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
+
+/**
+ * Get the skills for the currently authenticated user.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user whose skills to fetch
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getUserSkills(userId: string): Promise<string[]> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/skills`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
+
+/**
+ * Get the bookmarked course IDs for the currently authenticated user.
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId  ID of the user whose bookmarked course IDs to fetch
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getUserBookmarkedCourseIds(userId: string): Promise<string[]> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/${userId}/courses/bookmarked`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
