@@ -1,3 +1,7 @@
+/**
+ * This Service provide all user related operations
+ */
+
 import { API_BASE_URL } from '@/constants/app.ts';
 import type {
   LoginPayload,
@@ -24,6 +28,8 @@ export function setAuthToken(token: string | null) {
 
 /**
  * Register a new user.
+ * @param payload - The user registration payload
+ * @returns The user registration response
  * @throws ApiError object { status: number, message: string } on 4xx/5xx
  */
 export async function register(payload: RegisterPayload): Promise<UserRegisterResponse> {
@@ -42,6 +48,8 @@ export async function register(payload: RegisterPayload): Promise<UserRegisterRe
 
 /**
  * Log in a user and receive a JWT token in the response.
+ * @param payload - The user login payload
+ * @returns The user login response
  * @throws ApiError object { status: number, message: string } on 4xx/5xx
  */
 export async function login(payload: LoginPayload): Promise<UserLoginResponse> {
