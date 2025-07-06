@@ -27,8 +27,6 @@ rate:
     burst: ${RATE_LIMIT_BURST:50}
 
 gateway:
-  cors:
-    allowed-origins: "*"
   health:
     uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 

@@ -22,10 +22,12 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
+        // Use same configuration as gateway to avoid conflicts
         cfg.addAllowedOriginPattern("*");
-        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-        cfg.setAllowedHeaders(List.of("*")); // allow all headers
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        cfg.setAllowedHeaders(List.of("*"));
         cfg.setAllowCredentials(false);
+        cfg.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);

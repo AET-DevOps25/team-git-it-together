@@ -27,8 +27,6 @@ rate:
     burst: ${RATE_LIMIT_BURST:20}
 
 gateway:
-  cors:
-    allowed-origins: "*"
   health:
     uri: http://${SERVER_HOST_GATEWAY:server-gateway}:${SERVER_PORT_GATEWAY:8081}
 

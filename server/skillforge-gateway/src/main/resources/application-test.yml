@@ -20,8 +20,6 @@ course:
     uri: http://localhost:${SERVER_PORT_COURSES:8083}
 
 gateway:
-  cors:
-    allowed-origins: "*"
   health:
     uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 

@@ -39,8 +39,6 @@ jwt:
   expirationMs: ${JWT_EXPIRATION_MS:86400000}
 
 gateway:
-  cors:
-    allowed-origins: "*"
   health:
     uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 
