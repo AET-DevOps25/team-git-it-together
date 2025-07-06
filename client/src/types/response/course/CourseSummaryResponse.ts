@@ -1,29 +1,20 @@
 import { Level } from '@/types/utils/Level.ts';
 import { Language } from '@/types/utils/Language.ts';
-import { ModuleResponse } from '@/types/response/course/ModuleResponse.ts';
+import { EnrolledUserInfo } from '@/types/response/course/CourseResponse.ts';
 
-export interface EnrolledUserInfo {
-  userId: string;
-  progress: number;
-  skills: string[];
-  currentLesson: number;
-  totalNumberOfLessons: number;
-}
-
-export interface CourseResponse {
+export interface CourseSummaryResponse {
   id: string;
   title: string;
   description: string;
   instructor: string;
   skills: string[];
-  modules: ModuleResponse[];
+  thumbnailUrl?: string;
   numberOfEnrolledUsers: number;
   categories: string[];
   level: Level;
-  thumbnailUrl?: string;
-  published: boolean;
   isPublic: boolean;
+  published: boolean;
   language: Language;
   rating: number;
   enrolledUsers: EnrolledUserInfo[];
-}
+} 

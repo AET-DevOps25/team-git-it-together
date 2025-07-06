@@ -2,10 +2,17 @@ import React, { ReactNode, useEffect, useState } from 'react';
 import type { LoginPayload, UserLoginResponse } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import * as userService from '@/services/user.service.ts';
+import * as courseService from '@/services/course.service.ts';
+import * as dashboardService from '@/services/dashboard.service.ts';
 import { AuthContext } from '@/contexts/AuthContext.tsx';
 
+// Extended user type that includes profile data
+interface ExtendedUserData extends UserLoginResponse {
+  bookmarkedCourseIds?: string[];
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserLoginResponse | null>(null);
+  const [user, setUser] = useState<ExtendedUserData | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
@@ -26,6 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     userService.setAuthToken(jwtToken);
+    courseService.setAuthToken(jwtToken);
+    dashboardService.setAuthToken(jwtToken);
     setToken(jwtToken);
     setUser(userData);
   }
@@ -43,9 +52,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Attempt login
     const response = await userService.login(payload);
-    // response.jwtToken must exist, and response carries whatever user fields your backend returns
-    persistAuth(response.jwtToken, response, rememberMe);
-    navigate('/dashboard');
+    
+    // Fetch user profile to get bookmarked courses
+    try {
+      const userProfile = await userService.getUserProfile(response.id);
+      const bookmarkedCourseIds = userProfile.bookmarkedCourses?.map(course => course.id) || [];
+      const extendedUserData: ExtendedUserData = {
+        ...response,
+        bookmarkedCourseIds
+      };
+      persistAuth(response.jwtToken, extendedUserData, rememberMe);
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      // Fallback to basic user data without bookmarked courses
+      persistAuth(response.jwtToken, response, rememberMe);
+    }
+    
+    // Check if there's a redirect path in the location state
+    const location = window.location;
+    const urlParams = new URLSearchParams(location.search);
+    const redirectTo = urlParams.get('redirect') || '/dashboard';
+    navigate(redirectTo);
     return response;
   };
 
@@ -92,6 +119,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     sessionStorage.removeItem('user');
     localStorage.removeItem('rememberedIdentifier');
     userService.setAuthToken(null); // Clear the auth token in userService
+    courseService.setAuthToken(null); // Clear the auth token in courseService
+    dashboardService.setAuthToken(null); // Clear the auth token in dashboardService
 
     setToken(null);
     setUser(null);
@@ -105,7 +134,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedToken && savedUserString) {
       try {
         userService.setAuthToken(savedToken);
-        const parsedUser: UserLoginResponse = JSON.parse(savedUserString);
+        courseService.setAuthToken(savedToken);
+        dashboardService.setAuthToken(savedToken);
+        const parsedUser: ExtendedUserData = JSON.parse(savedUserString);
         setToken(savedToken);
         setUser(parsedUser);
       } catch {
@@ -121,8 +152,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  // Function to update user's bookmarked courses
+  const updateUserBookmarks = (courseId: string, isBookmarked: boolean) => {
+    if (!user) return;
+    
+    const updatedBookmarks = isBookmarked 
+      ? [...(user.bookmarkedCourseIds || []), courseId]
+      : (user.bookmarkedCourseIds || []).filter(id => id !== courseId);
+    
+    const updatedUser = {
+      ...user,
+      bookmarkedCourseIds: updatedBookmarks
+    };
+    
+    setUser(updatedUser);
+    
+    // Update storage
+    const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
+    storage.setItem('user', JSON.stringify(updatedUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, register, updateUserBookmarks }}>
       {children}
     </AuthContext.Provider>
   );

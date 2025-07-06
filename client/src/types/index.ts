@@ -12,16 +12,15 @@ export * from './request/user/UpdatePayload';
 
 // Response payloads
 export * from './response/AppError';
-export * from './response/course/CategoryResponse';
 export * from './response/course/CourseProgressResponse';
 export * from './response/course/CourseResponse';
-export * from './response/course/EnrolledCourseResponse';
+export * from './response/course/CourseSummaryResponse';
 export * from './response/course/LessonResponse';
 export * from './response/course/ModuleResponse';
-export * from './response/skill/SkillResponse';
 export * from './response/user/UserLoginResponse';
 export * from './response/user/UserRegisterResponse';
 export * from './response/user/UserProfileResponse';
+export * from './response/user/UserAchievement';
 
 // Utility types/enums
 export * from './utils/Level';
