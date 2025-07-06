@@ -335,7 +335,7 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseSummaryResponse> getPublicCourses() {
         log.info("Fetching public courses for landing page");
 
-        List<Course> publicCourses = courseRepository.findByPublicTrue();
+        List<Course> publicCourses = courseRepository.findByIsPublicTrue();
 
         // Fix enrollment counts for public courses
         publicCourses.forEach(this::updateEnrollmentCount);
@@ -349,7 +349,7 @@ public class CourseServiceImpl implements CourseService {
     public List<CourseResponse> getPublicPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
 
-        List<Course> publicPublishedCourses = courseRepository.findByPublicTrueAndPublishedTrue();
+        List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
 
         // Fix enrollment counts for public published courses
         publicPublishedCourses.forEach(this::updateEnrollmentCount);
@@ -362,7 +362,7 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public List<CourseResponse> getPrivateCourses() {
         log.info("Fetching private courses for authenticated users");
-        List<Course> privateCourses = courseRepository.findByPublicFalseAndPublishedFalse();
+        List<Course> privateCourses = courseRepository.findByIsPublicFalseAndPublishedFalse();
         // Fix enrollment counts for private courses
         privateCourses.forEach(this::updateEnrollmentCount);
 

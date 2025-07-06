@@ -15,7 +15,7 @@ public interface CourseRepository extends MongoRepository<Course, String> {
      *
      * @return List of public courses.
      */
-    List<Course> findByPublicTrue();
+    List<Course> findByIsPublicTrue();
 
     /**
      * Find all published courses.
@@ -29,7 +29,7 @@ public interface CourseRepository extends MongoRepository<Course, String> {
      *
      * @return List of public and published courses.
      */
-    List<Course> findByPublicTrueAndPublishedTrue();
+    List<Course> findByIsPublicTrueAndPublishedTrue();
 
     /**
      * Find all private courses for authenticated users.
@@ -37,7 +37,7 @@ public interface CourseRepository extends MongoRepository<Course, String> {
      *
      * @return List of private courses.
      */
-    List<Course> findByPublicFalseAndPublishedFalse();
+    List<Course> findByIsPublicFalseAndPublishedFalse();
 
     /**
      * Find courses by instructor.
