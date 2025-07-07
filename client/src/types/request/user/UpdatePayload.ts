@@ -1,4 +1,4 @@
-import { CategoryPayload } from '@/types/request/course/CategoryPayload.ts';
+
 import { SkillPayload } from '@/types/request/skill/SkillPayload.ts';
 import { EnrolledCoursePayload } from '@/types/request/course/EnrolledCoursePayload.ts';
 import { CoursePayload } from '@/types/request/course/CoursePayload.ts';
@@ -8,7 +8,7 @@ export interface UpdatePayload {
   profilePictureUrl?: string;
   password?: string;
 
-  interests?: CategoryPayload[];
+  interests?: string[];
   skills?: SkillPayload[];
   skillsInProgress?: SkillPayload[];
 

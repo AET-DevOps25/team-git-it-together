@@ -40,3 +40,17 @@ export const RequireGuest: React.FC<{ children: React.ReactNode }> = ({ children
 
   return <>{children}</>;
 };
+
+/** Wrap any route you only want *unauthenticated* and *authenticated* users to see.
+ * If `loading`, show “Loading…”. Otherwise, render children.
+ * This is useful for routes that should be accessible to both guests and logged-in users.
+ * For example, the /courses route. */
+export const RequireAny: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return <div className="flex h-screen items-center justify-center">Loading…</div>;
+  }
+
+  return <>{children}</>;
+}

@@ -32,6 +32,14 @@ public interface CourseRepository extends MongoRepository<Course, String> {
     List<Course> findByIsPublicTrueAndPublishedTrue();
 
     /**
+     * Find all private courses for authenticated users.
+     * Private courses are those not published and not visible to the public.
+     *
+     * @return List of private courses.
+     */
+    List<Course> findByIsPublicFalseAndPublishedFalse();
+
+    /**
      * Find courses by instructor.
      *
      * @param instructor The instructor ID or name.

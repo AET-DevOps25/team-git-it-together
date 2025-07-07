@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { X, Plus } from 'lucide-react';
-import { CategoryResponse } from '@/types';
+import { CategoryPayload } from '@/types';
 
 // Component
 export function EditableInterests({
@@ -11,9 +11,9 @@ export function EditableInterests({
   selected,
   onChange,
 }: {
-  allCategories: CategoryResponse[];
-  selected: CategoryResponse[];
-  onChange: (newInterests: CategoryResponse[]) => void;
+  allCategories: CategoryPayload[];
+  selected: CategoryPayload[];
+  onChange: (newInterests: CategoryPayload[]) => void;
 }) {
   // IDs of current interests for easy checking
   const selectedIds = new Set(selected.map((c) => c.id));

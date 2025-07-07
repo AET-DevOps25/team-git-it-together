@@ -57,6 +57,13 @@ public class CourseController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/private")
+    public ResponseEntity<List<CourseResponse>> getPrivateCourses() {
+        log.info("Fetching private courses (not public, not published)");
+        List<CourseResponse> responses = courseService.getPrivateCourses();
+        return ResponseEntity.ok(responses);
+    }
+
     @PutMapping("/{courseId}")
     public ResponseEntity<CourseResponse> updateCourse(@PathVariable String courseId, @RequestBody CourseRequest request) {
         log.info("Updating course: {}", courseId);
@@ -120,10 +127,11 @@ public class CourseController {
             @RequestParam(required = false) Language language,
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String title
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false, defaultValue = "true") boolean isAuthenticated
     ) {
         log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}", instructor, level, language, skill, category, title);
-        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title);
+        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title, isAuthenticated);
         return ResponseEntity.ok(responses);
     }
 

@@ -7,35 +7,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   User,
   Camera,
   Eye,
   EyeOff,
-  BookOpen,
-  Book,
-  Bookmark,
-  Trophy,
-  Target,
-  Award,
-  Star,
   Trash,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import { useToast } from '@/hooks/use-toast';
 import {
-  CategoryPayload,
   UserProfileResponse,
-  LEVEL_TO_PERCENT,
-  mockInterests,
-  mockEnrolledCourses,
-  mockBookmarkedCourses,
-  mockSkillsInProgress,
-  mockUserSkills,
   UpdatePayload,
-  mockCategories,
 } from '@/types';
 import { useAuth } from '@/hooks/useAuth.ts';
 import _ from 'lodash';
@@ -43,15 +27,8 @@ import * as userService from '@/services/user.service.ts';
 import { validatePassword } from '@/utils/passwordValidation.ts';
 import { Switch } from '@/components/ui/switch.tsx';
 import { PasswordStrengthBar } from '@/components/ui';
-import { EditableInterests } from '@/components/EditableInterests.tsx';
-import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog.tsx';
 
-const achievements = [
-  { title: 'First Course Completed', date: '2024-01-20', icon: Trophy },
-  { title: 'Week Streak', date: '2024-01-18', icon: Target },
-  { title: 'React Expert', date: '2024-01-15', icon: Award },
-  { title: 'JavaScript Master', date: '2024-01-10', icon: Star },
-];
+import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog.tsx';
 
 const Profile = () => {
   const { user: authUser } = useAuth(); // get current user and their id
@@ -69,7 +46,6 @@ const Profile = () => {
     password: '',
     confirmPassword: '',
     bio: '',
-    interests: [] as CategoryPayload[],
     profilePictureUrl: '',
   });
   const navigate = useNavigate();
@@ -98,11 +74,7 @@ const Profile = () => {
           password: '',
           confirmPassword: '',
           bio: profile.bio || '',
-          interests:
-            _.isNil(profile.interests) || _.isEmpty(profile.interests)
-              ? mockInterests
-              : profile.interests,
-          profilePictureUrl: profile.profilePictureUrl || 'https://i.pravatar.cc/300', // Default to a random avatar.
+          profilePictureUrl: profile.profilePictureUrl
         });
       } catch (e) {
         console.error('Error loading profile:', e);
@@ -170,20 +142,11 @@ const Profile = () => {
 
     // 2.3) Check if profile picture has changed
     if (formData.profilePictureUrl !== user.profilePictureUrl) {
-      console.log(formData.profilePictureUrl);
-      console.log(user.profilePictureUrl);
       // Currently, we are not validating the image size or type as we use url
       update.profilePictureUrl = formData.profilePictureUrl;
     }
 
-    const interestsFormIds = formData.interests.map((i) => i.id).sort();
-    const interestsUserIds = user.interests.map((i) => i.id).sort();
-    if (!_.isEqual(interestsFormIds, interestsUserIds)) {
-      update.interests = formData.interests.map((interest) => ({
-        id: interest.id,
-        name: interest.name,
-      }));
-    }
+
     // 2.4) Check if we have any update
     if (_.isEmpty(update)) {
       toast({
@@ -205,7 +168,7 @@ const Profile = () => {
           lastName: updatedUser.lastName || '',
           email: updatedUser.email || '',
           bio: updatedUser.bio || '',
-          profilePicture: updatedUser.profilePictureUrl || 'https://i.pravatar.cc/300',
+          profilePictureUrl: updatedUser.profilePictureUrl,
         }));
         toast({
           title: 'Profile Updated',
@@ -281,12 +244,8 @@ const Profile = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="bookmarks">Bookmarks</TabsTrigger>
-            <TabsTrigger value="skills">Skills</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
           {/* Personal Information Tab */}
           <TabsContent value="personal" className="space-y-6">
@@ -332,6 +291,18 @@ const Profile = () => {
                       value={formData.email || ''}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       className="bg-gray-100"
+                      readOnly
+                      disabled={true}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="userId">User ID</Label>
+                    <Input
+                      id="userId"
+                      type="text"
+                      value={user?.id || authUser?.id || ''}
+                      className="bg-gray-100 font-mono text-sm"
                       readOnly
                       disabled={true}
                     />
@@ -420,13 +391,34 @@ const Profile = () => {
                     />
                   </div>
 
-                  <EditableInterests
-                    allCategories={mockCategories}
-                    selected={formData.interests}
-                    onChange={(newInterests) =>
-                      setFormData((prev) => ({ ...prev, interests: newInterests }))
-                    }
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Current Skills</Label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(user?.skills || []).map((skill, index) => (
+                          <Badge key={index} variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {(!user?.skills || user.skills.length === 0) && (
+                          <p className="text-sm text-gray-500">No mastered skills yet</p>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Skills in Progress</Label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {(user?.skillsInProgress || []).map((skill, index) => (
+                          <Badge key={index} variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {(!user?.skillsInProgress || user.skillsInProgress.length === 0) && (
+                          <p className="text-sm text-gray-500">No skills in progress</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
                   <Button onClick={handleSaveProfile} className="w-full">
                     Save Changes
@@ -484,203 +476,6 @@ const Profile = () => {
               onOpenChange={setDeleteDialogOpen}
               onConfirm={handleDeleteAccount}
             />
-          </TabsContent>
-          {/* Courses Tab */}
-          <TabsContent value="courses" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Courses in Progress */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Courses in Progress</CardTitle>
-                  <CardDescription>Courses you're currently taking</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {(_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
-                    ? mockEnrolledCourses
-                    : user.enrolledCourses
-                  ).filter((enrolled) => !enrolled.progress.completed).length === 0 ? (
-                    <div className="text-center text-gray-500">No courses in progress.</div>
-                  ) : (
-                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
-                      ? mockEnrolledCourses
-                      : user.enrolledCourses
-                    )
-                      .filter((enrolled) => !enrolled.progress.completed)
-                      .map((enrolled) => (
-                        <div
-                          key={enrolled.course.id}
-                          className="flex items-start gap-3 rounded-lg border p-4"
-                        >
-                          <BookOpen className="mt-1 h-6 w-6 text-blue-600" />
-                          <div className="flex-1">
-                            <div className="mb-3 flex items-start justify-between">
-                              <div>
-                                <h3 className="font-semibold">{enrolled.course.title}</h3>
-                                <Badge variant="secondary">In Progress</Badge>
-                              </div>
-                              <span className="text-sm text-gray-600">
-                                {enrolled.progress.progress}%
-                              </span>
-                            </div>
-                            <Progress value={enrolled.progress.progress} className="h-2" />
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Completed Courses */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Completed Courses</CardTitle>
-                  <CardDescription>Courses you've finished</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {(_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
-                    ? mockEnrolledCourses
-                    : user.enrolledCourses
-                  ).filter((enrolled) => enrolled.progress.completed).length === 0 ? (
-                    <div className="text-center text-gray-500">No completed courses yet.</div>
-                  ) : (
-                    (_.isNil(user.enrolledCourses) || _.isEmpty(user.enrolledCourses)
-                      ? mockEnrolledCourses
-                      : user.enrolledCourses
-                    )
-                      .filter((enrolled) => enrolled.progress.completed)
-                      .map((enrolled) => (
-                        <div
-                          key={enrolled.course.id}
-                          className="flex items-start gap-3 rounded-lg border p-4"
-                        >
-                          <Book className="mt-1 h-6 w-6 text-green-600" />
-                          <div className="flex-1">
-                            <div className="mb-3 flex items-start justify-between">
-                              <div>
-                                <h3 className="font-semibold">{enrolled.course.title}</h3>
-                                <Badge variant="default">Completed</Badge>
-                              </div>
-                              <span className="text-sm text-gray-600">
-                                {enrolled.progress.progress}%
-                              </span>
-                            </div>
-                            <Progress value={enrolled.progress.progress} className="h-2" />
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          {/* Bookmarks Tab */}
-          <TabsContent value="bookmarks" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Bookmarked Courses</CardTitle>
-                <CardDescription>Courses you've saved for later</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {_.isNil(user.bookmarkedCourses) || _.isEmpty(user.bookmarkedCourses)
-                  ? // Show mock bookmarks if user has none
-                    mockBookmarkedCourses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="flex items-center justify-between rounded-lg border p-4"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Bookmark className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <h3 className="font-medium">{course.title}</h3>
-                            <p className="text-sm text-gray-600">by {course.instructor}</p>
-                          </div>
-                        </div>
-                        <Button size="sm">Enroll</Button>
-                      </div>
-                    ))
-                  : user.bookmarkedCourses.map((course) => (
-                      <div
-                        key={course.id}
-                        className="flex items-center justify-between rounded-lg border p-4"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Bookmark className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <h3 className="font-medium">{course.title}</h3>
-                            <p className="text-sm text-gray-600">by {course.instructor}</p>
-                          </div>
-                        </div>
-                        <Button size="sm">Enroll</Button>
-                      </div>
-                    ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Skills Tab */}
-          <TabsContent value="skills" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Skills in Progress */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Skills in Progress</CardTitle>
-                  <CardDescription>Skills you're currently learning</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {(_.isNil(user.skillsInProgress) || _.isEmpty(user.skillsInProgress)
-                    ? mockSkillsInProgress
-                    : user.skillsInProgress
-                  ).map((skill) => (
-                    <div key={skill.id} className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">{skill.name}</span>
-                        <span className="text-sm text-gray-600">{skill.difficultyLevel}</span>
-                      </div>
-                      <Progress value={LEVEL_TO_PERCENT[skill.difficultyLevel]} className="h-2" />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-              {/* Completed Skills */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Completed Skills</CardTitle>
-                  <CardDescription>Skills you've mastered</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {(_.isNil(user.skills) || _.isEmpty(user.skills)
-                    ? mockUserSkills
-                    : user.skills
-                  ).map((skill) => (
-                    <div
-                      key={skill.id}
-                      className="flex items-center justify-between rounded-lg bg-green-50 p-3"
-                    >
-                      <span className="font-medium text-green-800">{skill.name}</span>
-                      <Badge className="bg-green-600">Mastered</Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {achievements.map((achievement, index) => {
-                const Icon = achievement.icon;
-                return (
-                  <Card key={index} className="text-center">
-                    <CardContent className="p-6">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
-                        <Icon className="h-8 w-8 text-yellow-600" />
-                      </div>
-                      <h3 className="mb-2 font-semibold text-gray-900">{achievement.title}</h3>
-                      <p className="text-xs text-gray-500">{achievement.date}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
           </TabsContent>
         </Tabs>
       </div>

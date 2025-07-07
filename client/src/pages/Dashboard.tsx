@@ -1,86 +1,119 @@
+import React, { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Award, BookOpen, Clock, Target, Trophy } from 'lucide-react';
+import { Award, BookOpen, Target, Trophy, Star, Bookmark, BookmarkCheck, Clock, Users } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import AIChatAssistant from '@/components/AIChatAssistant';
+import CertificateGenerator from '@/components/CertificateGenerator';
 import { useAuth } from '@/hooks/useAuth';
+import { getDashboardData, type DashboardData, type DashboardCourse } from '@/services/dashboard.service';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import * as courseService from '@/services/course.service';
+import { AuthContext } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { updateUserBookmarks } = useContext(AuthContext);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [localBookmarkedCourses, setLocalBookmarkedCourses] = useState<DashboardCourse[]>([]);
+  
+
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getDashboardData(user.id);
+        setDashboardData(data);
+        setLocalBookmarkedCourses(data.bookmarkedCourses);
+      } catch (err: any) {
+        console.error('Error fetching dashboard data:', err);
+        setError(err.message || 'Failed to load dashboard data');
+        toast({
+          title: 'Error',
+          description: 'Failed to load dashboard data',
+          variant: 'destructive',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user?.id, toast]);
+
+
 
   if (!user) {
-    // This is just a fallback. Normally, the RequireAuth guard prevents rendering if not logged in.
     return <div>Loading...</div>;
   }
 
-  const courses = [
-    {
-      id: 1,
-      title: 'React Development',
-      description: 'Learn modern React development with hooks and context',
-      progress: 75,
-      totalLessons: 16,
-      completedLessons: 12,
-      category: 'Frontend',
-      difficulty: 'Intermediate',
-      nextLesson: 'State Management with Context',
-      timeSpent: '24 hours',
-    },
-    {
-      id: 2,
-      title: 'JavaScript Fundamentals',
-      description: 'Master the basics of JavaScript programming',
-      progress: 100,
-      totalLessons: 20,
-      completedLessons: 20,
-      category: 'Programming',
-      difficulty: 'Beginner',
-      nextLesson: 'Course Completed!',
-      timeSpent: '30 hours',
-    },
-    {
-      id: 3,
-      title: 'UI/UX Design Principles',
-      description: 'Learn design thinking and user experience principles',
-      progress: 30,
-      totalLessons: 12,
-      completedLessons: 4,
-      category: 'Design',
-      difficulty: 'Beginner',
-      nextLesson: 'User Research Methods',
-      timeSpent: '8 hours',
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex h-96 items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+            <span>Loading dashboard...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const skills = [
-    { name: 'React', level: 75, color: 'bg-blue-500', trend: '+5%' },
-    { name: 'JavaScript', level: 90, color: 'bg-yellow-500', trend: '+2%' },
-    { name: 'CSS', level: 65, color: 'bg-purple-500', trend: '+8%' },
-    { name: 'Node.js', level: 45, color: 'bg-green-500', trend: '+12%' },
-  ];
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-red-600 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const achievements = [
-    {
-      title: 'First Course Completed',
-      description: 'Completed JavaScript Fundamentals',
-      date: '2024-01-20',
-      icon: Trophy,
-    },
-    {
-      title: 'Week Streak',
-      description: '7 days learning streak',
-      date: '2024-01-18',
-      icon: Target,
-    },
-    { title: 'React Expert', description: 'Mastered React Hooks', date: '2024-01-15', icon: Award },
-  ];
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg text-gray-600 mb-4">No dashboard data available</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const upcomingDeadlines = [
-    { course: 'React Development', task: 'Project Submission', date: '2024-02-05', daysLeft: 3 },
-    { course: 'UI/UX Design', task: 'Design Challenge', date: '2024-02-10', daysLeft: 8 },
-  ];
+  const { stats, achievements, enrolledCourses, completedCourses } = dashboardData;
+
+  const handleContinueCourse = (course: DashboardCourse) => {
+    navigate(`/courses/${course.id}`);
+  };
+
+  const handleReviewCourse = (course: DashboardCourse) => {
+    navigate(`/courses/${course.id}`);
+  };
+
+
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -102,8 +135,8 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-blue-100">Total Courses</p>
-                  <p className="text-3xl font-bold">3</p>
-                  <p className="text-sm text-blue-100">+1 this month</p>
+                  <p className="text-3xl font-bold">{stats.totalCourses}</p>
+                  <p className="text-sm text-blue-100">+{enrolledCourses.length} this month</p>
                 </div>
                 <BookOpen className="h-12 w-12 text-blue-200" />
               </div>
@@ -115,23 +148,26 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-100">Completed</p>
-                  <p className="text-3xl font-bold">1</p>
-                  <p className="text-sm text-green-100">33% completion rate</p>
+                  <p className="text-3xl font-bold">{stats.completedCourses}</p>
+                  <p className="text-sm text-green-100">
+                    {stats.totalCourses > 0 ? Math.round((stats.completedCourses / stats.totalCourses) * 100) : 0}% completion rate
+                  </p>
                 </div>
                 <Trophy className="h-12 w-12 text-green-200" />
               </div>
             </CardContent>
           </Card>
 
+          {/* Skills Mastered Card */}
           <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100">Hours Learned</p>
-                  <p className="text-3xl font-bold">62</p>
-                  <p className="text-sm text-purple-100">+8 this week</p>
+                  <p className="text-purple-100">Skills Mastered</p>
+                  <p className="text-3xl font-bold">{dashboardData.currentSkills ? dashboardData.currentSkills.length : 0}</p>
+                  <p className="text-sm text-purple-100">Total mastered skills</p>
                 </div>
-                <Clock className="h-12 w-12 text-purple-200" />
+                <Target className="h-12 w-12 text-purple-200" />
               </div>
             </CardContent>
           </Card>
@@ -141,8 +177,10 @@ const Dashboard = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-yellow-100">Certificates</p>
-                  <p className="text-3xl font-bold">1</p>
-                  <p className="text-sm text-yellow-100">JavaScript Expert</p>
+                  <p className="text-3xl font-bold">{stats.certificates}</p>
+                  <p className="text-sm text-yellow-100">
+                    {stats.certificates > 0 ? 'Course Certificates' : 'No certificates yet'}
+                  </p>
                 </div>
                 <Award className="h-12 w-12 text-yellow-200" />
               </div>
@@ -151,10 +189,11 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="progress">Progress</TabsTrigger>
+            <TabsTrigger value="bookmarks">Bookmarks</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="achievements">Achievements</TabsTrigger>
           </TabsList>
 
@@ -168,7 +207,7 @@ const Dashboard = () => {
                     <CardDescription>Pick up where you left off</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {courses.slice(0, 2).map((course) => (
+                    {enrolledCourses.slice(0, 2).map((course) => (
                       <div
                         key={course.id}
                         className="rounded-lg border p-4 transition-shadow hover:shadow-md"
@@ -182,7 +221,9 @@ const Dashboard = () => {
                               <Badge variant="outline">{course.difficulty}</Badge>
                             </div>
                           </div>
-                          <Button size="sm">Continue</Button>
+                          <Button size="sm" onClick={() => handleContinueCourse(course)}>
+                            Continue
+                          </Button>
                         </div>
                         <Progress value={course.progress} className="h-2" />
                         <div className="mt-2 flex justify-between text-sm text-gray-600">
@@ -193,131 +234,371 @@ const Dashboard = () => {
                         </div>
                       </div>
                     ))}
+                    {enrolledCourses.length === 0 && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No courses in progress</p>
+                        <Button className="mt-2" onClick={() => navigate('/courses')}>
+                          Browse Courses
+                        </Button>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
 
-              {/* Quick Stats */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Learning Streak</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center">
-                      <div className="mb-2 text-4xl font-bold text-blue-600">7</div>
-                      <p className="text-gray-600">Days in a row</p>
-                      <div className="mt-4 flex justify-center space-x-1">
-                        {[1, 2, 3, 4, 5, 6, 7].map((day) => (
-                          <div key={day} className="h-6 w-6 rounded-full bg-blue-500"></div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upcoming Deadlines</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {upcomingDeadlines.map((deadline, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg bg-orange-50 p-3"
-                      >
-                        <div>
-                          <p className="text-sm font-medium">{deadline.task}</p>
-                          <p className="text-xs text-gray-600">{deadline.course}</p>
-                        </div>
-                        <Badge variant={deadline.daysLeft <= 3 ? 'destructive' : 'secondary'}>
-                          {deadline.daysLeft}d left
-                        </Badge>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
+              {/* AI Chat Assistant */}
+              <AIChatAssistant userSkills={[
+                ...(dashboardData.skillsInProgress || []),
+                ...(dashboardData.currentSkills || [])
+              ]} />
             </div>
           </TabsContent>
 
           <TabsContent value="courses" className="space-y-6">
             <div className="grid gap-6">
-              {courses.map((course) => (
-                <Card key={course.id}>
-                  <CardContent className="p-6">
-                    <div className="mb-4 flex items-start justify-between">
-                      <div>
-                        <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
-                        <p className="mb-2 text-gray-600">{course.description}</p>
-                        <div className="flex items-center space-x-4 text-sm text-gray-500">
-                          <span>{course.timeSpent}</span>
-                          <span>
-                            {course.completedLessons}/{course.totalLessons} lessons
-                          </span>
-                          <Badge variant="secondary">{course.category}</Badge>
+              {/* Enrolled Courses */}
+              {enrolledCourses.length > 0 && (
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">Courses in Progress</h3>
+                  {enrolledCourses.map((course) => (
+                    <Card key={course.id} className="mb-4">
+                      <CardContent className="p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
+                            <p className="mb-2 text-gray-600">{course.description}</p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>{course.timeSpent}</span>
+                              <span>
+                                {course.completedLessons}/{course.totalLessons} lessons
+                              </span>
+                              <Badge variant="secondary">{course.category}</Badge>
+                            </div>
+                          </div>
+                          <Button onClick={() => handleContinueCourse(course)}>
+                            Continue
+                          </Button>
                         </div>
-                      </div>
-                      <Button>{course.progress === 100 ? 'Review' : 'Continue'}</Button>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Progress</span>
-                        <span className="font-medium">{course.progress}%</span>
-                      </div>
-                      <Progress value={course.progress} className="h-3" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progress</span>
+                            <span className="font-medium">{course.progress}%</span>
+                          </div>
+                          <Progress value={course.progress} className="h-3" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Completed Courses */}
+              {completedCourses.length > 0 && (
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">Completed Courses</h3>
+                  {completedCourses.map((course) => (
+                    <Card key={course.id} className="mb-4">
+                      <CardContent className="p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
+                            <p className="mb-2 text-gray-600">{course.description}</p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>{course.timeSpent}</span>
+                              <span>
+                                {course.completedLessons}/{course.totalLessons} lessons
+                              </span>
+                              <Badge variant="secondary">{course.category}</Badge>
+                            </div>
+                          </div>
+                          <div className="flex flex-col space-y-2">
+                            <Button onClick={() => handleReviewCourse(course)}>
+                              Review
+                            </Button>
+                            <CertificateGenerator
+                              courseTitle={course.title}
+                              userFirstName={user?.firstName || 'Student'}
+                              userLastName={user?.lastName || ''}
+                              completionDate={new Date().toLocaleDateString()}
+                              instructor={course.instructor}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Progress</span>
+                            <span className="font-medium">{course.progress}%</span>
+                          </div>
+                          <Progress value={course.progress} className="h-3" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {/* Bookmarked Courses */}
+              {localBookmarkedCourses.length > 0 && (
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">Bookmarked Courses</h3>
+                  {localBookmarkedCourses.map((course) => (
+                    <Card key={course.id} className="mb-4">
+                      <CardContent className="p-6">
+                        <div className="mb-4 flex items-start justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
+                            <p className="mb-2 text-gray-600">{course.description}</p>
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>{course.instructor}</span>
+                              <Badge variant="secondary">{course.category}</Badge>
+                            </div>
+                          </div>
+                          <Button onClick={() => navigate(`/courses/${course.id}`)}>
+                            View Course
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+
+              {enrolledCourses.length === 0 && completedCourses.length === 0 && localBookmarkedCourses.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">No courses found</p>
+                  <Button onClick={() => navigate('/courses')}>
+                    Browse Courses
+                  </Button>
+                </div>
+              )}
             </div>
           </TabsContent>
 
-          <TabsContent value="progress" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Skills Progress</CardTitle>
-                <CardDescription>Your current skill levels and recent improvements</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {skills.map((skill) => (
-                  <div key={skill.name}>
-                    <div className="mb-2 flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-900">{skill.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-green-600">{skill.trend}</span>
-                        <span className="text-sm text-gray-600">{skill.level}%</span>
-                      </div>
-                    </div>
-                    <div className="h-3 w-full rounded-full bg-gray-200">
-                      <div
-                        className={`h-3 rounded-full ${skill.color} transition-all duration-500`}
-                        style={{ width: `${skill.level}%` }}
-                      ></div>
-                    </div>
+          <TabsContent value="bookmarks" className="space-y-6">
+            <div className="grid gap-6">
+              {localBookmarkedCourses.length > 0 ? (
+                <div>
+                  <h3 className="mb-4 text-lg font-semibold">Bookmarked Courses</h3>
+                  <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {localBookmarkedCourses.map((course) => (
+                      <Card
+                        key={course.id}
+                        className="group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                        onClick={() => navigate(`/courses/${course.id}`)}
+                      >
+                        <div className="relative aspect-video overflow-hidden rounded-t-lg bg-gradient-to-br from-blue-100 to-purple-100">
+                          {course.thumbnailUrl ? (
+                            <img
+                              src={course.thumbnailUrl}
+                              alt={course.title}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="flex h-full items-center justify-center bg-gradient-to-br from-blue-200 to-purple-200">
+                              <BookOpen className="h-12 w-12 text-gray-400" />
+                            </div>
+                          )}
+                          
+                          {/* Bookmark Icon Overlay */}
+                          {user && (
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                // For bookmarked courses, we'll unbookmark them
+                                const isBookmarked = user.bookmarkedCourseIds?.includes(course.id);
+                                if (isBookmarked) {
+                                  // Call the bookmark service to unbookmark
+                                  courseService.unbookmarkCourse(course.id, user.id).then(() => {
+                                    updateUserBookmarks(course.id, false);
+                                    // Update local state to remove the course from bookmarked list
+                                    setLocalBookmarkedCourses(prev => prev.filter(c => c.id !== course.id));
+                                    toast({
+                                      title: 'Bookmark Removed',
+                                      description: 'Course removed from your bookmarks.',
+                                      variant: 'default',
+                                    });
+                                  }).catch((err: any) => {
+                                    toast({
+                                      title: 'Bookmark Failed',
+                                      description: err.message || 'Could not remove bookmark.',
+                                      variant: 'destructive',
+                                    });
+                                  });
+                                }
+                              }}
+                              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-blue-600 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200"
+                            >
+                              <BookmarkCheck className="h-4 w-4 fill-current" />
+                            </button>
+                          )}
+                          
+                          <div className="absolute left-4 top-4">
+                            <Badge className="bg-white/90 text-gray-800 hover:bg-white">
+                              {course.category}
+                            </Badge>
+                          </div>
+                          <div className="absolute left-4 bottom-4">
+                            <Badge variant="secondary" className="bg-white/90 text-gray-800">
+                              {course.difficulty}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <CardHeader>
+                          <CardTitle className="text-lg transition-colors group-hover:text-blue-600 cursor-pointer">
+                            {course.title}
+                          </CardTitle>
+                          <CardDescription className="text-sm">{course.description}</CardDescription>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4">
+                          <div className="text-sm text-gray-600">by {course.instructor}</div>
+
+                          <div className="flex items-center justify-between text-sm text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <Clock className="h-4 w-4" />
+                              <span>{course.totalLessons} lessons</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Users className="h-4 w-4" />
+                              <span>Bookmarked</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span>Saved</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4">
+                            <span className="text-2xl font-bold text-green-600">Free</span>
+                            <Button 
+                              size="sm" 
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => navigate(`/courses/${course.id}`)}
+                            >
+                              <BookOpen className="mr-2 h-4 w-4" />
+                              View Course
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                ))}
-              </CardContent>
-            </Card>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Bookmark className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookmarked courses</h3>
+                  <p className="text-gray-500 mb-4">Bookmark courses you're interested in to find them easily later.</p>
+                  <Button onClick={() => navigate('/courses')}>
+                    Browse Courses
+                  </Button>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="skills" className="space-y-6">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Skills in Progress */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Skills in Progress</CardTitle>
+                  <CardDescription>Skills you're currently learning</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {dashboardData.skillsInProgress && dashboardData.skillsInProgress.length > 0 ? (
+                    dashboardData.skillsInProgress.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-blue-50 p-4 transition-colors hover:bg-blue-100"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                            <Target className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <span className="font-medium text-blue-900">{skill}</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-blue-200 text-blue-800">
+                          Learning
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No skills in progress</p>
+                      <p className="text-sm text-gray-400 mt-2">Enroll in courses to start learning new skills</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Current Skills */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Skills</CardTitle>
+                  <CardDescription>Skills you've mastered</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {dashboardData.currentSkills && dashboardData.currentSkills.length > 0 ? (
+                    dashboardData.currentSkills.map((skill, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg bg-green-50 p-4 transition-colors hover:bg-green-100"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                            <Trophy className="h-4 w-4 text-green-600" />
+                          </div>
+                          <span className="font-medium text-green-900">{skill}</span>
+                        </div>
+                        <Badge variant="secondary" className="bg-green-200 text-green-800">
+                          Mastered
+                        </Badge>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No mastered skills yet</p>
+                      <p className="text-sm text-gray-400 mt-2">Complete courses to master new skills</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-6">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {achievements.map((achievement, index) => {
-                const Icon = achievement.icon;
-                return (
-                  <Card key={index} className="text-center">
-                    <CardContent className="p-6">
-                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
-                        <Icon className="h-8 w-8 text-yellow-600" />
-                      </div>
-                      <h3 className="mb-2 font-semibold text-gray-900">{achievement.title}</h3>
-                      <p className="mb-2 text-sm text-gray-600">{achievement.description}</p>
-                      <p className="text-xs text-gray-500">{achievement.date}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {achievements.length > 0 ? (
+                achievements.map((achievement, index) => {
+                  const Icon = achievement.icon === 'Trophy' ? Trophy : 
+                              achievement.icon === 'Target' ? Target : 
+                              achievement.icon === 'Award' ? Award :
+                              achievement.icon === 'Star' ? Star :
+                              achievement.icon === 'Bookmark' ? Bookmark : Award;
+                  return (
+                    <Card key={index} className="text-center">
+                      <CardContent className="p-6">
+                        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+                          <Icon className="h-8 w-8 text-yellow-600" />
+                        </div>
+                        <h3 className="mb-2 font-semibold text-gray-900">{achievement.title}</h3>
+                        <p className="mb-2 text-sm text-gray-600">{achievement.description}</p>
+                        <p className="text-xs text-gray-500">{achievement.date}</p>
+                        <Badge variant="secondary" className="mt-2">
+                          {achievement.category}
+                        </Badge>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-gray-500 mb-4">No achievements yet</p>
+                  <p className="text-sm text-gray-400">Complete courses to earn achievements!</p>
+                </div>
+              )}
             </div>
           </TabsContent>
         </Tabs>
