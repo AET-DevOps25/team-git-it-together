@@ -7,7 +7,7 @@ from langchain_core.language_models.base import BaseLanguageModel
 from typing import List, Type, TypeVar
 from pydantic import BaseModel, ValidationError
 
-logger = logging.getLogger("skillforge.genai.llm_service")
+logger = logging.getLogger(__name__)
 
 def llm_factory() -> BaseLanguageModel:
     """
