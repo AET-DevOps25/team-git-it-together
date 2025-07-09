@@ -9,6 +9,9 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# ──────────────────────────────────────────────────────────────────────────
+# Load categories and compute embeddings
+# ──────────────────────────────────────────────────────────────────────────
 CATEGORIES = [
     "Programming & Development",
     "Data Science & Analytics",
@@ -19,10 +22,11 @@ CATEGORIES = [
     "Design & UX",
     "Business & Marketing",
     "Artificial Intelligence",
-    "Blockchain & Cryptocurrency",
+    "Blockchain & Cryptocurrency"
 ]
 
 CATEGORY_EMBEDDINGS = {cat: embed_text(cat) for cat in CATEGORIES}
+
 
 def _retrieve_context(query: str, k: int = 5) -> List[str]:
     docs = embedder_service.query_similar_chunks(query_text=query, limit=k)
