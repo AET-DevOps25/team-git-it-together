@@ -1,4 +1,5 @@
 package com.gitittogether.skillForge.server.course.service.courses;
+import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
@@ -6,13 +7,11 @@ import com.gitittogether.skillForge.server.course.dto.response.course.CourseSumm
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
-import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
 import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
+import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import com.gitittogether.skillForge.server.course.model.course.Module;
-import com.gitittogether.skillForge.server.course.model.utils.Language;
-import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +24,19 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import java.util.Map;
+import java.util.HashMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
