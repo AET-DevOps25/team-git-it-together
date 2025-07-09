@@ -96,9 +96,12 @@ jobs:
 
             echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
             echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "GENAI_HOST=genai.api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
             echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env
             echo "VITE_API_INTERNAL_HOST=server-gateway" >> .env
             echo "VITE_API_INTERNAL_PORT=8081" >> .env
+            echo "SERVER_HOST_GENAI=skillforge-genai" >> .env
+            echo "SERVER_PORT_GENAI=8888" >> .env
 
             chmod 600 .env
             echo ".env file created ✅"

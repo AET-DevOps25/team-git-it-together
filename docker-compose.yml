@@ -114,6 +114,9 @@ services:
       MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/skillforge-dev}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
+      SERVER_HOST_GENAI: ${SERVER_HOST_GENAI:-skillforge-genai-service}
+      SERVER_PORT_GENAI: ${SERVER_PORT_GENAI:-8888}
+
     depends_on:
       mongo:
         condition: service_healthy

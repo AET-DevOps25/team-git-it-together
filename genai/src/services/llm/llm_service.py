@@ -1,39 +1,39 @@
+# genai/src/services/llm/llm_service.py
 import os
-from langchain_openai import ChatOpenAI
 import json
 import logging
+from typing import List, Type, TypeVar
+
+from pydantic import BaseModel, ValidationError
+from langchain_openai import ChatOpenAI
 from langchain_community.llms import FakeListLLM
 from langchain_core.language_models.base import BaseLanguageModel
-from typing import List, Type, TypeVar
-from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
+
 T = TypeVar("T", bound=BaseModel)
 
+# ──────────────────────────────────────────────────────────────────────────
+# LLM factory
+# ──────────────────────────────────────────────────────────────────────────
 
 def llm_factory() -> BaseLanguageModel:
-    """
-    Factory function to create and return an LLM instance based on the provider
-    specified in the environment variables.
-    Supports OpenAI, OpenAI-compatible (local/llmstudio), and dummy models.
-    """
+    """Return a singleton LangChain LLM according to $LLM_PROVIDER."""
     provider = os.getenv("LLM_PROVIDER", "dummy").lower()
     logger.info(f"--- Creating LLM for provider: {provider} ---")
 
     if provider in ("openai", "llmstudio", "local"):
-        # Get API base and key from env
         openai_api_key = os.getenv("OPENAI_API_KEY", "sk-xxx-dummy-key")
         openai_api_base = os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1")
-
         model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
         return ChatOpenAI(
             model=model,
             temperature=0.7,
             openai_api_key=openai_api_key,
-            openai_api_base=openai_api_base
+            openai_api_base=openai_api_base,
         )
-    
-    elif provider == "dummy":
+
+    if provider == "dummy":
         responses = [
             "The first summary from the dummy LLM is about procedural languages.",
             "The second summary is about object-oriented programming.",
@@ -41,86 +41,80 @@ def llm_factory() -> BaseLanguageModel:
         ]
         return FakeListLLM(responses=responses)
 
-    else:
-        raise ValueError(f"Currently Unsupported LLM provider: {provider}")
+    raise ValueError(f"Unsupported LLM provider: {provider}")
+
 
 LLM_SINGLETON = llm_factory()
 
+# ──────────────────────────────────────────────────────────────────────────
+# Convenience helpers
+# ──────────────────────────────────────────────────────────────────────────
+
 def generate_text(prompt: str) -> str:
-    """
-    Generates a text completion for a given prompt using the configured LLM.
-    """
-    # 1. Get the correct LLM instance from our factory
+    """Simple text completion (legacy helper)."""
     llm = LLM_SINGLETON
 
-    # if we using local LLM, we need to append "/no_think" in case the model is a thinking model
-    if os.getenv("LLM_PROVIDER", "dummy").lower() == "llmstudio" and hasattr(llm, 'model_name'):
-            prompt += "/no_think"
-    
-    # 2. Invoke the LLM with the prompt
+    if os.getenv("LLM_PROVIDER", "dummy").lower() == "llmstudio" and hasattr(llm, "model_name"):
+        prompt += "/no_think"
+
     response = llm.invoke(prompt)
+    return response.content if hasattr(response, "content") else response
 
-    # 3. The response object's structure can vary slightly by model.
-    #    For Chat models, the text is in the .content attribute.
-    #    For standard LLMs (like our FakeListLLM), it's the string itself.
-    if hasattr(response, 'content'):
-        return response.content
-    else:
-        return response
 
-    
-def generate_structured(
-    messages: List[dict],
-    schema: Type[T],
-    *,
-    max_retries: int = 3,
-) -> T:
-    """Return a Pydantic object regardless of provider (OpenAI JSON-mode or fallback)."""
+def generate_structured(messages: List[dict], schema: Type[T], *, max_retries: int = 3) -> T:
+    """Return a Pydantic object *schema* regardless of the underlying provider.
+
+    1. For $LLM_PROVIDER==openai we use the native `beta.chat.completions.parse` API.
+    2. Otherwise we fall back to strict JSON prompting and `model_validate_json()`.
+    """
     provider = os.getenv("LLM_PROVIDER", "dummy").lower()
 
-    # 1) OpenAI native JSON mode
+    # ── 1. Native OpenAI JSON mode ───────────────────────────────────────
     if provider == "openai":
         try:
-            from openai import OpenAI
+            from openai import OpenAI  # local import to avoid hard dep for other providers
+
             client = OpenAI(
                 api_key=os.getenv("OPENAI_API_KEY"),
                 base_url=os.getenv("OPENAI_API_BASE", "https://api.openai.com/v1"),
             )
-            resp = client.beta.chat.completions.parse(
+            response = client.beta.chat.completions.parse(
                 model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
                 messages=messages,
                 response_format=schema,
             )
-            return resp.choices[0].message.parsed  # type: ignore[arg-type]
+            return response.choices[0].message.parsed  # type: ignore[arg-type]
         except Exception as e:
             logger.warning(f"OpenAI structured parse failed – falling back: {e}")
 
-    # 2) Generic JSON-string fallback
+    # ── 2. Generic JSON-string fallback for all other models ─────────────
     system_json_guard = {
         "role": "system",
         "content": (
-            "Return ONLY valid JSON matching this schema:\n"
-            + json.dumps(schema.model_json_schema())
+            "You are a JSON-only assistant. Produce **only** valid JSON that conforms to "
+            "this schema (no markdown, no explanations):\n" + json.dumps(schema.model_json_schema())
         ),
     }
-    convo: List[dict] = [system_json_guard] + messages
-    llm = LLM_SINGLETON
 
+    convo: List[dict] = [system_json_guard] + messages
+
+    llm = LLM_SINGLETON
     for attempt in range(1, max_retries + 1):
         raw = llm.invoke(convo)
-        text = raw.content if hasattr(raw, "content") else raw
+        text = raw.content if hasattr(raw, "content") else raw  # Chat vs non-chat
         try:
             return schema.model_validate_json(text)
         except ValidationError as e:
             logger.warning(
-                f"Structured output validation failed ({attempt}/{max_retries}): {e}"
+                f"Structured output validation failed (try {attempt}/{max_retries}): {e}"\
             )
-            convo += [
-                {"role": "assistant", "content": text},
-                {
-                    "role": "user",
-                    "content": "❌ JSON invalid. Send ONLY fixed JSON.",
-                },
-            ]
+            convo.append({"role": "assistant", "content": text})
+            convo.append({
+                "role": "user",
+                "content": (
+                    "❌ JSON was invalid: " + str(e.errors()) +
+                    "\nPlease resend ONLY the corrected JSON (no extraneous text)."
+                ),
+            })
 
-    raise ValueError("Could not obtain valid structured output")
+    raise ValueError("Failed to get valid structured output after retries")
