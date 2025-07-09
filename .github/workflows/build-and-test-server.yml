@@ -114,6 +114,8 @@ jobs:
         env:
           SPRING_PROFILES_ACTIVE: test
           MONGO_URL: mongodb://localhost:27017/test
+          SERVER_HOST_GENAI: localhost
+          SERVER_PORT_GENAI: 8888
         run: ./gradlew build --no-daemon --scan
       - name: Post workflow summary
         if: always()
