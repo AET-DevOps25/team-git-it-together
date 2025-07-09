@@ -247,7 +247,19 @@ async def generate_completion(request: GenerateRequest):
         logging.error(f"ERROR during text generation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
   
-
+# ────────────────────────────────────────────────────────────────────────── 
+# NEW – main RAG endpoint 
+# ────────────────────────────────────────────────────────────────────────── 
+@app.post("/api/v1/rag/generate-course", response_model=Course, tags=["rag"]) 
+async def generate_course(req: CourseGenerationRequest): 
+    """ 
+    • POST because generation is a side-effectful operation (non-idempotent). 
+    • Returns a fully-validated Course JSON ready for the course-service. 
+    """ 
+    try: 
+        return course_generator.generate_course(req) 
+    except Exception as e: 
+        raise HTTPException(500, str(e)) from e
 
 # -------------------------------
 # --------- MAIN ----------------
