@@ -100,5 +100,10 @@ def generate_course(req: CourseGenerationRequest) -> Course:
                 logger.warning(f"Unknown lesson content type '{lesson.content.type}', defaulting to TEXT")
                 lesson.content.type = "TEXT"
 
+    # Post-check – warn if any known skills are still included
+    for skill in req.existing_skills:
+        if skill.lower() in (s.lower() for s in parsed.skills):
+            logger.warning(f"Generated course includes known skill '{skill}'")
+
     return course
 
