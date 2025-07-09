@@ -125,20 +125,26 @@ def generate_course(req: CourseGenerationRequest) -> Course:
         },
     ]
 
-    course: Course = generate_structured(messages, Course)
-    course.instructor    = "SkillForge GenAI"
-    course.published     = False
-    course.isPublic      = False
-    course.rating        = 0.0
-    course.language      = "EN"
-    course.thumbnailUrl  = "https://i.imgur.com/BRsKn1L.png"
-    allowed = {"BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"}
-    lvl = str(course.level or "").upper().replace(" ", "_") or "BEGINNER"
-    if lvl not in allowed:
-        logger.warning(f"Unknown level '{course.level}', defaulting to BEGINNER")
+    parsed: Course = generate_structured(messages, Course)
+
+    # Set base metadata
+    parsed.instructor = "SkillForge GenAI"
+    parsed.published = False
+    parsed.isPublic = False
+    parsed.rating = 0.0
+    parsed.language = "EN"
+    parsed.thumbnailUrl = "https://i.imgur.com/BRsKn1L.png"
+
+    # Normalize level
+    allowed_levels = {"BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"}
+    lvl = str(parsed.level).upper().replace(" ", "_") if parsed.level else "BEGINNER"
+    if lvl not in allowed_levels:
+        logger.warning(f"Unknown level '{parsed.level}', falling back to BEGINNER")
         lvl = "BEGINNER"
-    course.level = lvl
-    course.categories = _infer_categories(course, req.prompt)
+    parsed.level = lvl
+
+    # Category detection
+    parsed.categories = _infer_categories(parsed, req.prompt)
 
     # Normalize content.type
     for mod in parsed.modules:
@@ -148,10 +154,9 @@ def generate_course(req: CourseGenerationRequest) -> Course:
                 logger.warning(f"Unknown lesson content type '{lesson.content.type}', defaulting to TEXT")
                 lesson.content.type = "TEXT"
 
-    # Post-check – warn if any known skills are still included
+    # Optional: Post-check – warn if any known skills are still included
     for skill in req.existing_skills:
         if skill.lower() in (s.lower() for s in parsed.skills):
             logger.warning(f"Generated course includes known skill '{skill}'")
 
-    return course
-
+    return parsed
