@@ -190,4 +190,7 @@ public interface CourseService {
      */
     List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title);
 
+    /** Delegates to GenAI, then saves & enrolls user before returning */
+    CourseResponse generateFromGenAi(LearningPathRequest request);
+
 } 
