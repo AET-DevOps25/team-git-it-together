@@ -1,14 +1,13 @@
 import logging
-import numpy as np
+import json
 from typing import List
-from ..embedding.embedder_service import embed_text
-from ..embedding import embedder_service
 
-from ..llm.llm_service import generate_structured
 from .schemas import CourseGenerationRequest, Course
-
-
+from ..embedding.embedder_service import embed_text, cosine_similarity
+from ..llm.llm_service import generate_structured
+import numpy as np
 logger = logging.getLogger(__name__)
+
 
 CATEGORIES = [
     "Programming & Development",
