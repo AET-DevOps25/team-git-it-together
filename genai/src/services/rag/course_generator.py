@@ -27,10 +27,14 @@ CATEGORIES = [
 
 CATEGORY_EMBEDDINGS = {cat: embed_text(cat) for cat in CATEGORIES}
 
+# ──────────────────────────────────────────────────────────────────────────
+# Helper functions
+# ──────────────────────────────────────────────────────────────────────────
 
 def _retrieve_context(query: str, k: int = 5) -> List[str]:
     docs = embedder_service.query_similar_chunks(query_text=query, limit=k)
     return [d.content for d in docs.results]
+
 
 
 def _infer_categories(course: Course, prompt: str = "") -> List[str]:
