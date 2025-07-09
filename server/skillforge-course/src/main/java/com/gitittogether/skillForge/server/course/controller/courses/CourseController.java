@@ -1,5 +1,7 @@
 package com.gitittogether.skillForge.server.course.controller.courses;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
@@ -8,8 +10,12 @@ import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUs
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -183,16 +189,55 @@ public class CourseController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/generate")
-    public ResponseEntity<String> generateCourse(@RequestParam List<String> skills, @RequestParam String userId) {
-        // !!! TODO CHANGE RETURN TYPE TO COURSE RESPONSE WHEN IMPLEMENTED !!!
-        // TODO: 1. Validation of the request parameters
-        // TODO: 2. Mapping of the request to match the request on the Genai side (optional)
-        // TODO 3. Call the Genai service to generate the course
-        // Course generatedCourse = genAiService.generateCourse(skills, userId); // Check how we call other services in enrollment for example
-        // TODO 4. save the course as private and not published (we can directly call the createCourse method)
-        // TODO 5. enroll the user in the course (call the enrollUserInCourse method)
-        log.info("Generating course with skills: {}", skills);
-        return ResponseEntity.ok("Course generation is not yet implemented");
+        /**
+     * Generates a brand-new course via GenAI + RAG, then persists & returns it.
+     * Chosen as POST because we are **creating** a new server-side resource
+     * (the course) – even though the body only contains “input” data.
+     */
+    /*
+     * New variant that accepts userId in path.
+     * Example: POST /api/v1/courses/generate/learning_path/{userId}
+     */
+    @PostMapping("/generate/learning_path/{userId}")
+    public ResponseEntity<CourseResponse> generateCourseForUser(@PathVariable String userId,
+                                                                @RequestBody LearningPathRequest req,
+                                                                HttpServletRequest servletRequest) {
+        
+
+        // 🔍 Fetch user profile from user-service just for logging/demo
+        try {
+            String profileUrl = userServiceUri + "/api/v1/users/" + userId + "/profile";
+            String authHeader = servletRequest.getHeader("Authorization");
+            HttpHeaders headers = new HttpHeaders();
+            if (authHeader != null && !authHeader.isBlank()) {
+                headers.set("Authorization", authHeader);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            String profileJson = restTemplate.exchange(profileUrl, HttpMethod.GET, entity, String.class).getBody();
+            log.info("User profile fetched via user-service: {}", profileJson);
+            // extract skills field from JSON
+            List<String> extractedSkills = null;
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(profileJson);
+                JsonNode skillsNode = root.get("skills");
+                if (skillsNode != null && skillsNode.isArray()) {
+                    extractedSkills = mapper.convertValue(skillsNode, new TypeReference<List<String>>() {});
+                }
+            } catch (Exception parseEx) {
+                log.warn("Could not parse skills from user profile: {}", parseEx.getMessage());
+            }
+            log.info("Generating course for user={} prompt='{}' skills={}", userId, req.prompt(), extractedSkills);
+            req = new LearningPathRequest(req.prompt(), extractedSkills);
+
+        } catch (Exception ex) {
+            log.warn("Failed to fetch user profile for {}: {}", userId, ex.getMessage());
+        }
+
+        // now create the course after we logged the profile
+        CourseResponse generated = courseService.generateFromGenAi(req);
+        CourseResponse enrolled = courseService.enrollUserInCourse(generated.getId(), userId);
+        return ResponseEntity.ok(enrolled);
     }
+
 } 
