@@ -527,4 +527,44 @@ public class CourseServiceImpl implements CourseService {
             courseRepository.save(course);
         }
     }
+
+    @Override
+    public CourseResponse generateFromGenAi(LearningPathRequest req) {
+        log.info("▶️ Calling GenAI to generate learning-path course (prompt='{}') with existing skills={}", req.prompt(), req.existingSkills());
+
+        try {
+            // 1️⃣ Build request payload for GenAI service
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("prompt", req.prompt());
+            payload.put("existing_skills", req.existingSkills() == null ? List.of() : req.existingSkills());
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
+
+            String endpoint = genaiServiceUri + "/api/v1/rag/generate-course";
+            ResponseEntity<String> genAiResp = restTemplate.postForEntity(endpoint, httpReq, String.class);
+
+            if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
+                log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
+                throw new IllegalStateException("GenAI service failed");
+            }
+
+            String rawJson = genAiResp.getBody();
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+            CourseRequest courseReq = mapper.readValue(rawJson, CourseRequest.class);
+            courseReq.setPublished(false);
+            courseReq.setPublic(false);
+
+            CourseResponse persisted = this.createCourse(courseReq);
+            log.info("✅ Generated and persisted course id={}", persisted.getId());
+            return persisted;
+        } catch (Exception e) {
+            log.error("❌ generateFromGenAi failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to generate course via GenAI", e);
+        }
+    }
+
 } 
