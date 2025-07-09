@@ -91,5 +91,14 @@ def generate_course(req: CourseGenerationRequest) -> Course:
         lvl = "BEGINNER"
     course.level = lvl
     course.categories = _infer_categories(course, req.prompt)
+
+    # Normalize content.type
+    for mod in parsed.modules:
+        for lesson in mod.lessons:
+            lesson.content.type = lesson.content.type.upper().replace(" ", "_")
+            if lesson.content.type not in {"TEXT", "HTML", "URL", "VIDEO", "AUDIO", "IMAGE"}:
+                logger.warning(f"Unknown lesson content type '{lesson.content.type}', defaulting to TEXT")
+                lesson.content.type = "TEXT"
+
     return course
 
