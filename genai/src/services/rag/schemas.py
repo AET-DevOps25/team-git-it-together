@@ -25,11 +25,6 @@ class Module(BaseModel):
     lessons: List[Lesson]
     order: int
 
-class Course(BaseModel):
-    title: str
-    description: str
-    skills: List[str]
-    modules: List[Module]
 
 class Course(BaseModel):
     title: str
