@@ -96,23 +96,33 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
 
 
 def generate_course(req: CourseGenerationRequest) -> Course:
-    context = "\n".join(_retrieve_context(req.prompt, k=5))
-    existing = ", ".join(req.existing_skills) if req.existing_skills else "None"
+    context_chunks = _retrieve_context(req.prompt, k=5)
+    context = "\n".join(context_chunks)
+
+    existing_skills_text = (
+        ", ".join(req.existing_skills)
+        if req.existing_skills else "None"
+    )
 
     messages = [
-        {"role": "system",
-         "content": (
-             "You are an expert curriculum designer. "
-             "Generate self-contained course content in JSON."
-         )},
-        {"role": "user",
-         "content": (
-             f"Context:\n{context}\n\n"
-             f"Learning Goal: \"{req.prompt}\"\n"
-             f"Already mastered: {existing}\n"
-             "→ Skip or briefly acknowledge mastered skills.\n"
-             "Return exactly one JSON object following the Course schema."
-         )},
+        {
+            "role": "system",
+            "content": "You are an expert curriculum designer. Your job is to generate self-contained, structured course content tailored to the learner's needs and prior experience."
+        },
+        {
+        "role": "user",
+        "content": (
+            f"Context:\n{context}\n\n"
+                f"Learning Goal: \"{req.prompt}\"\n\n"
+                f"The user already knows the following skills and does NOT want to cover them again: {existing_skills_text}\n"
+                "→ Do NOT include lessons that teach these skills.\n"
+                "→ If these skills are relevant to the course flow, briefly acknowledge them and state they are already mastered.\n\n"
+                "Now, generate exactly one JSON object matching the Course schema.\n"
+                "Each lesson's `content.type` must be either 'TEXT' or 'HTML'.\n"
+                "Lesson `content.content` must include detailed instructional material, not summaries, bullet points, or URLs.\n"
+                "Ensure the course is complete, structured, and educational as if being taught in a real class."
+            )
+        },
     ]
 
     course: Course = generate_structured(messages, Course)
