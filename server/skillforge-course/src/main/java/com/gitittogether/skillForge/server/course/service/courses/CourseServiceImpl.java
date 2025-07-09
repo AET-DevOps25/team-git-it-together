@@ -472,6 +472,10 @@ public class CourseServiceImpl implements CourseService {
             CourseResponse persisted = this.createCourse(courseReq);
             log.info("✅ Generated and persisted course id={}", persisted.getId());
             return persisted;
+        } catch (IllegalArgumentException e) {
+            // Specifically handle duplicate course title error
+            log.error("❌ generateFromGenAi failed due to duplicate course title: {}", e.getMessage());
+            throw e; // Preserve the original exception with its message
         } catch (Exception e) {
             log.error("❌ generateFromGenAi failed: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to generate course via GenAI", e);
