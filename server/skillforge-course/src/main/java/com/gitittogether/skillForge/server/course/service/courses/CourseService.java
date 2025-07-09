@@ -188,6 +188,6 @@ public interface CourseService {
      * @param isAuthenticated Whether the user is authenticated.
      * @return List of matching course responses.
      */
-    List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isAuthenticated);
+    List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title);
 
 } 
