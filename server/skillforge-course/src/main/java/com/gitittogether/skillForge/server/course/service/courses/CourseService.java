@@ -5,8 +5,6 @@ import com.gitittogether.skillForge.server.course.dto.request.course.LearningPat
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
-import com.gitittogether.skillForge.server.course.model.utils.Language;
-import com.gitittogether.skillForge.server.course.model.utils.Level;
 
 import java.util.List;
 
