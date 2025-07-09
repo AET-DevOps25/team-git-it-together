@@ -15,3 +15,7 @@ spring:
 user:
   service:
     uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
+
+genai:
+  service:
+    uri: http://${SERVER_HOST_GENAI:skillforge-genai}:${SERVER_PORT_GENAI:8888}
