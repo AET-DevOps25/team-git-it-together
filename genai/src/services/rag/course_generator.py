@@ -65,14 +65,30 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
         logger.warning(f"Embedding error: {e}")
         return ["Programming & Development"]
 
-    sims = [(cat, cosine_similarity(course_vector, vec)) for cat, vec in CATEGORY_EMBEDDINGS.items()]
-    sims.sort(key=lambda x: x[1], reverse=True)
+    # Calculate similarities
+    similarity_scores = []
+    for cat, cat_vec in CATEGORY_EMBEDDINGS.items():
+        sim = cosine_similarity(course_vector, cat_vec)
+        similarity_scores.append((cat, sim))
+        logger.info(f"Category similarity - {cat}: {sim:.4f}")
 
-    threshold, delta = 0.40, 0.05
-    top = sims[0][1]
-    matches = [c for c, s in sims if s >= threshold or s >= top - delta] or [sims[0][0]]
-    return matches[:4]
+    similarity_scores.sort(key=lambda x: x[1], reverse=True)
+    top_sim = similarity_scores[0][1]
 
+    # Logic
+    threshold = 0.40
+    delta = 0.05
+    max_categories = 4
+
+    matched = [
+        cat for cat, sim in similarity_scores
+        if sim >= threshold or sim >= (top_sim - delta)
+    ]
+
+    if not matched:
+        matched = [similarity_scores[0][0]]
+
+    return matched[:max_categories]
 def generate_course(req: CourseGenerationRequest) -> Course:
     context = "\n".join(_retrieve_context(req.prompt, k=5))
     existing = ", ".join(req.existing_skills) if req.existing_skills else "None"
