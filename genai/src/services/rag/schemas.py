@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Optional, List
 
 # ──────────────────────────────────────────────────────────────────────────
 # Incoming request  ➜  /api/v1/rag/generate-course
@@ -31,3 +31,21 @@ class Course(BaseModel):
     skills: List[str]
     modules: List[Module]
 
+class Course(BaseModel):
+    title: str
+    description: str
+    instructor: str
+    skills: List[str]
+    modules: List[Module]
+    level: str
+    thumbnailUrl: Optional[str] = None
+    published: bool = False
+    isPublic: bool = False
+    language: str = "EN"
+    rating: float = 0.0
+    categories: List[str] = []
+
+    model_config = {
+        "extra": "forbid",
+        "json_schema_extra": {"additionalProperties": False},
+    }
