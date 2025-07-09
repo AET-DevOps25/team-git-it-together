@@ -1,13 +1,15 @@
+# genai/src/services/rag/course_generator.py
 import logging
 import json
 from typing import List
 
 from .schemas import CourseGenerationRequest, Course
+from ..embedding.weaviate_service import get_weaviate_client  # noqa: F401 (import used elsewhere)
+from ..embedding import embedder_service
 from ..embedding.embedder_service import embed_text, cosine_similarity
 from ..llm.llm_service import generate_structured
 import numpy as np
 logger = logging.getLogger(__name__)
-
 
 # ──────────────────────────────────────────────────────────────────────────
 # Load categories and compute embeddings
@@ -94,7 +96,6 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
 # Main course generation
 # ──────────────────────────────────────────────────────────────────────────
 
-
 def generate_course(req: CourseGenerationRequest) -> Course:
     context_chunks = _retrieve_context(req.prompt, k=5)
     context = "\n".join(context_chunks)
@@ -124,6 +125,7 @@ def generate_course(req: CourseGenerationRequest) -> Course:
             )
         },
     ]
+
 
     parsed: Course = generate_structured(messages, Course)
 
