@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.course.service.courses;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
