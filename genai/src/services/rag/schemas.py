@@ -12,3 +12,10 @@ class CourseGenerationRequest(BaseModel):
 class LessonContent(BaseModel):
     type: str        # e.g. TEXT, VIDEO, URL
     content: str     # raw text or link
+
+class Lesson(BaseModel):
+    title: str
+    description: str
+    content: LessonContent
+    order: int
+
