@@ -96,14 +96,14 @@ def generate_structured(
             logger.warning(f"OpenAI structured parse failed – falling back: {e}")
 
     # 2) Generic JSON-string fallback
-    system_guard = {
+    system_json_guard = {
         "role": "system",
         "content": (
             "Return ONLY valid JSON matching this schema:\n"
             + json.dumps(schema.model_json_schema())
         ),
     }
-    convo: List[dict] = [system_guard] + messages
+    convo: List[dict] = [system_json_guard] + messages
     llm = LLM_SINGLETON
 
     for attempt in range(1, max_retries + 1):
