@@ -3,6 +3,11 @@ import numpy as np
 from typing import List
 from ..embedding.embedder_service import embed_text
 from ..embedding import embedder_service
+
+from ..llm.llm_service import generate_structured
+from .schemas import CourseGenerationRequest, Course
+
+
 logger = logging.getLogger(__name__)
 
 CATEGORIES = [
@@ -51,3 +56,33 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
     top = sims[0][1]
     matches = [c for c, s in sims if s >= threshold or s >= top - delta] or [sims[0][0]]
     return matches[:4]
+
+def generate_course(req: CourseGenerationRequest) -> Course:
+    context = "\n".join(_retrieve_context(req.prompt, k=5))
+    existing = ", ".join(req.existing_skills) if req.existing_skills else "None"
+
+    messages = [
+        {"role": "system",
+         "content": (
+             "You are an expert curriculum designer. "
+             "Generate self-contained course content in JSON."
+         )},
+        {"role": "user",
+         "content": (
+             f"Context:\n{context}\n\n"
+             f"Learning Goal: \"{req.prompt}\"\n"
+             f"Already mastered: {existing}\n"
+             "→ Skip or briefly acknowledge mastered skills.\n"
+             "Return exactly one JSON object following the Course schema."
+         )},
+    ]
+
+    course: Course = generate_structured(messages, Course)
+    course.instructor    = "SkillForge GenAI"
+    course.published     = False
+    course.isPublic      = False
+    course.rating        = 0.0
+    course.language      = "EN"
+    course.thumbnailUrl  = "https://i.imgur.com/BRsKn1L.png"
+    return course
+
