@@ -112,7 +112,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 # ---- System Endpoints --------
 # -------------------------------
-@app.get("/health", tags=["System"])
+@app.get(f"{API_PREFIX}/health", tags=["System"])
 async def health():
     """
     Deep health check. Verifies the application and its core dependencies (e.g., DB, vector store).
@@ -128,7 +128,7 @@ async def health():
             content={"status": "error", "message": "Dependency failure. See logs for details."}
         )
 
-@app.get("/ping", tags=["System"])
+@app.get(f"{API_PREFIX}/ping", tags=["System"])
 async def ping():
     """
     Lightweight liveness check. Confirms the API process is running, but does not check dependencies.
@@ -141,7 +141,7 @@ from fastapi.responses import JSONResponse
 # -------------------------------
 # ----- Crawler endpoints -----
 # -------------------------------
-@app.post("/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
+@app.post(f"{API_PREFIX}/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
 async def crawl(request: CrawlRequest):
     url = str(request.url)
     try:
@@ -176,7 +176,7 @@ async def crawl(request: CrawlRequest):
 # -------------------------------
 # ----- Vector DB endpoints -----
 # -------------------------------
-@app.post("/embed", response_model=EmbedResponse, tags=["Embedder"])
+@app.post(f"{API_PREFIX}/embed", response_model=EmbedResponse, tags=["Embedder"])
 async def embed_url(request: EmbedRequest):
     """Orchestrates the full workflow: Crawl -> Chunk -> Embed -> Store."""
     url_str = str(request.url)
@@ -211,7 +211,7 @@ async def embed_url(request: EmbedRequest):
 
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post(f"{API_PREFIX}/query", response_model=QueryResponse)
 async def query_vector_db(request: QueryRequest):
     """Queries the vector database for text chunks semantically similar to the query."""
     client = get_weaviate_client()
@@ -233,7 +233,7 @@ async def query_vector_db(request: QueryRequest):
 # -------------------------------
 # --- LLM Endpoints -------------
 # -------------------------------
-@app.post("/generate", response_model=GenerateResponse, tags=["LLM"])
+@app.post(f"{API_PREFIX}/generate", response_model=GenerateResponse, tags=["LLM"])
 async def generate_completion(request: GenerateRequest):
     """Generates a text completion using the configured LLM abstraction layer."""
     try:
