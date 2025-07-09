@@ -89,6 +89,12 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
         matched = [similarity_scores[0][0]]
 
     return matched[:max_categories]
+
+# ──────────────────────────────────────────────────────────────────────────
+# Main course generation
+# ──────────────────────────────────────────────────────────────────────────
+
+
 def generate_course(req: CourseGenerationRequest) -> Course:
     context = "\n".join(_retrieve_context(req.prompt, k=5))
     existing = ", ".join(req.existing_skills) if req.existing_skills else "None"
