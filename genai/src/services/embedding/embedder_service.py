@@ -4,6 +4,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.weaviate import Weaviate
 from .weaviate_service import get_weaviate_client, DOCUMENT_CLASS_NAME
 import logging
+from typing import List
+import numpy as np
 
 logger = logging.getLogger("skillforge.genai.embedder_service")
 
@@ -43,3 +45,16 @@ def embed_and_store_text(text: str, source_url: str) -> int:
         logger.info(f"Stored {num_chunks} chunks in Weaviate for URL {source_url}.")
     
     return num_chunks
+
+_embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+
+def embed_text(text: str) -> List[float]:
+    """Generate a single embedding vector from raw text."""
+    return _embeddings_model.embed_query(text)
+
+def cosine_similarity(v1: List[float], v2: List[float]) -> float:
+    """Simple cosine similarity between two vectors."""
+    a = np.array(v1)
+    b = np.array(v2)
+    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+
