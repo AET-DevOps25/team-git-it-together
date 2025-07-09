@@ -32,7 +32,7 @@ logger = logging.getLogger("skillforge.genai")
 APP_PORT = int(os.getenv("GENAI_PORT", "8082"))
 APP_TITLE = os.getenv("GENAI_APP_NAME", "SkillForge GenAI Service")
 APP_VERSION = os.getenv("GENAI_APP_VERSION", "0.0.1")
-AAPP_DESCRIPTION = ( 
+APP_DESCRIPTION = ( 
     "SkillForge GenAI Service provides endpoints for web crawling, " 
     "chunking, embedding, semantic querying, and text generation using LLMs. " 
     "Ideal for integrating vector search and AI-driven workflows." 
