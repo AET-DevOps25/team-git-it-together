@@ -19,11 +19,12 @@ from .services.embedding import embedder_service
 from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryRequest, QueryResponse, DocumentResult
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
 from .services.llm import llm_service
-from .services.llm.schemas import GenerateRequest, GenerateResponse 
-from .services.rag.schemas import CourseGenerationRequest, Course 
-from .services.rag import course_generator 
-from .utils.error_schema import ErrorResponse 
+from .services.llm.schemas import GenerateRequest, GenerateResponse
+from .services.rag.schemas import CourseGenerationRequest, Course
+from .services.rag import course_generator
+from .utils.error_schema import ErrorResponse
 from .utils.handle_httpx_exception import handle_httpx_exception
+
 
 # --- Configuration ---
 load_dotenv()
@@ -32,12 +33,12 @@ logger = logging.getLogger("skillforge.genai")
 APP_PORT = int(os.getenv("GENAI_PORT", "8082"))
 APP_TITLE = os.getenv("GENAI_APP_NAME", "SkillForge GenAI Service")
 APP_VERSION = os.getenv("GENAI_APP_VERSION", "0.0.1")
-APP_DESCRIPTION = ( 
-    "SkillForge GenAI Service provides endpoints for web crawling, " 
-    "chunking, embedding, semantic querying, and text generation using LLMs. " 
-    "Ideal for integrating vector search and AI-driven workflows." 
-) 
-API_PREFIX = "/api/v1" 
+APP_DESCRIPTION = (
+    "SkillForge GenAI Service provides endpoints for web crawling, "
+    "chunking, embedding, semantic querying, and text generation using LLMs. "
+    "Ideal for integrating vector search and AI-driven workflows."
+)
+API_PREFIX = "/api/v1"
 TAGS_METADATA = [
     {"name": "System", "description": "Health checks and system status."},
     {"name": "Crawler", "description": "Crawl and clean website content."},
@@ -247,19 +248,21 @@ async def generate_completion(request: GenerateRequest):
         logging.error(f"ERROR during text generation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
   
-# ────────────────────────────────────────────────────────────────────────── 
-# NEW – main RAG endpoint 
-# ────────────────────────────────────────────────────────────────────────── 
-@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"]) 
-async def generate_course(req: CourseGenerationRequest): 
-    """ 
-    • POST because generation is a side-effectful operation (non-idempotent). 
-    • Returns a fully-validated Course JSON ready for the course-service. 
-    """ 
-    try: 
-        return course_generator.generate_course(req) 
-    except Exception as e: 
+
+# ──────────────────────────────────────────────────────────────────────────
+# RAG endpoint
+# ──────────────────────────────────────────────────────────────────────────
+@app.post("/api/v1/rag/generate-course", response_model=Course, tags=["rag"])
+async def generate_course(req: CourseGenerationRequest):
+    """
+    • POST because generation is a side-effectful operation (non-idempotent).
+    • Returns a fully-validated Course JSON ready for the course-service.
+    """
+    try:
+        return course_generator.generate_course(req)
+    except Exception as e:
         raise HTTPException(500, str(e)) from e
+
 
 # -------------------------------
 # --------- MAIN ----------------
