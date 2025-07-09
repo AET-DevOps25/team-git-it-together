@@ -19,3 +19,9 @@ class Lesson(BaseModel):
     content: LessonContent
     order: int
 
+class Module(BaseModel):
+    title: str
+    description: str
+    lessons: List[Lesson]
+    order: int
+
