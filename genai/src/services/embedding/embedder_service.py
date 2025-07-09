@@ -6,6 +6,7 @@ from .weaviate_service import get_weaviate_client, DOCUMENT_CLASS_NAME
 import logging
 from typing import List
 import numpy as np
+from .schemas import QueryResponse, QueryRequest, DocumentResult
 
 logger = logging.getLogger("skillforge.genai.embedder_service")
 
@@ -58,3 +59,20 @@ def cosine_similarity(v1: List[float], v2: List[float]) -> float:
     b = np.array(v2)
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 
+def query_similar_chunks(query_text: str, limit: int = 3) -> QueryResponse:
+    """
+    Stateless helper – identical logic to the /query endpoint but callable in-process.
+    """
+    client = get_weaviate_client()
+    embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    vector = embeddings_model.embed_query(query_text)
+
+    result = (
+        client.query
+        .get(DOCUMENT_CLASS_NAME, ["content", "source_url"])
+        .with_near_vector({"vector": vector})
+        .with_limit(limit)
+        .do()
+    )
+    docs = [DocumentResult(**d) for d in result["data"]["Get"][DOCUMENT_CLASS_NAME]]
+    return QueryResponse(query=query_text, results=docs)
