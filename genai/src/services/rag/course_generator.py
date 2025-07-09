@@ -42,16 +42,25 @@ def _infer_categories(course: Course, prompt: str = "") -> List[str]:
         return ["Programming & Development"]
 
     try:
-        title_vec  = np.array(embed_text(course.title))
-        desc_vec   = np.array(embed_text(" ".join([course.description, *course.skills])))
+        # Weighted vector components
+        title_vec = np.array(embed_text(course.title))
+        desc_vec = np.array(embed_text(" ".join([
+            course.description,
+            " ".join(course.skills),
+            " ".join(mod.title for mod in course.modules),
+        ])))
         prompt_vec = np.array(embed_text(prompt)) if prompt else np.zeros_like(title_vec)
 
+        # Weights
         course_vector = (
             0.35 * title_vec +
             0.25 * desc_vec +
             0.40 * prompt_vec
         )
-        course_vector /= np.linalg.norm(course_vector)
+
+        # Normalize (optional but improves consistency)
+        course_vector = course_vector / np.linalg.norm(course_vector)
+
     except Exception as e:
         logger.warning(f"Embedding error: {e}")
         return ["Programming & Development"]
