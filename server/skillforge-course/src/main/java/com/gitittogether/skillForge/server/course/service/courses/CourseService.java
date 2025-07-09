@@ -48,14 +48,6 @@ public interface CourseService {
     List<CourseResponse> getPublicPublishedCourses();
 
     /**
-     * Retrieves all private courses for authenticated users.
-     * Private courses are those not published and not visible to the public.
-     *
-     * @return List of private course responses.
-     */
-    List<CourseResponse> getPrivateCourses();
-
-    /**
      * Updates an existing course.
      *
      * @param courseId The ID of the course to update.
@@ -179,13 +171,12 @@ public interface CourseService {
     /**
      * Flexible search for courses by any combination of criteria. All parameters are optional.
      *
-     * @param instructor      The instructor ID or name (optional).
-     * @param level           The course level (optional).
-     * @param language        The course language (optional).
-     * @param skill           The skill substring (optional).
-     * @param category        The category substring (optional).
-     * @param title           The title substring (optional).
-     * @param isAuthenticated Whether the user is authenticated.
+     * @param instructor The instructor ID or name (optional).
+     * @param level The course level (optional).
+     * @param language The course language (optional).
+     * @param skill The skill substring (optional).
+     * @param category The category substring (optional).
+     * @param title The title substring (optional).
      * @return List of matching course responses.
      */
     List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title);

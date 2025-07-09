@@ -31,10 +31,10 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
-    private final RestTemplate restTemplate = new RestTemplate();
+private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${user.service.uri:http://user-service:8082}")
-    private String userServiceUri;
+@Value("${user.service.uri:http://user-service:8082}")
+private String userServiceUri;
 
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
@@ -68,13 +68,6 @@ public class CourseController {
     public ResponseEntity<List<CourseResponse>> getPublicPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
         List<CourseResponse> responses = courseService.getPublicPublishedCourses();
-        return ResponseEntity.ok(responses);
-    }
-
-    @GetMapping("/private")
-    public ResponseEntity<List<CourseResponse>> getPrivateCourses() {
-        log.info("Fetching private courses (not public, not published)");
-        List<CourseResponse> responses = courseService.getPrivateCourses();
         return ResponseEntity.ok(responses);
     }
 
@@ -141,11 +134,10 @@ public class CourseController {
             @RequestParam(required = false) Language language,
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false, defaultValue = "true") boolean isAuthenticated
+            @RequestParam(required = false) String title
     ) {
         log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}", instructor, level, language, skill, category, title);
-        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title, isAuthenticated);
+        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title);
         return ResponseEntity.ok(responses);
     }
 
@@ -191,7 +183,7 @@ public class CourseController {
         return ResponseEntity.ok(responses);
     }
 
-        /**
+    /**
      * Generates a brand-new course via GenAI + RAG, then persists & returns it.
      * Chosen as POST because we are **creating** a new server-side resource
      * (the course) – even though the body only contains “input” data.
@@ -206,7 +198,7 @@ public class CourseController {
                                                                 HttpServletRequest servletRequest) {
         
 
-        // 🔍 Fetch user profile from user-service just for logging/demo
+        // Fetch user profile from user-service just for logging/demo
         try {
             String profileUrl = userServiceUri + "/api/v1/users/" + userId + "/profile";
             String authHeader = servletRequest.getHeader("Authorization");
@@ -236,7 +228,7 @@ public class CourseController {
             log.warn("Failed to fetch user profile for {}: {}", userId, ex.getMessage());
         }
 
-        // now create the course after we logged the profile
+        // create the course after we logged the profile
         CourseResponse generated = courseService.generateFromGenAi(req);
         CourseResponse enrolled = courseService.enrollUserInCourse(generated.getId(), userId);
         return ResponseEntity.ok(enrolled);

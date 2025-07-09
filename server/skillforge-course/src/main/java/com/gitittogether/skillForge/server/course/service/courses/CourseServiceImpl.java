@@ -48,16 +48,16 @@ public class CourseServiceImpl implements CourseService {
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${user.service.uri:http://localhost:8082}")
     private String userServiceUri;
-
     @Value("${genai.service.uri:http://localhost:8888}")
     private String genaiServiceUri;
-
     @Autowired
     private MongoTemplate mongoTemplate;
 
     @Override
     @Transactional
     public CourseResponse createCourse(CourseRequest request) {
+        log.info("Creating new course: {}", request.getTitle());
+        
         // Check if course with same title already exists
         log.info(courseRepository.findByTitle(request.getTitle()).toString());
         if (!courseRepository.findByTitle(request.getTitle()).isEmpty()) {
@@ -65,14 +65,6 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("Course with this title already exists");
         }
         Course course = CourseMapper.requestToCourse(request);
-        // Iterate through modules and set the lesson orders starting from 0 (Module 2 should continue counting from Module 1)
-        if (course.getModules() != null && !course.getModules().isEmpty()) {
-            int lessonOrder = 0;
-            for (Module module : course.getModules()) {
-                module.setLessonOrder(lessonOrder);
-                lessonOrder += module.getLessons().size(); // Increment by the number of lessons in this module
-            }
-        }
         Course savedCourse = courseRepository.save(course);
 
         log.info("Created course with ID: {}", savedCourse.getId());
@@ -82,21 +74,18 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public CourseResponse getCourse(String courseId) {
         log.info("Fetching course: {}", courseId);
+
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
-        // This ensures that the enrollment count is consistent
-        updateEnrollmentCount(course);
+
         return CourseMapper.toCourseResponse(course);
     }
 
     @Override
     public List<CourseSummaryResponse> getAllCourses() {
         log.info("Fetching all courses");
+
         List<Course> courses = courseRepository.findAll();
-
-        // Fix enrollment counts for all courses
-        courses.forEach(this::updateEnrollmentCount);
-
         return courses.stream()
                 .map(CourseMapper::toCourseSummaryResponse)
                 .collect(Collectors.toList());
@@ -133,52 +122,26 @@ public class CourseServiceImpl implements CourseService {
             List<Module> existingModules = existingCourse.getModules();
             Set<String> existingTitles = existingModules.stream().map(Module::getTitle).collect(Collectors.toSet());
             List<Module> newModules = request.getModules().stream()
-                    .map(ModuleMapper::requestToModule)
-                    .filter(m -> !existingTitles.contains(m.getTitle()))
-                    .toList();
+                .map(ModuleMapper::requestToModule)
+                .filter(m -> !existingTitles.contains(m.getTitle()))
+                .toList();
             existingModules.addAll(newModules);
             existingCourse.setModules(existingModules);
-            // Update enrolled users' total number of lessons - this is the case, new lessons were added
-            for (EnrolledUserInfo user : existingCourse.getEnrolledUsers()) {
-                int totalLessons = existingModules.stream()
-                        .mapToInt(Module::getNumberOfLessons)
-                        .sum();
-                user.setTotalNumberOfLessons(totalLessons);
-            }
         }
 
-        // Merge enrolledUsers by userId and add new users if not already enrolled
+        // Merge enrolledUsers by userId (add new users only)
         if (request.getEnrolledUsers() != null && !request.getEnrolledUsers().isEmpty()) {
             List<EnrolledUserInfo> existingUsers = existingCourse.getEnrolledUsers();
-            Map<String, EnrolledUserInfo> userMap = existingUsers.stream()
-                    .collect(Collectors.toMap(EnrolledUserInfo::getUserId, u -> u));
-
-            for (EnrolledUserInfo reqUser : request.getEnrolledUsers().stream()
-                    .map(EnrolledUserInfoMapper::requestToEnrolledUserInfo)
-                    .toList()) {
-                if (userMap.containsKey(reqUser.getUserId())) {
-                    // Update progress and skills for existing user
-                    EnrolledUserInfo existing = userMap.get(reqUser.getUserId());
-                    if (reqUser.getProgress() > 0 && reqUser.getProgress() <= 100)
-                        existing.setProgress(reqUser.getProgress());
-                    if (reqUser.getSkills() != null && !reqUser.getSkills().isEmpty())
-                        existing.setSkills(reqUser.getSkills());
-                    // Update current lesson if provided and if it is different from existing by 1
-                    if (reqUser.getCurrentLesson() >= 0 && reqUser.getCurrentLesson() == existing.getCurrentLesson() + 1) {
-                        existing.setCurrentLesson(reqUser.getCurrentLesson());
-                        // Update progress accordingly
-                        float progress = Math.round(((float) reqUser.getCurrentLesson() / existing.getTotalNumberOfLessons() * 100) * 100.0f) / 100.0f;
-                        existing.setProgress(progress);
-                    }
-                } else {
-                    existingUsers.add(reqUser);
-                }
-            }
+            Set<String> existingUserIds = existingUsers.stream().map(EnrolledUserInfo::getUserId).collect(Collectors.toSet());
+            List<EnrolledUserInfo> newUsers = request.getEnrolledUsers().stream()
+                .map(EnrolledUserInfoMapper::requestToEnrolledUserInfo)
+                .filter(u -> !existingUserIds.contains(u.getUserId()))
+                .toList();
+            existingUsers.addAll(newUsers);
             existingCourse.setEnrolledUsers(existingUsers);
         }
 
-        if (request.getNumberOfEnrolledUsers() != null)
-            existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
+        if (request.getNumberOfEnrolledUsers() != null) existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
         if (request.getLevel() != null) existingCourse.setLevel(request.getLevel());
         if (request.getThumbnailUrl() != null) existingCourse.setThumbnailUrl(request.getThumbnailUrl());
         if (request.getLanguage() != null) existingCourse.setLanguage(request.getLanguage());
@@ -195,9 +158,11 @@ public class CourseServiceImpl implements CourseService {
     @Transactional
     public void deleteCourse(String courseId) {
         log.info("Deleting course: {}", courseId);
+
         if (!courseRepository.existsById(courseId)) {
             throw new ResourceNotFoundException("Course not found with ID: " + courseId);
         }
+
         courseRepository.deleteById(courseId);
         log.info("Deleted course with ID: {}", courseId);
     }
@@ -222,34 +187,23 @@ public class CourseServiceImpl implements CourseService {
                 .userId(userId)
                 .progress(0.0f)
                 .skills(new ArrayList<>(course.getSkills()))
-                .currentLesson(0)
-                .totalNumberOfLessons(course.getModules().stream()
-                        .mapToInt(Module::getNumberOfLessons)
-                        .sum())
                 .build();
         course.getEnrolledUsers().add(enrolledUser);
-
-        // Calculate enrollment count from actual enrolled users list
-        course.setNumberOfEnrolledUsers(course.getEnrolledUsers().size());
-
+        course.setNumberOfEnrolledUsers(course.getNumberOfEnrolledUsers() + 1);
         Course savedCourse = courseRepository.save(course);
 
         // Call user service to update enrolledCourseIds
         try {
             String enrollUrl = userServiceUri + "/api/v1/users/" + userId + "/enroll/" + courseId;
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-Service-Key", "course-service-key"); // this is our API key for user service - will be changed later
+            headers.set("X-Service-Key", "course-service-key");
             HttpEntity<List<String>> request = new HttpEntity<>(course.getSkills(), headers);
             restTemplate.postForEntity(enrollUrl, request, Void.class);
             log.info("Called user service to add course {} to user {}'s enrolled courses", courseId, userId);
         } catch (Exception e) {
             log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
-            // Rollback the enrollment if user service call fails
-            course.getEnrolledUsers().removeIf(u -> u.getUserId().equals(userId));
-            course.setNumberOfEnrolledUsers(course.getEnrolledUsers().size());
-            courseRepository.save(course);
-            throw new RuntimeException("Failed to enroll user: " + e.getMessage());
         }
+
         log.info("Enrolled user {} in course {}", userId, courseId);
         // Build response
         return CourseMapper.toCourseResponse(savedCourse);
@@ -263,8 +217,7 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
         boolean removed = course.getEnrolledUsers().removeIf(u -> u.getUserId().equals(userId));
         if (removed) {
-            // Calculate enrollment count from actual enrolled users list
-            course.setNumberOfEnrolledUsers(course.getEnrolledUsers().size());
+            course.setNumberOfEnrolledUsers(Math.max(0, course.getNumberOfEnrolledUsers() - 1));
             courseRepository.save(course);
             // Call user service to update enrolledCourseIds
             try {
@@ -276,16 +229,6 @@ public class CourseServiceImpl implements CourseService {
                 log.info("Called user service to remove course {} from user {}'s enrolled courses", courseId, userId);
             } catch (Exception e) {
                 log.error("Failed to update user's enrolled courses in user service: {}", e.getMessage(), e);
-                // We roll back the unenrollment if user service call fails - which is not ideal, but we need to ensure consistency
-                course.getEnrolledUsers().add(EnrolledUserInfo.builder()
-                        .userId(userId)
-                        .progress(0.0f) // Reset progress to 0
-                        .skills(new ArrayList<>(course.getSkills()))
-                        .currentLesson(0)
-                        .totalNumberOfLessons(course.getModules().stream()
-                                .mapToInt(Module::getNumberOfLessons)
-                                .sum())
-                        .build());
             }
             log.info("Unenrolled user {} from course {}", userId, courseId);
         } else {
@@ -348,10 +291,6 @@ public class CourseServiceImpl implements CourseService {
         log.info("Fetching public courses for landing page");
 
         List<Course> publicCourses = courseRepository.findByIsPublicTrue();
-
-        // Fix enrollment counts for public courses
-        publicCourses.forEach(this::updateEnrollmentCount);
-
         return publicCourses.stream()
                 .map(CourseMapper::toCourseSummaryResponse)
                 .collect(Collectors.toList());
@@ -362,23 +301,7 @@ public class CourseServiceImpl implements CourseService {
         log.info("Fetching public and published courses for landing page");
 
         List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
-
-        // Fix enrollment counts for public published courses
-        publicPublishedCourses.forEach(this::updateEnrollmentCount);
-
         return publicPublishedCourses.stream()
-                .map(CourseMapper::toCourseResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<CourseResponse> getPrivateCourses() {
-        log.info("Fetching private courses for authenticated users");
-        List<Course> privateCourses = courseRepository.findByIsPublicFalseAndPublishedFalse();
-        // Fix enrollment counts for private courses
-        privateCourses.forEach(this::updateEnrollmentCount);
-
-        return privateCourses.stream()
                 .map(CourseMapper::toCourseResponse)
                 .collect(Collectors.toList());
     }
@@ -490,11 +413,8 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isAuthenticated) {
+    public List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title) {
         Query query = new Query();
-        if (!isAuthenticated) {
-            query.addCriteria(Criteria.where("isPublic").is(true));
-        }
         if (instructor != null && !instructor.isBlank()) {
             query.addCriteria(Criteria.where("instructor").is(instructor));
         }
@@ -517,23 +437,12 @@ public class CourseServiceImpl implements CourseService {
         return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());
     }
 
-    /**
-     * Fixes enrollment count inconsistencies by calculating it from the actual enrolled users list
-     */
-    private void updateEnrollmentCount(Course course) {
-        int actualEnrolledCount = course.getEnrolledUsers().size();
-        if (course.getNumberOfEnrolledUsers() != actualEnrolledCount) {
-            course.setNumberOfEnrolledUsers(actualEnrolledCount);
-            courseRepository.save(course);
-        }
-    }
-
     @Override
     public CourseResponse generateFromGenAi(LearningPathRequest req) {
         log.info("▶️ Calling GenAI to generate learning-path course (prompt='{}') with existing skills={}", req.prompt(), req.existingSkills());
 
         try {
-            // 1️⃣ Build request payload for GenAI service
+            // Build request payload for GenAI service
             Map<String, Object> payload = new HashMap<>();
             payload.put("prompt", req.prompt());
             payload.put("existing_skills", req.existingSkills() == null ? List.of() : req.existingSkills());
@@ -555,9 +464,11 @@ public class CourseServiceImpl implements CourseService {
             mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
             CourseRequest courseReq = mapper.readValue(rawJson, CourseRequest.class);
+            // Ensure manual review before publishing
             courseReq.setPublished(false);
             courseReq.setPublic(false);
 
+            // Persist via existing logic
             CourseResponse persisted = this.createCourse(courseReq);
             log.info("✅ Generated and persisted course id={}", persisted.getId());
             return persisted;
@@ -566,5 +477,4 @@ public class CourseServiceImpl implements CourseService {
             throw new RuntimeException("Failed to generate course via GenAI", e);
         }
     }
-
-} 
+}
