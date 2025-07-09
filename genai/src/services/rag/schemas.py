@@ -1,23 +1,34 @@
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, HttpUrl, Field
+from typing import List, Optional
+
 
 # ──────────────────────────────────────────────────────────────────────────
 # Incoming request  ➜  /api/v1/rag/generate-course
 # ──────────────────────────────────────────────────────────────────────────
 class CourseGenerationRequest(BaseModel):
-    """Payload from course-service (goal + skills to skip)."""
+    """
+    What the course-service sends us.
+
+    • prompt          – free-text goal (“Become React dev in 30 days”)
+    • existing_skills – skills we must *skip* (already mastered)
+    """
     prompt: str
     existing_skills: List[str] = []
 
+
+# ──────────────────────────────────────────────────────────────────────────
+# Course domain model returned to course-service
+# ──────────────────────────────────────────────────────────────────────────
 class LessonContent(BaseModel):
-    type: str        # e.g. TEXT, VIDEO, URL
-    content: str     # raw text or link
+    type: str  # e.g. TEXT, HTML, VIDEO, URL
+    content: str  # actual content or URL
 
 class Lesson(BaseModel):
     title: str
     description: str
     content: LessonContent
     order: int
+
 
 class Module(BaseModel):
     title: str
@@ -42,5 +53,5 @@ class Course(BaseModel):
 
     model_config = {
         "extra": "forbid",
-        "json_schema_extra": {"additionalProperties": False},
+        "json_schema_extra": {"additionalProperties": False}
     }
