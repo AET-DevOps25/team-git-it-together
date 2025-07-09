@@ -20,9 +20,10 @@ from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryReques
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
 from .services.llm import llm_service
 from .services.llm.schemas import GenerateRequest, GenerateResponse
+from .services.rag.schemas import CourseGenerationRequest, Course
+from .services.rag import course_generator
 from .utils.error_schema import ErrorResponse
 from .utils.handle_httpx_exception import handle_httpx_exception
-from .services.rag.schemas import CourseGenerationRequest, Course
 
 # --- Configuration ---
 load_dotenv()
