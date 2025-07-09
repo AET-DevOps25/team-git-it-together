@@ -48,6 +48,10 @@ public class CourseServiceImpl implements CourseService {
     private final RestTemplate restTemplate = new RestTemplate();
     @Value("${user.service.uri:http://localhost:8082}")
     private String userServiceUri;
+
+    @Value("${genai.service.uri:http://localhost:8888}")
+    private String genaiServiceUri;
+
     @Autowired
     private MongoTemplate mongoTemplate;
 
