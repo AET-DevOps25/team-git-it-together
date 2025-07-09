@@ -19,10 +19,11 @@ from .services.embedding import embedder_service
 from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryRequest, QueryResponse, DocumentResult
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
 from .services.llm import llm_service
-from .services.llm.schemas import GenerateRequest, GenerateResponse
-from .utils.error_schema import ErrorResponse
+from .services.llm.schemas import GenerateRequest, GenerateResponse 
+from .services.rag.schemas import CourseGenerationRequest, Course 
+from .services.rag import course_generator 
+from .utils.error_schema import ErrorResponse 
 from .utils.handle_httpx_exception import handle_httpx_exception
-
 
 # --- Configuration ---
 load_dotenv()
@@ -31,11 +32,12 @@ logger = logging.getLogger("skillforge.genai")
 APP_PORT = int(os.getenv("GENAI_PORT", "8082"))
 APP_TITLE = os.getenv("GENAI_APP_NAME", "SkillForge GenAI Service")
 APP_VERSION = os.getenv("GENAI_APP_VERSION", "0.0.1")
-APP_DESCRIPTION = (
-    "SkillForge GenAI Service provides endpoints for web crawling, "
-    "chunking, embedding, semantic querying, and text generation using LLMs. "
-    "Ideal for integrating vector search and AI-driven workflows."
-)
+APP_DESCRIPTION = ( 
+    "SkillForge GenAI Service provides endpoints for web crawling, " 
+    "chunking, embedding, semantic querying, and text generation using LLMs. " 
+    "Ideal for integrating vector search and AI-driven workflows." 
+) 
+API_PREFIX = "/api/v1" 
 TAGS_METADATA = [
     {"name": "System", "description": "Health checks and system status."},
     {"name": "Crawler", "description": "Crawl and clean website content."},
@@ -110,7 +112,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 # ---- System Endpoints --------
 # -------------------------------
-@app.get("/health", tags=["System"])
+@app.get(f"{API_PREFIX}/health", tags=["System"])
 async def health():
     """
     Deep health check. Verifies the application and its core dependencies (e.g., DB, vector store).
@@ -126,7 +128,7 @@ async def health():
             content={"status": "error", "message": "Dependency failure. See logs for details."}
         )
 
-@app.get("/ping", tags=["System"])
+@app.get(f"{API_PREFIX}/ping", tags=["System"])
 async def ping():
     """
     Lightweight liveness check. Confirms the API process is running, but does not check dependencies.
@@ -139,7 +141,7 @@ from fastapi.responses import JSONResponse
 # -------------------------------
 # ----- Crawler endpoints -----
 # -------------------------------
-@app.post("/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
+@app.post(f"{API_PREFIX}/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
 async def crawl(request: CrawlRequest):
     url = str(request.url)
     try:
@@ -174,7 +176,7 @@ async def crawl(request: CrawlRequest):
 # -------------------------------
 # ----- Vector DB endpoints -----
 # -------------------------------
-@app.post("/embed", response_model=EmbedResponse, tags=["Embedder"])
+@app.post(f"{API_PREFIX}/embed", response_model=EmbedResponse, tags=["Embedder"])
 async def embed_url(request: EmbedRequest):
     """Orchestrates the full workflow: Crawl -> Chunk -> Embed -> Store."""
     url_str = str(request.url)
@@ -209,7 +211,7 @@ async def embed_url(request: EmbedRequest):
 
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post(f"{API_PREFIX}/query", response_model=QueryResponse)
 async def query_vector_db(request: QueryRequest):
     """Queries the vector database for text chunks semantically similar to the query."""
     client = get_weaviate_client()
@@ -231,7 +233,7 @@ async def query_vector_db(request: QueryRequest):
 # -------------------------------
 # --- LLM Endpoints -------------
 # -------------------------------
-@app.post("/generate", response_model=GenerateResponse, tags=["LLM"])
+@app.post(f"{API_PREFIX}/generate", response_model=GenerateResponse, tags=["LLM"])
 async def generate_completion(request: GenerateRequest):
     """Generates a text completion using the configured LLM abstraction layer."""
     try:
@@ -245,7 +247,19 @@ async def generate_completion(request: GenerateRequest):
         logging.error(f"ERROR during text generation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
   
-
+# ────────────────────────────────────────────────────────────────────────── 
+# NEW – main RAG endpoint 
+# ────────────────────────────────────────────────────────────────────────── 
+@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"]) 
+async def generate_course(req: CourseGenerationRequest): 
+    """ 
+    • POST because generation is a side-effectful operation (non-idempotent). 
+    • Returns a fully-validated Course JSON ready for the course-service. 
+    """ 
+    try: 
+        return course_generator.generate_course(req) 
+    except Exception as e: 
+        raise HTTPException(500, str(e)) from e
 
 # -------------------------------
 # --------- MAIN ----------------

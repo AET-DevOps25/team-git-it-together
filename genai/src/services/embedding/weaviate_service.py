@@ -6,7 +6,7 @@ logger = logging.getLogger("skillforge.genai.weaviate_service")
 DOCUMENT_CLASS_NAME = "DocumentChunk"
 
 WEAVIATE_HOST = os.getenv("WEAVIATE_HOST", "localhost")
-WEAVIATE_HTTP_PORT = int(os.getenv("WEAVIATE_HTTP_PORT", "1234"))
+WEAVIATE_HTTP_PORT = int(os.getenv("WEAVIATE_HTTP_PORT", "8080"))
 WEAVIATE_GRPC_PORT = int(os.getenv("WEAVIATE_GRPC_PORT", "50051"))
 
 def get_weaviate_client() -> weaviate.Client:
