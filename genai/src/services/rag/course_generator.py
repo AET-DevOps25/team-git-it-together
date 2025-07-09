@@ -84,5 +84,11 @@ def generate_course(req: CourseGenerationRequest) -> Course:
     course.rating        = 0.0
     course.language      = "EN"
     course.thumbnailUrl  = "https://i.imgur.com/BRsKn1L.png"
+    allowed = {"BEGINNER", "INTERMEDIATE", "ADVANCED", "EXPERT"}
+    lvl = str(course.level or "").upper().replace(" ", "_") or "BEGINNER"
+    if lvl not in allowed:
+        logger.warning(f"Unknown level '{course.level}', defaulting to BEGINNER")
+        lvl = "BEGINNER"
+    course.level = lvl
     return course
 
