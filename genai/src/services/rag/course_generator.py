@@ -90,5 +90,6 @@ def generate_course(req: CourseGenerationRequest) -> Course:
         logger.warning(f"Unknown level '{course.level}', defaulting to BEGINNER")
         lvl = "BEGINNER"
     course.level = lvl
+    course.categories = _infer_categories(course, req.prompt)
     return course
 
