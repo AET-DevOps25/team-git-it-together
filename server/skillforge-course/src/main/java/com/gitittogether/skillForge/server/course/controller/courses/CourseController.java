@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
@@ -22,6 +23,10 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    @Value("${user.service.uri:http://user-service:8082}")
+    private String userServiceUri;
 
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
