@@ -250,7 +250,7 @@ async def generate_completion(request: GenerateRequest):
 # ────────────────────────────────────────────────────────────────────────── 
 # NEW – main RAG endpoint 
 # ────────────────────────────────────────────────────────────────────────── 
-@app.post("/api/v1/rag/generate-course", response_model=Course, tags=["rag"]) 
+@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"]) 
 async def generate_course(req: CourseGenerationRequest): 
     """ 
     • POST because generation is a side-effectful operation (non-idempotent). 
