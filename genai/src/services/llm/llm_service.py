@@ -1,8 +1,13 @@
 import os
-import logging
 from langchain_openai import ChatOpenAI
+import json
+import logging
 from langchain_community.llms import FakeListLLM
 from langchain_core.language_models.base import BaseLanguageModel
+from typing import List, Type, TypeVar
+from pydantic import BaseModel, ValidationError
+
+logger = logging.getLogger("skillforge.genai.llm_service")
 
 def llm_factory() -> BaseLanguageModel:
     """
@@ -11,7 +16,7 @@ def llm_factory() -> BaseLanguageModel:
     Supports OpenAI, OpenAI-compatible (local/llmstudio), and dummy models.
     """
     provider = os.getenv("LLM_PROVIDER", "dummy").lower()
-    logging.info(f"--- Creating LLM for provider: {provider} ---")
+    logger.info(f"--- Creating LLM for provider: {provider} ---")
 
     if provider in ("openai", "llmstudio", "local"):
         # Get API base and key from env
