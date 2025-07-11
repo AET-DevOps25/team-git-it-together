@@ -13,6 +13,8 @@ services:
       - "--entrypoints.traefik.address=:8085"
       - "--api=true"
       - "--api.insecure=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addrouterslabels=true"
     ports:
       - "80:80"
       - "8085:8085"
