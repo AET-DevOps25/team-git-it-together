@@ -309,10 +309,75 @@ services:
       - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigin=${CORS_ALLOW_ORIGINS:-*}"
       - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9090/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PWD:-admin}
+      - GF_DATE_FORMATS_DEFAULT_TIMEZONE=browser
+    volumes:
+      - ./monitoring/grafana-dashboards/:/var/lib/grafana/dashboards/
+      - ./monitoring/grafana-provisioning/:/etc/grafana/provisioning/
+      - grafana-data:/var/lib/grafana
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis-exporter:
+    image: oliver006/redis_exporter
+    environment:
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "9121:9121"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mongo-exporter:
+    image: bitnami/mongodb-exporter
+    environment:
+      - MONGODB_URI=mongodb://dev_user:dev_password@skillforge-mongo:27017
+    ports:
+      - "9216:9216"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9216/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 volumes:
   mongo-data:
   redis-data:
   weaviate-genai-data:
+  prometheus-data:
+  grafana-data:
 
 networks:
   skillforge-network:
