@@ -23,7 +23,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,openapi,swagger-ui
+        include: health,info,metrics,prometheus,openapi,swagger-ui
 
 jwt:
   secret: ${JWT_SECRET:dev-insecure-key-change-me}
