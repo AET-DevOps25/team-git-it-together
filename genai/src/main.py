@@ -67,6 +67,11 @@ async def lifespan(app: FastAPI):
     logger.info("Service shutting down...")
 
 # --- App Initialization ---
+from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter
+
+# Custom metric example
+GENAI_TOKENS_USED_TOTAL = Counter("genai_tokens_used_total", "Total tokens used by GenAI")
 app = FastAPI(
     title=APP_TITLE,
     version=APP_VERSION,
@@ -85,6 +90,9 @@ app = FastAPI(
     openapi_tags=TAGS_METADATA,
     root_path=os.getenv("API_ROOT_PATH", ""),
 )
+
+# Expose default and custom metrics
+Instrumentator().instrument(app).expose(app)
 
 app.add_middleware(
     CORSMiddleware,
