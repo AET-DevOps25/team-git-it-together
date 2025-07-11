@@ -243,6 +243,7 @@ services:
     ports:
       - "8088:8080"
       - "50051:50051"
+      - "2112:2112"
     environment:
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
@@ -250,6 +251,7 @@ services:
       BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
       ENABLE_API_BASED_MODULES: 'true'
       CLUSTER_HOSTNAME: 'node1'
+      PROMETHEUS_MONITORING_ENABLED: 'true'
     volumes:
       - weaviate-genai-data:/var/lib/weaviate
     healthcheck:
