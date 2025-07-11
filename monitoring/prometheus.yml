@@ -1,0 +1,41 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+rule_files:
+  - "alert.rules.yml"
+
+scrape_configs:
+  # ----- Spring Boot services (Micrometer) -----
+  - job_name: spring-boot
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - skillforge-gateway:8081
+          - skillforge-user-service:8082
+          - skillforge-course-service:8083
+
+  # ----- GenAI FastAPI -----
+  - job_name: genai
+    static_configs:
+      - targets: [ 'skillforge-genai:8888' ]
+
+  # ----- Traefik Proxy -----
+  - job_name: traefik
+    static_configs:
+      - targets: [ 'reverse-proxy:8085' ]
+
+  # ----- Database exporters -----
+  - job_name: mongo_exporter
+    static_configs:
+      - targets: [ 'mongo-exporter:9216' ]
+
+  - job_name: redis_exporter
+    static_configs:
+      - targets: [ 'redis-exporter:9121' ]
+
+  # ----- Weaviate vector DB -----
+  - job_name: weaviate
+    metrics_path: /v1/metrics
+    static_configs:
+      - targets: [ 'skillforge-weaviate:8080' ]
