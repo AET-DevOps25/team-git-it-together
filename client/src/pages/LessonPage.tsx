@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CourseCompletionCelebration from '@/components/CourseCompletionCelebration';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import * as courseService from '@/services/course.service';
 import type { CourseResponse } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -26,7 +26,7 @@ import type { LessonContent } from '@/types/utils/LessonContent';
 const LessonPage = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useContext(AuthContext);
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [course, setCourse] = useState<CourseResponse | null>(null);
@@ -118,17 +118,7 @@ const LessonPage = () => {
     return userCurrentLesson === lessonIndex;
   };
 
-  // Debug logging
-  console.log('Enrollment Debug:', {
-    userEnrollment,
-    userCurrentLesson,
-    totalNumberOfLessons,
-    completedLessons,
-    isCourseCompleted,
-    currentLessonOrder: currentLesson?.order,
-    isCurrentLessonCompleted: isCurrentLessonCompleted(),
-    isNextLessonToComplete: isNextLessonToComplete()
-  });
+
 
   const handleCompleteLesson = async () => {
     if (!courseId || !lessonId || !user?.id || !course) return;
@@ -150,6 +140,7 @@ const LessonPage = () => {
         variant: 'success',
       });
     } catch (err: any) {
+      console.error('Error completing lesson:', err);
       toast({
         title: 'Failed to Complete Lesson',
         description: err.message || 'Could not complete lesson.',

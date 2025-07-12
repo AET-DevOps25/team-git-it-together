@@ -1,6 +1,6 @@
 import { BookOpen, Users, Sparkles, Target } from 'lucide-react';
 import { SiGithub } from 'react-icons/si';
-import { APP_NAME } from '@/constants/app.ts';
+import { APP_NAME } from '@/constants/app';
 import { Link } from 'react-router-dom';
 import React from 'react';
 

@@ -16,7 +16,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { APP_NAME } from '@/constants/app.ts';
+import { APP_NAME } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { ApiError } from '@/types';
 

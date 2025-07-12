@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Eye, EyeOff, UserPlus } from 'lucide-react';
-import { APP_NAME } from '@/constants/app.ts';
+import { APP_NAME } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordStrengthBar } from '@/components/ui';
