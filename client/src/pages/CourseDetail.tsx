@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CertificateGenerator from '@/components/CertificateGenerator';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import * as courseService from '@/services/course.service';
 import type { CourseResponse } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading, updateUserBookmarks } = useContext(AuthContext);
+  const { user, loading: authLoading, updateUserBookmarks } = useAuth();
   const [course, setCourse] = useState<CourseResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,10 +63,11 @@ const CourseDetail = () => {
       }
     };
 
-    if (!authLoading) {
+    // Only fetch if we have a courseId and auth is not loading
+    if (courseId && !authLoading) {
       fetchCourse();
     }
-  }, [courseId, authLoading, navigate]);
+  }, [courseId, navigate]); // Only re-fetch when courseId or navigate changes
 
   const handleEnroll = async () => {
     if (!courseId || !user?.id) return;
@@ -93,6 +94,7 @@ const CourseDetail = () => {
   const isEnrolled = !!course?.enrolledUsers.find(u => u.userId === user?.id);
   const userEnrollment = course?.enrolledUsers.find(u => u.userId === user?.id);
   const isCourseCompleted = userEnrollment?.progress === 100;
+  // Make isBookmarked reactive to user's bookmarked courses
   const isBookmarked = !!user?.bookmarkedCourseIds?.includes(courseId || '');
 
   const handleBookmark = async () => {
