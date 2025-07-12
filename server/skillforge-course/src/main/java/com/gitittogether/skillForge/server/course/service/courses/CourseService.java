@@ -183,5 +183,25 @@ public interface CourseService {
 
     /** Delegates to GenAI, then saves & enrolls user before returning */
     CourseResponse generateFromGenAi(LearningPathRequest request);
+    
+    /**
+    * Generates a course from a Learning Path request using Generative AI.
+    *
+    * @param request The Learning Path request containing the necessary information to generate a course.
+    * @return CourseRequest containing the generated course details to be stored in the database.
+    */
+    CourseRequest generateCourseFromGenAi(LearningPathRequest request, String userId, String authHeader);
+
+
+    /**
+    * Confirms the generation of a course from a Learning Path request.
+    * <p>
+    * This method is called after the course has been generated and the user has reviewed it.
+    * It retrieves the last generated course details, create the course in the database, enroll the user and return the course response.
+    *
+    * @return CourseResponse containing the confirmed course details.
+    */
+    CourseResponse confirmCourseGeneration(String userId);
+
 
 } 
