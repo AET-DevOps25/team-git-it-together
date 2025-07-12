@@ -25,6 +25,10 @@ from .services.rag import course_generator
 from .utils.error_schema import ErrorResponse
 from .utils.handle_httpx_exception import handle_httpx_exception
 
+from .services.scheduler.schemas import SchedulerStatus, SchedulerControl
+from .services.scheduler import start_scheduler, stop_scheduler, get_scheduler_status
+
+
 
 # --- Configuration ---
 load_dotenv()
