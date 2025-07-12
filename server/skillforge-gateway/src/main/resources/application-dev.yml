@@ -2,6 +2,11 @@ spring:
   config:
     activate:
       on-profile: dev
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
 
 server:
   port: ${SERVER_PORT_GATEWAY:8081}
@@ -14,10 +19,22 @@ course:
   service:
     uri: http://localhost:${SERVER_PORT_COURSES:8083}
 
+# Override Rate limiting configuration for development
+rate:
+  limit:
+    requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:50}
+    requests-per-second: ${RATE_LIMIT_REQUESTS_PER_SECOND:20}
+    burst: ${RATE_LIMIT_BURST:50}
+
 gateway:
-  cors:
-    allowed-origins: "*"
+  health:
+    uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 
 logging:
   level:
+    com.gitittogether.skillforge.server.gateway: DEBUG
     com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO
+    com.gitittogether.skillforge.server.gateway.config: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.data.redis: DEBUG

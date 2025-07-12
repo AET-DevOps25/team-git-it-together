@@ -1,9 +1,5 @@
 package com.gitittogether.skillForge.server.user.model.user;
 
-import com.gitittogether.skillForge.server.user.model.course.Category;
-import com.gitittogether.skillForge.server.user.model.course.Course;
-import com.gitittogether.skillForge.server.user.model.course.EnrolledCourse;
-import com.gitittogether.skillForge.server.user.model.skill.Skill;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -40,23 +36,22 @@ public class User {
     private String profilePictureUrl;
     private String bio;
 
-    @Builder.Default
-    private List<Category> interests = new ArrayList<>(); // Interests are categories the user is interested in
-
     // Skills
     @Builder.Default
-    private List<Skill> skills = new ArrayList<>(); // List of skills the user has mastered
+    private List<String> skills = new ArrayList<>(); // List of skills the user has mastered
 
     @Builder.Default
-    private List<Skill> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
+    private List<String> skillsInProgress = new ArrayList<>(); // List of skills the user is currently learning or practicing
 
-    // Courses
+    // User's bookmarked courses (user domain)
     @Builder.Default
-    private List<EnrolledCourse> enrolledCourses = new ArrayList<>(); // List of courses the user is enrolled in, with progress tracking
+    private List<String> bookmarkedCourseIds = new ArrayList<>(); // List of course IDs the user has bookmarked
 
+    // User's enrolled courses (for quick lookups)
     @Builder.Default
-    private List<Course> bookmarkedCourses = new ArrayList<>();
+    private List<String> enrolledCourseIds = new ArrayList<>(); // List of course IDs the user is enrolled in
 
+    // User's completed courses (for quick lookups)
     @Builder.Default
-    private List<EnrolledCourse> completedCourses = new ArrayList<>(); // List of courses the user has completed
+    private List<String> completedCourseIds = new ArrayList<>(); // List of course IDs the user has completed
 }

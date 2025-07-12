@@ -20,8 +20,14 @@ from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryReques
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
 from .services.llm import llm_service
 from .services.llm.schemas import GenerateRequest, GenerateResponse
+from .services.rag.schemas import CourseGenerationRequest, Course
+from .services.rag import course_generator
 from .utils.error_schema import ErrorResponse
 from .utils.handle_httpx_exception import handle_httpx_exception
+
+from .services.scheduler.schemas import SchedulerStatus, SchedulerControl
+from .services.scheduler import start_scheduler, stop_scheduler, get_scheduler_status
+
 
 
 # --- Configuration ---
@@ -36,11 +42,13 @@ APP_DESCRIPTION = (
     "chunking, embedding, semantic querying, and text generation using LLMs. "
     "Ideal for integrating vector search and AI-driven workflows."
 )
+API_PREFIX = "/api/v1"
 TAGS_METADATA = [
     {"name": "System", "description": "Health checks and system status."},
     {"name": "Crawler", "description": "Crawl and clean website content."},
     {"name": "Embedder", "description": "Chunk and embed text to vector DB."},
     {"name": "LLM", "description": "Language Model completions and chat."},
+    {"name": "Scheduler", "description": "Scheduled background jobs and automation."},
 ]
 
 # -------------------------------
@@ -48,20 +56,29 @@ TAGS_METADATA = [
 # -------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Service starting up...")
-    try:
-        # Example: Create client connections here
-        client = get_weaviate_client()
-        logger.info("Testing Weaviate connection...")
-        test_weaviate_connection()
-        logger.info("Ensuring Weaviate schema exists...")
-        ensure_schema_exists(client)
-        logger.info("Everything is set up successfully and ready to go!")
-    except Exception as e:
-        logger.error(f"Error during startup: {e}", exc_info=True)
-        raise RuntimeError("Failed during application startup.") from e
-    yield
-    logger.info("Service shutting down...")
+   logger.info("Service starting up...")
+   try:
+       # Example: Create client connections here
+       client = get_weaviate_client()
+       logger.info("Testing Weaviate connection...")
+       test_weaviate_connection()
+       logger.info("Ensuring Weaviate schema exists...")
+       ensure_schema_exists(client)
+       logger.info("Everything is set up successfully and ready to go!")
+      
+       # Start the blog embedder scheduler
+       logger.info("Starting blog embedder scheduler...")
+       start_scheduler()
+      
+   except Exception as e:
+       logger.error(f"Error during startup: {e}", exc_info=True)
+       raise RuntimeError("Failed during application startup.") from e
+   yield
+   logger.info("Service shutting down...")
+  
+   # Stop the scheduler on shutdown
+   logger.info("Stopping blog embedder scheduler...")
+   stop_scheduler()
 
 # --- App Initialization ---
 app = FastAPI(
@@ -110,7 +127,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 # ---- System Endpoints --------
 # -------------------------------
-@app.get("/health", tags=["System"])
+@app.get(f"{API_PREFIX}/health", tags=["System"])
 async def health():
     """
     Deep health check. Verifies the application and its core dependencies (e.g., DB, vector store).
@@ -139,7 +156,7 @@ from fastapi.responses import JSONResponse
 # -------------------------------
 # ----- Crawler endpoints -----
 # -------------------------------
-@app.post("/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
+@app.post(f"{API_PREFIX}/crawl", response_model=CrawlResponse, responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}, tags=["Crawler"])
 async def crawl(request: CrawlRequest):
     url = str(request.url)
     try:
@@ -174,7 +191,7 @@ async def crawl(request: CrawlRequest):
 # -------------------------------
 # ----- Vector DB endpoints -----
 # -------------------------------
-@app.post("/embed", response_model=EmbedResponse, tags=["Embedder"])
+@app.post(f"{API_PREFIX}/embed", response_model=EmbedResponse, tags=["Embedder"])
 async def embed_url(request: EmbedRequest):
     """Orchestrates the full workflow: Crawl -> Chunk -> Embed -> Store."""
     url_str = str(request.url)
@@ -209,7 +226,7 @@ async def embed_url(request: EmbedRequest):
 
 
 
-@app.post("/query", response_model=QueryResponse)
+@app.post(f"{API_PREFIX}/query", response_model=QueryResponse)
 async def query_vector_db(request: QueryRequest):
     """Queries the vector database for text chunks semantically similar to the query."""
     client = get_weaviate_client()
@@ -231,7 +248,7 @@ async def query_vector_db(request: QueryRequest):
 # -------------------------------
 # --- LLM Endpoints -------------
 # -------------------------------
-@app.post("/generate", response_model=GenerateResponse, tags=["LLM"])
+@app.post(f"{API_PREFIX}/generate", response_model=GenerateResponse, tags=["LLM"])
 async def generate_completion(request: GenerateRequest):
     """Generates a text completion using the configured LLM abstraction layer."""
     try:
@@ -245,6 +262,67 @@ async def generate_completion(request: GenerateRequest):
         logging.error(f"ERROR during text generation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
   
+
+# ──────────────────────────────────────────────────────────────────────────
+# RAG endpoint
+# ──────────────────────────────────────────────────────────────────────────
+@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"])
+async def generate_course(req: CourseGenerationRequest):
+    """
+    • POST because generation is a side-effectful operation (non-idempotent).
+    • Returns a fully-validated Course JSON ready for the course-service.
+    """
+    try:
+        return course_generator.generate_course(req)
+    except Exception as e:
+        raise HTTPException(500, str(e)) from e
+
+# -------------------------------
+# --- Scheduler Endpoints -------
+# -------------------------------
+@app.get(f"{API_PREFIX}/scheduler/status", response_model=SchedulerStatus, tags=["Scheduler"])
+async def get_scheduler_status_endpoint():
+   """Get the current status of the blog embedder scheduler"""
+   return SchedulerStatus(**get_scheduler_status())
+
+
+@app.post(f"{API_PREFIX}/scheduler/control", tags=["Scheduler"])
+async def control_scheduler(request: SchedulerControl):
+   """Control the blog embedder scheduler (start/stop)"""
+   if request.action == "start":
+       start_scheduler()
+       return {"message": "Scheduler started successfully"}
+   elif request.action == "stop":
+       stop_scheduler()
+       return {"message": "Scheduler stopped successfully"}
+   else:
+       raise HTTPException(status_code=400, detail="Invalid action. Use 'start' or 'stop'")
+
+
+@app.post(f"{API_PREFIX}/scheduler/run-now", tags=["Scheduler"])
+async def run_scheduler_now():
+   """Manually trigger the blog embedder job immediately"""
+   try:
+       # Import here to avoid circular imports
+       from .services.scheduler.scheduler_service import _scheduler
+      
+       # Run the job in a separate thread to avoid blocking
+       import threading
+       def run_job():
+           import asyncio
+           async def async_job():
+               urls = await _scheduler.fetch_freecodecamp_articles()
+               await _scheduler.embed_articles(urls)
+           asyncio.run(async_job())
+      
+       thread = threading.Thread(target=run_job, daemon=True)
+       thread.start()
+      
+       return {"message": "Blog embedder job triggered successfully"}
+   except Exception as e:
+       logger.error(f"Error triggering scheduler job: {e}")
+       raise HTTPException(status_code=500, detail=f"Failed to trigger job: {str(e)}")
+
 
 
 # -------------------------------

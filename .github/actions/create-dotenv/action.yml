@@ -15,5 +15,12 @@ runs:
         # JWT (used by user-service tests)
         JWT_SECRET=test-secret
         JWT_EXPIRATION_MS=3600000
+
+        # MongoDB (for all services)
+        MONGO_URL=mongodb://localhost:27017/test
+
+        # Redis (for gateway)
+        REDIS_HOST=redis
+        REDIS_PORT=6379
         EOF
         echo "✅ Generated .env:" && cat .env

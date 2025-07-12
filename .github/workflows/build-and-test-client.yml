@@ -2,10 +2,11 @@ name: Build and Test Client
 
 on:
   push:
+    branches: [main, test, dev]
     paths:
       - 'client/**'
   pull_request:
-    branches: [main]
+    branches: [main, test, dev]
     paths:
       - 'client/**'
   workflow_dispatch:

@@ -4,7 +4,7 @@ FROM gradle:8.14-jdk21 AS build
 WORKDIR /app
 
 # Avoid re-downloading dependencies on code change
-COPY build.gradle settings.gradle gradle.properties ./
+COPY build.gradle gradle.properties ./
 COPY gradle ./gradle
 RUN gradle dependencies --no-daemon || true # Run once to cache dependencies
 

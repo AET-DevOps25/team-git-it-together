@@ -1,0 +1,36 @@
+// Root build.gradle for the multi-module project
+plugins {
+    id 'base'
+}
+
+// Task to run all code quality checks across all modules
+tasks.register('codeQualityCheck') {
+    dependsOn ':skillforge-course:codeQualityCheck',
+            ':skillforge-user:codeQualityCheck',
+            ':skillforge-gateway:codeQualityCheck'
+    description = 'Run all code quality checks (SpotBugs and Checkstyle) across all modules'
+}
+
+// Task to run tests across all modules
+tasks.register('testAll') {
+    dependsOn ':skillforge-course:test',
+            ':skillforge-user:test',
+            ':skillforge-gateway:test'
+    description = 'Run tests across all modules'
+}
+
+// Task to build all modules
+tasks.register('buildAll') {
+    dependsOn ':skillforge-course:build',
+            ':skillforge-user:build',
+            ':skillforge-gateway:build'
+    description = 'Build all modules'
+}
+
+// Task to clean all modules
+tasks.register('cleanAll') {
+    dependsOn ':skillforge-course:clean',
+            ':skillforge-user:clean',
+            ':skillforge-gateway:clean'
+    description = 'Clean all modules'
+} 

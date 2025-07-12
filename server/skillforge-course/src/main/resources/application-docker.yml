@@ -1,0 +1,21 @@
+server:
+  port: ${SERVER_PORT_COURSES:8083}
+  address: "0.0.0.0"
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  data:
+    mongodb:
+      database: ${MONGODB_DATABASE}
+      uri: ${MONGO_URL}
+
+user:
+  service:
+    uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
+
+genai:
+  service:
+    uri: http://${SERVER_HOST_GENAI:skillforge-genai}:${SERVER_PORT_GENAI:8888}

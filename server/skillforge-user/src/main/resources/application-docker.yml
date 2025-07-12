@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT_USER:8081}
+  port: ${SERVER_PORT_USER:8082}
   address: "0.0.0.0"
 
 
@@ -11,4 +11,4 @@ spring:
   data:
     mongodb:
       database: ${MONGODB_DATABASE}
-      uri: mongodb://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}:27017/${MONGODB_DATABASE}?authSource=admin
+      uri: ${MONGO_URL}

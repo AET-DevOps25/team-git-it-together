@@ -6,23 +6,53 @@ spring:
   application:
     name: SkillForge-gateway
   profiles:
-    active: ${SPRING_PROFILE_ACTIVES:test}
+    active: ${SPRING_PROFILE_ACTIVES:dev}
   cloud:
     gateway:
       server:
         webflux:
           default-filters:
             - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+  # Redis configuration for rate limiting
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 10
+          min-idle: 0
+          max-wait: -1ms
+
+# Rate limiting configuration
+rate:
+  limit:
+    requests-per-minute: ${RATE_LIMIT_REQUESTS_PER_MINUTE:60}
+    requests-per-second: ${RATE_LIMIT_REQUESTS_PER_SECOND:10}
+    burst: ${RATE_LIMIT_BURST:20}
+
+jwt:
+  secret: ${JWT_SECRET:default-secret-key-for-development-only-change-in-production}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}
+
+gateway:
+  health:
+    uri: http://localhost:${SERVER_PORT_GATEWAY:8081}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
-
+        include: "health,info,metrics,prometheus"
 
 logging:
   level:
-    root: INFO
+    com.gitittogether.skillforge.server.gateway: INFO
+    com.gitittogether.skillforge.server.gateway.LoggingGlobalFilter: INFO
+    com.gitittogether.skillforge.server.gateway.config: INFO
     org.springframework.cloud.gateway: INFO
-    org.springframework.web: WARN
+    org.springframework.security: INFO
+    org.springframework.data.redis: DEBUG

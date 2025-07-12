@@ -22,6 +22,9 @@ npm-debug.log
 testem.log
 typings/
 .angular/
+# Ignore seed courses folder
+seed/seed_courses/
+
 
 # e2e
 e2e/*.js

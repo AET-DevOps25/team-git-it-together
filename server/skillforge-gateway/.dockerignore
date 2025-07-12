@@ -7,7 +7,6 @@ build/
 .idea/
 .vscode/
 *.iws
-*.iml
 *.ipr
 .project
 .classpath
@@ -42,26 +41,8 @@ reports/
 
 # Build output - always rebuild in container
 target/
-build/
-out/
-
-# IDE/editor settings
-.idea/
-.vscode/
-*.iml
-
-# OS & misc
-.DS_Store
 *.swp
 *.swo
-
-# Logs
-*.log
-logs/
-
-# Git
-.git/
-.gitignore
 
 # Env files - never copy secrets
 .env
@@ -69,4 +50,3 @@ logs/
 
 # Maven/Gradle wrappers (optional if you use them in the build)
 .mvn/
-.gradle/

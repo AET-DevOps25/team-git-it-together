@@ -5,13 +5,7 @@ import com.gitittogether.skillForge.server.user.dto.request.user.UserRegisterReq
 import com.gitittogether.skillForge.server.user.dto.response.user.UserLoginResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserProfileResponse;
 import com.gitittogether.skillForge.server.user.dto.response.user.UserRegisterResponse;
-import com.gitittogether.skillForge.server.user.mapper.course.CategoryMapper;
-import com.gitittogether.skillForge.server.user.mapper.course.CourseMapper;
-import com.gitittogether.skillForge.server.user.mapper.course.EnrolledCourseMapper;
-import com.gitittogether.skillForge.server.user.mapper.skill.SkillMapper;
 import com.gitittogether.skillForge.server.user.model.user.User;
-
-import java.util.stream.Collectors;
 
 public class UserMapper {
 
@@ -46,7 +40,7 @@ public class UserMapper {
                 .build();
     }
 
-    public static UserLoginResponse toLoginResponse(User model, String jwtToken) {
+    public static UserLoginResponse toUserLoginResponse(User model, String jwtToken) {
         if (model == null) return null;
         return UserLoginResponse.builder()
                 .id(model.getId())
@@ -59,7 +53,6 @@ public class UserMapper {
                 .build();
     }
 
-
     public static UserProfileResponse toUserProfileResponse(User model) {
         if (model == null) return null;
         return UserProfileResponse.builder()
@@ -70,34 +63,12 @@ public class UserMapper {
                 .email(model.getEmail())
                 .profilePictureUrl(model.getProfilePictureUrl())
                 .bio(model.getBio())
-                .interests(
-                        model.getInterests().stream()
-                                .map(CategoryMapper::toCategoryResponse)
-                                .collect(Collectors.toList())
-                )
-                .skills(
-                        model.getSkills().stream()
-                                .map(SkillMapper::toSkillResponse)
-                                .collect(Collectors.toList())
-                )
-                .skillsInProgress(
-                        model.getSkillsInProgress().stream()
-                                .map(SkillMapper::toSkillResponse)
-                                .collect(Collectors.toList())
-                )
-                .enrolledCourses(
-                        model.getEnrolledCourses().stream()
-                                .map(EnrolledCourseMapper::toEnrolledCourseResponse)
-                                .collect(Collectors.toList())
-                )
-                .bookmarkedCourses(
-                        model.getBookmarkedCourses().stream()
-                                .map(CourseMapper::toCourseResponse)
-                                .collect(Collectors.toList())
-                )
-                .completedCourses(model.getCompletedCourses().stream()
-                        .map(EnrolledCourseMapper::toEnrolledCourseResponse)
-                        .collect(Collectors.toList()))
+                // Skills is a list of Sting
+                .skills(model.getSkills())
+                .skillsInProgress(model.getSkillsInProgress())
+                .enrolledCourseIds(model.getEnrolledCourseIds())
+                .bookmarkedCourseIds(model.getBookmarkedCourseIds())
+                .completedCourseIds(model.getCompletedCourseIds())
                 .build();
     }
 }

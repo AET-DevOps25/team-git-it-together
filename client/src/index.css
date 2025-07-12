@@ -99,3 +99,28 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix code blocks in prose to match dark card theme */
+.prose pre {
+  background-color: #f8fafc !important; /* Light background */
+  color: inherit !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.prose pre code {
+  background-color: transparent !important; /* No background for code inside pre */
+  color: inherit !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.prose :not(pre) > code {
+  background-color: #1e293b !important; /* Tailwind slate-800 for inline code only */
+  color: #f1f5f9 !important;
+  border-radius: 0.4rem !important;
+  padding: 0.15em 0.4em !important;
+}

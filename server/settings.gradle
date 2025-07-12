@@ -1,0 +1,6 @@
+rootProject.name = 'skillforge-server'
+
+include 'skillforge-shared'
+include 'skillforge-course'
+include 'skillforge-user'
+include 'skillforge-gateway' 

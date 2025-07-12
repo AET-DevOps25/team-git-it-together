@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Eye, EyeOff, UserPlus } from 'lucide-react';
-import { APP_NAME } from '@/constants/app.ts';
+import { APP_NAME } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordStrengthBar } from '@/components/ui';
@@ -75,7 +75,7 @@ const Signup = () => {
     }
     setIsLoading(true);
     try {
-      await register({
+      const registeredUser = await register({
         email: formData.email.trim(),
         username: formData.username.trim(),
         password: formData.password.trim(),
@@ -92,7 +92,8 @@ const Signup = () => {
         ),
         description: (
           <span className="text-green-600">
-            Welcome to {APP_NAME}, {formData.firstName.trim()}! The journey of learning begins now.
+            Welcome to {APP_NAME}, {registeredUser.firstName || registeredUser.username}! The
+            journey of learning begins now.
           </span>
         ),
         variant: 'success',

@@ -3,18 +3,25 @@ package com.gitittogether.skillForge.server.user.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.function.Supplier;
 
 
 @Configuration
 @RequiredArgsConstructor
+@Profile("!test")
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtFilter;
@@ -51,17 +58,24 @@ public class SecurityConfig {
                         // Public endpoints: user registration, login, health checks, Swagger/OpenAPI
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
+                        // docs endpoints
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/docs/**").permitAll()
                         .requestMatchers(
+                                "/api/v1/users/docs/**",
                                 "/actuator/*",
                                 "/api/v1/users/health",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        // Inter-service communication endpoints (only from course service)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/enroll/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*/enroll/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/bookmark/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/*/bookmark/*").access(this::isInternalService)
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/*/complete/*").access(this::isInternalService)
                         // All other endpoints require authentication
                         .requestMatchers("/api/v1/users/**").authenticated()
-                        .requestMatchers("/api/v1/courses/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().denyAll()
                 )
                 .exceptionHandling(eh -> eh.
                         authenticationEntryPoint(jwtAuthEntryPoint)
@@ -69,5 +83,11 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    private AuthorizationDecision isInternalService(Supplier<Authentication> authentication, RequestAuthorizationContext context) {
+        String serviceKey = context.getRequest().getHeader("X-Service-Key");
+        boolean hasValidServiceKey = "course-service-key".equals(serviceKey);
+        return new AuthorizationDecision(hasValidServiceKey);
     }
 }

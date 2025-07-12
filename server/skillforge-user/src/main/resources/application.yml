@@ -6,7 +6,7 @@ spring:
   application:
     name: SkillForge-user-service
   profiles:
-    active: ${SPRING_PROFILE_ACTIVES:test}
+    active: ${SPRING_PROFILE_ACTIVES:dev}
   web:
     resources:
       add-mappings: false
@@ -23,11 +23,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,openapi,swagger-ui
+        include: health,info,metrics,prometheus
 
 jwt:
-  secret: ${JWT_SECRET}
-  expirationMs: ${JWT_EXPIRATION_MS}
+  secret: ${JWT_SECRET:dev-secret-key-for-development-only-change-in-production}
+  expirationMs: ${JWT_EXPIRATION_MS:86400000}
 
 logging:
   level:

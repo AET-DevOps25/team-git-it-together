@@ -1,31 +1,28 @@
 package com.gitittogether.skillForge.server.user.dto.request.user;
 
-import com.gitittogether.skillForge.server.user.dto.request.course.CategoryRequest;
-import com.gitittogether.skillForge.server.user.dto.request.course.CourseRequest;
-import com.gitittogether.skillForge.server.user.dto.request.course.EnrolledCourseRequest;
-import com.gitittogether.skillForge.server.user.dto.request.skill.SkillRequest;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserProfileUpdateRequest {
-    @Size(max = 256)
-    private String bio;
-
+    private String firstName;
+    private String lastName;
+    private String username;
+    private String email;
     private String profilePictureUrl;
-
-    @Size(max = 50)
-    private String password;
-
-    private List<CategoryRequest> interests;
-
-    private List<SkillRequest> skills;
-    private List<SkillRequest> skillsInProgress;
-
-    private List<EnrolledCourseRequest> enrolledCourses;
-    private List<CourseRequest> bookmarkedCourses;
-    private List<EnrolledCourseRequest> completedCourses;
-
+    private String bio;
+    private List<String> skills;
+    private List<String> skillsInProgress;
+    
+    // Course references - now using IDs instead of full objects
+    private List<String> enrolledCourseIds;
+    private List<String> bookmarkedCourseIds;
+    private List<String> completedCourseIds;
 }
