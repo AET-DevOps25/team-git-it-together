@@ -32,11 +32,10 @@ const AppRoutes = () => (
 
     <Route path="/courses" element={<RequireAny><Courses /></RequireAny>}/>
 
-    { /* Uncomment these routes when the components are available */ }
-    <Route path="/about" element={<About />} />
-    <Route path="/privacy" element={<PrivacyPolicy />} />
-    <Route path="/terms" element={<TermsOfService />} />
-    <Route path="/cookies" element={<CookiePolicy />} />
+    <Route path="/about" element={<RequireAny><About /></RequireAny>} />
+    <Route path="/privacy" element={<RequireAny><PrivacyPolicy /></RequireAny>} />
+    <Route path="/terms" element={<RequireAny><TermsOfService /></RequireAny>} />
+    <Route path="/cookies" element={<RequireAny><CookiePolicy /></RequireAny>} />
 
     {/* PUBLIC ONLY */}
     <Route path="/login" element={<RequireGuest><Login /></RequireGuest>} />

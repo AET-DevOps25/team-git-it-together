@@ -245,7 +245,7 @@ const Dashboard = () => {
                             <span>
                               {course.completedLessons}/{course.totalLessons} lessons
                             </span>
-                            <span>{course.progress}% complete</span>
+                            <span>{course.progress.toFixed(2)}% complete</span>
                           </div>
                         </div>
                       ));
@@ -293,7 +293,7 @@ const Dashboard = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>Progress</span>
-                            <span className="font-medium">{course.progress}%</span>
+                            <span className="font-medium">{course.progress.toFixed(2)}%</span>
                           </div>
                           <Progress value={course.progress} className="h-3" />
                         </div>
@@ -338,7 +338,7 @@ const Dashboard = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span>Progress</span>
-                            <span className="font-medium">{course.progress}%</span>
+                            <span className="font-medium">{course.progress.toFixed(2)}%</span>
                           </div>
                           <Progress value={course.progress} className="h-3" />
                         </div>
