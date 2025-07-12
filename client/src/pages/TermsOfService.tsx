@@ -42,12 +42,12 @@ const TermsOfService = () => {
                 SkillForge is an AI-powered learning platform that provides:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• AI-curated educational courses and learning paths</li>
-                <li>• Personalized learning experiences and recommendations</li>
-                <li>• Progress tracking and achievement systems</li>
-                <li>• Interactive AI chat assistant for learning support</li>
-                <li>• Course bookmarking and organization tools</li>
-                <li>• Community features and collaboration opportunities</li>
+                <li>AI-curated educational courses and learning paths</li>
+                <li>Personalized learning experiences and recommendations</li>
+                <li>Progress tracking and achievement systems</li>
+                <li>Interactive AI chat assistant for learning support</li>
+                <li>Course bookmarking and organization tools</li>
+                <li>Community features and collaboration opportunities</li>
               </ul>
             </div>
           </section>
@@ -84,14 +84,14 @@ const TermsOfService = () => {
             <div className="space-y-4 text-gray-600">
               <p>You agree not to use the service to:</p>
               <ul className="space-y-2 ml-6">
-                <li>• Violate any applicable laws, regulations, or third-party rights</li>
-                <li>• Infringe on intellectual property rights or privacy rights</li>
-                <li>• Harass, abuse, threaten, or harm other users or individuals</li>
-                <li>• Attempt to gain unauthorized access to our systems or other users' accounts</li>
-                <li>• Interfere with the proper functioning of the platform or its security measures</li>
-                <li>• Share inappropriate, offensive, or harmful content</li>
-                <li>• Use automated systems to access the service without permission</li>
-                <li>• Reverse engineer, decompile, or attempt to extract source code</li>
+                <li>Violate any applicable laws, regulations, or third-party rights</li>
+                <li>Infringe on intellectual property rights or privacy rights</li>
+                <li>Harass, abuse, threaten, or harm other users or individuals</li>
+                <li>Attempt to gain unauthorized access to our systems or other users' accounts</li>
+                <li>Interfere with the proper functioning of the platform or its security measures</li>
+                <li>Share inappropriate, offensive, or harmful content</li>
+                <li>Use automated systems to access the service without permission</li>
+                <li>Reverse engineer, decompile, or attempt to extract source code</li>
               </ul>
             </div>
           </section>
@@ -199,7 +199,7 @@ const TermsOfService = () => {
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">13. Contact Information</h2>
             <p className="text-gray-600">
-              If you have any questions about these Terms of Service, please contact us at legal@skillforge.ai or through our platform's support system.
+              If you have any questions about these Terms of Service, please contact us at TODO.
             </p>
           </section>
         </div>

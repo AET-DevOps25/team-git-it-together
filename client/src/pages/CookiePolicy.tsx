@@ -48,11 +48,11 @@ const CookiePolicy = () => {
                 They help us provide you with a better experience by:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• Remembering your preferences and settings</li>
-                <li>• Understanding how you use our platform</li>
-                <li>• Providing personalized content and recommendations</li>
-                <li>• Ensuring security and preventing fraud</li>
-                <li>• Improving website performance and functionality</li>
+                <li>Remembering your preferences and settings</li>
+                <li>Understanding how you use our platform</li>
+                <li>Providing personalized content and recommendations</li>
+                <li>Ensuring security and preventing fraud</li>
+                <li>Improving website performance and functionality</li>
               </ul>
               <p>
                 We also use similar technologies such as web beacons, pixel tags, and local storage to enhance your experience.
@@ -71,10 +71,10 @@ const CookiePolicy = () => {
                     <p><strong>Purpose:</strong> These cookies are necessary for the website to function properly and cannot be switched off.</p>
                     <p className="mt-2"><strong>Examples:</strong></p>
                     <ul className="mt-2 ml-6 space-y-1">
-                      <li>• Authentication and session management</li>
-                      <li>• Security features and CSRF protection</li>
-                      <li>• Basic functionality and navigation</li>
-                      <li>• Shopping cart and checkout processes</li>
+                      <li>Authentication and session management</li>
+                      <li>Security features and CSRF protection</li>
+                      <li>Basic functionality and navigation</li>
+                      <li>Shopping cart and checkout processes</li>
                     </ul>
                     <p className="mt-2"><strong>Legal Basis:</strong> Legitimate interest (necessary for service provision)</p>
                   </div>
@@ -89,10 +89,10 @@ const CookiePolicy = () => {
                     <p><strong>Purpose:</strong> These cookies enable enhanced functionality and personalization.</p>
                     <p className="mt-2"><strong>Examples:</strong></p>
                     <ul className="mt-2 ml-6 space-y-1">
-                      <li>• Language and regional preferences</li>
-                      <li>• Learning progress and course preferences</li>
-                      <li>• User interface customization</li>
-                      <li>• Remembering your login status</li>
+                      <li>Language and regional preferences</li>
+                      <li>Learning progress and course preferences</li>
+                      <li>User interface customization</li>
+                      <li>Remembering your login status</li>
                     </ul>
                     <p className="mt-2"><strong>Legal Basis:</strong> Consent or legitimate interest</p>
                   </div>
@@ -107,10 +107,10 @@ const CookiePolicy = () => {
                     <p><strong>Purpose:</strong> These cookies help us understand how visitors interact with our platform.</p>
                     <p className="mt-2"><strong>Examples:</strong></p>
                     <ul className="mt-2 ml-6 space-y-1">
-                      <li>• Page views and navigation patterns</li>
-                      <li>• Feature usage and engagement metrics</li>
-                      <li>• Performance monitoring and error tracking</li>
-                      <li>• User journey analysis</li>
+                      <li>Page views and navigation patterns</li>
+                      <li>Feature usage and engagement metrics</li>
+                      <li>Performance monitoring and error tracking</li>
+                      <li>User journey analysis</li>
                     </ul>
                     <p className="mt-2"><strong>Legal Basis:</strong> Consent</p>
                   </div>
@@ -125,10 +125,10 @@ const CookiePolicy = () => {
                     <p><strong>Purpose:</strong> These cookies are used to deliver relevant advertisements and track marketing campaign performance.</p>
                     <p className="mt-2"><strong>Examples:</strong></p>
                     <ul className="mt-2 ml-6 space-y-1">
-                      <li>• Targeted advertising and retargeting</li>
-                      <li>• Social media integration and sharing</li>
-                      <li>• Email marketing campaign tracking</li>
-                      <li>• Conversion tracking and attribution</li>
+                      <li>Targeted advertising and retargeting</li>
+                      <li>Social media integration and sharing</li>
+                      <li>Email marketing campaign tracking</li>
+                      <li>Conversion tracking and attribution</li>
                     </ul>
                     <p className="mt-2"><strong>Legal Basis:</strong> Consent</p>
                   </div>
@@ -185,11 +185,11 @@ const CookiePolicy = () => {
                 </div>
               </div>
               <ul className="space-y-2 ml-6">
-                <li>• <strong>Session Cookies:</strong> Deleted when you close your browser (typically 1-24 hours)</li>
-                <li>• <strong>Persistent Cookies:</strong> Remain until they expire or are manually deleted (typically 30 days to 2 years)</li>
-                <li>• <strong>Essential Cookies:</strong> Usually session-based or expire within 24 hours</li>
-                <li>• <strong>Analytics Cookies:</strong> Typically stored for 1-2 years</li>
-                <li>• <strong>Marketing Cookies:</strong> Usually stored for 30-90 days</li>
+                <li><strong>Session Cookies:</strong> Deleted when you close your browser (typically 1-24 hours)</li>
+                <li><strong>Persistent Cookies:</strong> Remain until they expire or are manually deleted (typically 30 days to 2 years)</li>
+                <li><strong>Essential Cookies:</strong> Usually session-based or expire within 24 hours</li>
+                <li><strong>Analytics Cookies:</strong> Typically stored for 1-2 years</li>
+                <li><strong>Marketing Cookies:</strong> Usually stored for 30-90 days</li>
               </ul>
             </div>
           </section>
@@ -203,28 +203,28 @@ const CookiePolicy = () => {
                   <h4 className="font-semibold text-gray-900 mb-2">Browser Settings</h4>
                   <p>Most browsers allow you to manage cookies through settings. You can:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• Block all cookies or specific types of cookies</li>
-                    <li>• Delete existing cookies</li>
-                    <li>• Set preferences for future cookies</li>
-                    <li>• Enable "Do Not Track" signals</li>
+                    <li>Block all cookies or specific types of cookies</li>
+                    <li>Delete existing cookies</li>
+                    <li>Set preferences for future cookies</li>
+                    <li>Enable "Do Not Track" signals</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Cookie Consent Banner</h4>
                   <p>Use our cookie consent banner to manage your preferences for non-essential cookies. You can:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• Accept or reject specific cookie categories</li>
-                    <li>• Change your preferences at any time</li>
-                    <li>• Withdraw consent for previously accepted cookies</li>
+                    <li>Accept or reject specific cookie categories</li>
+                    <li>Change your preferences at any time</li>
+                    <li>Withdraw consent for previously accepted cookies</li>
                   </ul>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Third-Party Opt-outs</h4>
                   <p>Visit third-party websites to opt out of their cookies:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Analytics Opt-out</a></li>
-                    <li>• Facebook: <a href="https://www.facebook.com/help/568137493302217" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Facebook Cookie Settings</a></li>
-                    <li>• Twitter: <a href="https://help.twitter.com/en/rules-and-policies/twitter-cookies" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Twitter Cookie Policy</a></li>
+                    <li>Google Analytics: <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Analytics Opt-out</a></li>
+                    <li>Facebook: <a href="https://www.facebook.com/help/568137493302217" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Facebook Cookie Settings</a></li>
+                    <li>Twitter: <a href="https://help.twitter.com/en/rules-and-policies/twitter-cookies" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Twitter Cookie Policy</a></li>
                   </ul>
                 </div>
               </div>
@@ -243,10 +243,10 @@ const CookiePolicy = () => {
                 Under the General Data Protection Regulation (GDPR), we are required to obtain your consent before setting non-essential cookies.
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• <strong>Consent:</strong> We will ask for your explicit consent before setting non-essential cookies</li>
-                <li>• <strong>Granular Control:</strong> You can choose which types of cookies to accept</li>
-                <li>• <strong>Withdrawal:</strong> You can withdraw your consent at any time</li>
-                <li>• <strong>Transparency:</strong> We provide clear information about what each cookie does</li>
+                <li><strong>Consent:</strong> We will ask for your explicit consent before setting non-essential cookies</li>
+                <li><strong>Granular Control:</strong> You can choose which types of cookies to accept</li>
+                <li><strong>Withdrawal:</strong> You can withdraw your consent at any time</li>
+                <li><strong>Transparency:</strong> We provide clear information about what each cookie does</li>
               </ul>
               <p>
                 Essential cookies are set based on legitimate interest as they are necessary for the website to function.
@@ -261,10 +261,10 @@ const CookiePolicy = () => {
                 Our mobile applications may use similar tracking technologies, including:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• Device identifiers and advertising IDs</li>
-                <li>• Local storage and app preferences</li>
-                <li>• Analytics and crash reporting</li>
-                <li>• Push notification tokens</li>
+                <li>Device identifiers and advertising IDs</li>
+                <li>Local storage and app preferences</li>
+                <li>Analytics and crash reporting</li>
+                <li>Push notification tokens</li>
               </ul>
               <p>
                 You can manage these settings through your device's privacy settings or within the app itself.
@@ -280,10 +280,10 @@ const CookiePolicy = () => {
                 We will notify you of any material changes by:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• Posting the updated policy on our website</li>
-                <li>• Sending you an email notification</li>
-                <li>• Displaying a notice on our platform</li>
-                <li>• Requiring renewed consent for cookie categories that have changed</li>
+                <li>Posting the updated policy on our website</li>
+                <li>Sending you an email notification</li>
+                <li>Displaying a notice on our platform</li>
+                <li>Requiring renewed consent for cookie categories that have changed</li>
               </ul>
               <p>
                 Your continued use of our service after any changes indicates your acceptance of the updated policy.
@@ -298,9 +298,9 @@ const CookiePolicy = () => {
                 If you have any questions about our use of cookies or this Cookie Policy, please contact us:
               </p>
               <div className="space-y-2">
-                <p><strong>Email:</strong> privacy@skillforge.ai</p>
-                <p><strong>Support:</strong> Through our platform's help center</p>
-                <p><strong>Data Protection Officer:</strong> dpo@skillforge.ai</p>
+                <p><strong>Email:</strong> TODO</p>
+                <p><strong>Support:</strong> TODO</p>
+                <p><strong>Data Protection Officer:</strong> TODO</p>
               </div>
               <p>
                 For EU residents, you also have the right to lodge a complaint with your local data protection authority regarding our cookie practices.

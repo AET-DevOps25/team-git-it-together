@@ -44,10 +44,10 @@ const PrivacyPolicy = () => {
                   <h3 className="font-semibold text-gray-900">Personal Information</h3>
                   <p>We collect information you provide directly to us, including:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• Name, email address, and contact information</li>
-                    <li>• Account credentials and profile information</li>
-                    <li>• Learning preferences and educational background</li>
-                    <li>• Communication preferences and settings</li>
+                    <li>Name, email address, and contact information</li>
+                    <li>Account credentials and profile information</li>
+                    <li>Learning preferences and educational background</li>
+                    <li>Communication preferences and settings</li>
                   </ul>
                 </div>
               </div>
@@ -57,10 +57,10 @@ const PrivacyPolicy = () => {
                   <h3 className="font-semibold text-gray-900">Usage Data</h3>
                   <p>We automatically collect information about your use of our platform:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• Course progress, completion rates, and learning patterns</li>
-                    <li>• Interaction with AI features and chat assistant</li>
-                    <li>• Bookmarked courses and learning preferences</li>
-                    <li>• Achievement and progress tracking data</li>
+                    <li>Course progress, completion rates, and learning patterns</li>
+                    <li>Interaction with AI features and chat assistant</li>
+                    <li>Bookmarked courses and learning preferences</li>
+                    <li>Achievement and progress tracking data</li>
                   </ul>
                 </div>
               </div>
@@ -70,10 +70,10 @@ const PrivacyPolicy = () => {
                   <h3 className="font-semibold text-gray-900">Technical Information</h3>
                   <p>We collect technical information about your device and connection:</p>
                   <ul className="mt-2 ml-6 space-y-1">
-                    <li>• IP address, browser type, and operating system</li>
-                    <li>• Device identifiers and mobile network information</li>
-                    <li>• Usage analytics and performance metrics</li>
-                    <li>• Error logs and crash reports</li>
+                    <li>IP address, browser type, and operating system</li>
+                    <li>Device identifiers and mobile network information</li>
+                    <li>Usage analytics and performance metrics</li>
+                    <li>Error logs and crash reports</li>
                   </ul>
                 </div>
               </div>
@@ -85,13 +85,13 @@ const PrivacyPolicy = () => {
             <div className="space-y-4 text-gray-600">
               <p>We use your information for the following purposes:</p>
               <ul className="space-y-2 ml-6">
-                <li>• <strong>Service Provision:</strong> Provide and maintain our learning platform and features</li>
-                <li>• <strong>Personalization:</strong> Create personalized learning experiences and recommendations</li>
-                <li>• <strong>Progress Tracking:</strong> Monitor and track your learning progress and achievements</li>
-                <li>• <strong>Communication:</strong> Send important updates, notifications, and support messages</li>
-                <li>• <strong>Improvement:</strong> Analyze usage patterns to improve our services and develop new features</li>
-                <li>• <strong>Security:</strong> Ensure platform security, prevent fraud, and protect user accounts</li>
-                <li>• <strong>Compliance:</strong> Comply with legal obligations and enforce our terms of service</li>
+                <li><strong>Service Provision:</strong> Provide and maintain our learning platform and features</li>
+                <li><strong>Personalization:</strong> Create personalized learning experiences and recommendations</li>
+                <li><strong>Progress Tracking:</strong> Monitor and track your learning progress and achievements</li>
+                <li><strong>Communication:</strong> Send important updates, notifications, and support messages</li>
+                <li><strong>Improvement:</strong> Analyze usage patterns to improve our services and develop new features</li>
+                <li><strong>Security:</strong> Ensure platform security, prevent fraud, and protect user accounts</li>
+                <li><strong>Compliance:</strong> Comply with legal obligations and enforce our terms of service</li>
               </ul>
             </div>
           </section>
@@ -147,11 +147,11 @@ const PrivacyPolicy = () => {
               </div>
             </div>
             <ul className="space-y-2 text-gray-600">
-              <li>• <strong>Encryption:</strong> All data is encrypted in transit (TLS/SSL) and at rest (AES-256)</li>
-              <li>• <strong>Access Controls:</strong> Strict access controls and authentication measures</li>
-              <li>• <strong>Regular Audits:</strong> Security assessments and vulnerability testing</li>
-              <li>• <strong>Data Backup:</strong> Secure backup procedures and disaster recovery</li>
-              <li>• <strong>Employee Training:</strong> Regular security training for all staff</li>
+              <li><strong>Encryption:</strong> All data is encrypted in transit (TLS/SSL) and at rest (AES-256)</li>
+              <li><strong>Access Controls:</strong> Strict access controls and authentication measures</li>
+              <li><strong>Regular Audits:</strong> Security assessments and vulnerability testing</li>
+              <li><strong>Data Backup:</strong> Secure backup procedures and disaster recovery</li>
+              <li><strong>Employee Training:</strong> Regular security training for all staff</li>
             </ul>
           </section>
 
@@ -160,13 +160,13 @@ const PrivacyPolicy = () => {
             <div className="space-y-4 text-gray-600">
               <p>You have the following rights regarding your personal information:</p>
               <ul className="space-y-2 ml-6">
-                <li>• <strong>Access:</strong> Request access to your personal information and receive a copy</li>
-                <li>• <strong>Correction:</strong> Request correction of inaccurate or incomplete information</li>
-                <li>• <strong>Deletion:</strong> Request deletion of your personal information (right to be forgotten)</li>
-                <li>• <strong>Portability:</strong> Request a copy of your data in a structured, machine-readable format</li>
-                <li>• <strong>Restriction:</strong> Request restriction of processing in certain circumstances</li>
-                <li>• <strong>Objection:</strong> Object to processing based on legitimate interests</li>
-                <li>• <strong>Withdrawal:</strong> Withdraw consent at any time where processing is based on consent</li>
+                <li><strong>Access:</strong> Request access to your personal information and receive a copy</li>
+                <li><strong>Correction:</strong> Request correction of inaccurate or incomplete information</li>
+                <li><strong>Deletion:</strong> Request deletion of your personal information (right to be forgotten)</li>
+                <li><strong>Portability:</strong> Request a copy of your data in a structured, machine-readable format</li>
+                <li><strong>Restriction:</strong> Request restriction of processing in certain circumstances</li>
+                <li><strong>Objection:</strong> Object to processing based on legitimate interests</li>
+                <li><strong>Withdrawal:</strong> Withdraw consent at any time where processing is based on consent</li>
               </ul>
               <p className="mt-4">
                 To exercise these rights, please contact us at privacy@skillforge.ai. We will respond to your request within 30 days.
@@ -179,10 +179,10 @@ const PrivacyPolicy = () => {
             <div className="space-y-4 text-gray-600">
               <p>We retain your personal information only as long as necessary to:</p>
               <ul className="space-y-2 ml-6">
-                <li>• Provide our services and maintain your account</li>
-                <li>• Comply with legal obligations and regulatory requirements</li>
-                <li>• Resolve disputes and enforce our agreements</li>
-                <li>• Improve our services and develop new features</li>
+                <li>Provide our services and maintain your account</li>
+                <li>Comply with legal obligations and regulatory requirements</li>
+                <li>Resolve disputes and enforce our agreements</li>
+                <li>Improve our services and develop new features</li>
               </ul>
               <p>
                 When we no longer need your information, we will securely delete or anonymize it. Account data is typically retained for 3 years after account deletion, while usage analytics may be retained for up to 2 years.
@@ -197,9 +197,9 @@ const PrivacyPolicy = () => {
                 Your information may be transferred to and processed in countries other than your own. We ensure appropriate safeguards are in place for international transfers, including:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• Standard contractual clauses approved by the European Commission</li>
-                <li>• Adequacy decisions for countries with equivalent data protection standards</li>
-                <li>• Other appropriate safeguards as required by applicable law</li>
+                <li>Standard contractual clauses approved by the European Commission</li>
+                <li>Adequacy decisions for countries with equivalent data protection standards</li>
+                <li>Other appropriate safeguards as required by applicable law</li>
               </ul>
             </div>
           </section>
@@ -208,7 +208,7 @@ const PrivacyPolicy = () => {
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">10. Cookies and Tracking Technologies</h2>
             <div className="space-y-4 text-gray-600">
               <p>
-                We use cookies and similar tracking technologies to enhance your experience. For detailed information about our use of cookies, please see our <Link to="/cookie-policy" className="text-blue-600 hover:underline">Cookie Policy</Link>.
+                We use cookies and similar tracking technologies to enhance your experience. For detailed information about our use of cookies, please see our <Link to="/cookies" className="text-blue-600 hover:underline">Cookie Policy</Link>.
               </p>
             </div>
           </section>
@@ -229,9 +229,9 @@ const PrivacyPolicy = () => {
                 We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of any material changes by:
               </p>
               <ul className="space-y-2 ml-6">
-                <li>• Posting the updated policy on our website</li>
-                <li>• Sending you an email notification</li>
-                <li>• Displaying a notice on our platform</li>
+                <li>Posting the updated policy on our website</li>
+                <li>Sending you an email notification</li>
+                <li>Displaying a notice on our platform</li>
               </ul>
               <p>
                 Your continued use of our service after any changes indicates your acceptance of the updated policy.
@@ -246,9 +246,9 @@ const PrivacyPolicy = () => {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <div className="space-y-2">
-                <p><strong>Email:</strong> privacy@skillforge.ai</p>
-                <p><strong>Support:</strong> Through our platform's help center</p>
-                <p><strong>Data Protection Officer:</strong> dpo@skillforge.ai</p>
+                <p><strong>Email:</strong> TODO</p>
+                <p><strong>Support:</strong> TODO</p>
+                <p><strong>Data Protection Officer:</strong> TODO</p>
               </div>
               <p>
                 For EU residents, you also have the right to lodge a complaint with your local data protection authority.
