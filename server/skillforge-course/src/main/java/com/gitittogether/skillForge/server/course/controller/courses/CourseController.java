@@ -131,8 +131,8 @@ private String userServiceUri;
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Boolean isPublished,
-            @RequestParam(required = false) Boolean isPublic
+            @RequestParam(required = false) boolean isPublished,
+            @RequestParam(required = false) boolean isPublic
     ) {
         log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}, isPublished={}, isPublic={}",
                 instructor, level, language, skill, category, title, isPublished, isPublic);
