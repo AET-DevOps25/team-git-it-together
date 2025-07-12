@@ -55,20 +55,29 @@ TAGS_METADATA = [
 # -------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Service starting up...")
-    try:
-        # Example: Create client connections here
-        client = get_weaviate_client()
-        logger.info("Testing Weaviate connection...")
-        test_weaviate_connection()
-        logger.info("Ensuring Weaviate schema exists...")
-        ensure_schema_exists(client)
-        logger.info("Everything is set up successfully and ready to go!")
-    except Exception as e:
-        logger.error(f"Error during startup: {e}", exc_info=True)
-        raise RuntimeError("Failed during application startup.") from e
-    yield
-    logger.info("Service shutting down...")
+   logger.info("Service starting up...")
+   try:
+       # Example: Create client connections here
+       client = get_weaviate_client()
+       logger.info("Testing Weaviate connection...")
+       test_weaviate_connection()
+       logger.info("Ensuring Weaviate schema exists...")
+       ensure_schema_exists(client)
+       logger.info("Everything is set up successfully and ready to go!")
+      
+       # Start the blog embedder scheduler
+       logger.info("Starting blog embedder scheduler...")
+       start_scheduler()
+      
+   except Exception as e:
+       logger.error(f"Error during startup: {e}", exc_info=True)
+       raise RuntimeError("Failed during application startup.") from e
+   yield
+   logger.info("Service shutting down...")
+  
+   # Stop the scheduler on shutdown
+   logger.info("Stopping blog embedder scheduler...")
+   stop_scheduler()
 
 # --- App Initialization ---
 app = FastAPI(
