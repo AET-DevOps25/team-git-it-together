@@ -48,6 +48,7 @@ TAGS_METADATA = [
     {"name": "Crawler", "description": "Crawl and clean website content."},
     {"name": "Embedder", "description": "Chunk and embed text to vector DB."},
     {"name": "LLM", "description": "Language Model completions and chat."},
+    {"name": "Scheduler", "description": "Scheduled background jobs and automation."},
 ]
 
 # -------------------------------
