@@ -92,7 +92,7 @@ const AIChatAssistant: React.FC<AIChatAssistantProps> = ({
     if (isCourseGeneration && !disableCourseGeneration) {
       setMessages(prev => [...prev, {
         id: (Date.now() + 0.5).toString(),
-        text: `🚀 **Launching Course Generation...**\n\n✨ I'm crafting your personalized learning journey through the cosmos of knowledge! This might take a moment as I:\n\n• 🌟 Analyze your skills\n\n• 🪐 Navigate through my knowledge base\n\n• ⭐ Structure the perfect learning path for you\n\n**Please hold on while I work my AI magic!** 🔮\n\n*This process typically takes 30-120 seconds...*`,
+        text: `🚀 **Launching Course Generation...**\n\n✨ I'm crafting your personalized learning journey through the cosmos of knowledge! This might take a moment as I:\n\n• 🌟 Analyze your skills\n\n• 🪐 Navigate through my knowledge base\n\n• ⭐ Structure the perfect learning path for you\n\n**Please hold on while I work my AI magic!** 🔮\n\n*This process can take up to 5 minutes...*`,
         sender: 'ai',
         timestamp: new Date()
       }]);

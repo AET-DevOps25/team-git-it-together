@@ -20,6 +20,7 @@ import * as courseService from '@/services/course.service';
 import type { CourseResponse } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { LessonContentType } from '@/types/utils/LessonContentType';
 import type { LessonContent } from '@/types/utils/LessonContent';
 
@@ -239,6 +240,11 @@ const LessonPage = () => {
     navigate(`/courses/${courseId}/lessons/${lessonOrder}`);
   };
 
+  const truncateText = (text: string, maxLength: number = 30) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
   // Show loading state
   if (authLoading || loading) {
     return (
@@ -357,8 +363,8 @@ const LessonPage = () => {
                   switch (type) {
                     case LessonContentType.TEXT:
                       return (
-                        <div className="prose max-w-none">
-                          <ReactMarkdown>{content}</ReactMarkdown>
+                        <div className="prose max-w-none prose-table:border prose-table:border-gray-300 prose-th:border prose-th:border-gray-300 prose-th:bg-gray-50 prose-th:p-2 prose-td:border prose-td:border-gray-300 prose-td:p-2">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
                         </div>
                       );
                     case LessonContentType.HTML:
@@ -521,8 +527,8 @@ const LessonPage = () => {
                       className="w-full justify-start"
                       onClick={() => navigateToLesson(prevLesson.lesson.order)}
                     >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Previous: {prevLesson.lesson.title}
+                      <ArrowLeft className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Previous: {truncateText(prevLesson.lesson.title)}</span>
                     </Button>
                   )}
                   
@@ -532,8 +538,8 @@ const LessonPage = () => {
                       className="w-full justify-start"
                       onClick={() => navigateToLesson(nextLesson.lesson.order)}
                     >
-                      Next: {nextLesson.lesson.title}
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <span className="truncate">Next: {truncateText(nextLesson.lesson.title)}</span>
+                      <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                     </Button>
                   )}
                   
