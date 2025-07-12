@@ -20,3 +20,7 @@ genai-devops25-env/
 
 # Misc
 *.log
+
+# Scheduler cache
+scheduler_cache.json
+src/services/scheduler/scheduler_cache.json
