@@ -53,7 +53,7 @@ public class CourseServiceImpl implements CourseService {
     private MongoTemplate mongoTemplate;
 
     // Shared cache value containing (userId, CourseRequest) to have last generated course for a given user
-    static final HashMap<String, CourseRequest> LAST_GENERATED_COURSES = new HashMap<>();
+    static final ConcurrentHashMap<String, CourseRequest> LAST_GENERATED_COURSES = new ConcurrentHashMap<>();
 
     
     @Override
