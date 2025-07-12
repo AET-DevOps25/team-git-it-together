@@ -221,30 +221,30 @@ const Dashboard = () => {
                       }
                       
                       return coursesToShow.map((course) => (
-                        <div
-                          key={course.id}
-                          className="rounded-lg border p-4 transition-shadow hover:shadow-md"
-                        >
-                          <div className="mb-3 flex items-start justify-between">
-                            <div>
-                              <h3 className="font-semibold text-gray-900">{course.title}</h3>
+                      <div
+                        key={course.id}
+                        className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                      >
+                        <div className="mb-3 flex items-start justify-between">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{course.title}</h3>
                               <p className="mb-2 text-sm text-gray-600">
                                 {course.progress > 0 ? `Next: ${course.nextLesson}` : 'Ready to start'}
                               </p>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="secondary">{course.category}</Badge>
-                                <Badge variant="outline">{course.difficulty}</Badge>
-                              </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="secondary">{course.category}</Badge>
+                              <Badge variant="outline">{course.difficulty}</Badge>
                             </div>
-                            <Button size="sm" onClick={() => handleContinueCourse(course)}>
-                              {course.progress > 0 ? 'Continue' : 'Start'}
-                            </Button>
                           </div>
-                          <Progress value={course.progress} className="h-2" />
-                          <div className="mt-2 flex justify-between text-sm text-gray-600">
-                            <span>
-                              {course.completedLessons}/{course.totalLessons} lessons
-                            </span>
+                          <Button size="sm" onClick={() => handleContinueCourse(course)}>
+                              {course.progress > 0 ? 'Continue' : 'Start'}
+                          </Button>
+                        </div>
+                        <Progress value={course.progress} className="h-2" />
+                        <div className="mt-2 flex justify-between text-sm text-gray-600">
+                          <span>
+                            {course.completedLessons}/{course.totalLessons} lessons
+                          </span>
                             <span>{course.progress.toFixed(2)}% complete</span>
                           </div>
                         </div>
@@ -257,8 +257,8 @@ const Dashboard = () => {
               {/* AI Chat Assistant */}
               <AIChatAssistant 
                 userSkills={[
-                  ...(dashboardData.skillsInProgress || []),
-                  ...(dashboardData.currentSkills || [])
+                ...(dashboardData.skillsInProgress || []),
+                ...(dashboardData.currentSkills || [])
                 ]} 
                 disableCourseGeneration={true}
               />
@@ -346,7 +346,7 @@ const Dashboard = () => {
                     </Card>
                   ))}
                 </div>
-              )}              
+              )}
 
               {enrolledCourses.length === 0 && completedCourses.length === 0 && localBookmarkedCourses.length === 0 && (
                 <div className="text-center py-8">
@@ -390,21 +390,21 @@ const Dashboard = () => {
                               onClick={(event) => {
                                 event.stopPropagation();
                                 // In bookmarks tab, we only unbookmark courses
-                                courseService.unbookmarkCourse(course.id, user.id).then(() => {
+                                  courseService.unbookmarkCourse(course.id, user.id).then(() => {
                                   // Update local state only - no need to call updateUserBookmarks since we're already updating local state
-                                  setLocalBookmarkedCourses(prev => prev.filter(c => c.id !== course.id));
-                                  toast({
-                                    title: 'Bookmark Removed',
-                                    description: 'Course removed from your bookmarks.',
-                                    variant: 'default',
+                                    setLocalBookmarkedCourses(prev => prev.filter(c => c.id !== course.id));
+                                    toast({
+                                      title: 'Bookmark Removed',
+                                      description: 'Course removed from your bookmarks.',
+                                      variant: 'default',
+                                    });
+                                  }).catch((err: any) => {
+                                    toast({
+                                      title: 'Bookmark Failed',
+                                      description: err.message || 'Could not remove bookmark.',
+                                      variant: 'destructive',
+                                    });
                                   });
-                                }).catch((err: any) => {
-                                  toast({
-                                    title: 'Bookmark Failed',
-                                    description: err.message || 'Could not remove bookmark.',
-                                    variant: 'destructive',
-                                  });
-                                });
                               }}
                               className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-blue-600 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200"
                             >

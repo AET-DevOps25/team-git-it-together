@@ -188,7 +188,7 @@ const AiCenter = () => {
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">File Analysis Coming Soon</h3>
                   <p className="text-gray-500 mb-4">
                     We're working on bringing you the ability to upload and analyze documents, PDFs, and images.
-                  </p>
+                      </p>
                   <p className="text-sm text-gray-400">
                     This feature will allow you to extract learning content from your files and contribute to our knowledge base.
                   </p>

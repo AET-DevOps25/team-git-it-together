@@ -23,6 +23,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { LessonContentType } from '@/types/utils/LessonContentType';
 import type { LessonContent } from '@/types/utils/LessonContent';
+import MarkdownCodeBlock from '@/components/MarkdownCodeBlock';
 
 const LessonPage = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
@@ -245,6 +246,17 @@ const LessonPage = () => {
     return text.substring(0, maxLength) + '...';
   };
 
+  // Utility function to process markdown content
+  const processMarkdownContent = (content: string): string => {
+    return content
+      .replace(/\\n/g, '\n') // Replace literal \n with actual line breaks
+      .replace(/\\t/g, '\t') // Replace literal \t with actual tabs
+      .replace(/\\"/g, '"') // Replace literal \" with actual quotes
+      .replace(/\\'/g, "'") // Replace literal \' with actual single quotes
+      .replace(/\\r/g, '\r') // Replace literal \r with actual carriage returns
+      .trim(); // Remove leading/trailing whitespace
+  };
+
   // Show loading state
   if (authLoading || loading) {
     return (
@@ -361,12 +373,53 @@ const LessonPage = () => {
                 {(() => {
                   const { type, content } = currentLesson.content;
                   switch (type) {
-                    case LessonContentType.TEXT:
+                    case LessonContentType.TEXT: {
+                      // Process markdown content to fix escaped characters
+                      const processedContent = processMarkdownContent(content);
+                      
                       return (
-                        <div className="prose max-w-none prose-table:border prose-table:border-gray-300 prose-th:border prose-th:border-gray-300 prose-th:bg-gray-50 prose-th:p-2 prose-td:border prose-td:border-gray-300 prose-td:p-2">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                        <div className="prose max-w-none
+                          prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
+                          prose-h1:text-3xl prose-h1:font-bold
+                          prose-h2:text-2xl prose-h2:font-semibold
+                          prose-h3:text-xl prose-h3:font-semibold
+                          prose-p:text-slate-700 prose-p:leading-7 prose-p:mb-6
+                          prose-strong:text-slate-900 prose-strong:font-semibold
+                          prose-em:text-slate-700 prose-em:italic
+                          prose-ul:text-slate-700 prose-ul:my-6 prose-ul:space-y-2
+                          prose-ol:text-slate-700 prose-ol:my-6 prose-ol:space-y-2
+                          prose-li:text-slate-700 prose-li:marker:text-slate-400
+                          prose-code:bg-slate-100 prose-code:text-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-sm prose-code:font-medium
+                          prose-pre:bg-transparent prose-pre:text-slate-100 prose-pre:rounded-xl prose-pre:p-0 prose-pre:overflow-x-auto prose-pre:shadow-none prose-pre:border-0 prose-pre-code:bg-transparent prose-pre-code:text-slate-100
+                          prose-blockquote:border-l-slate-200 prose-blockquote:bg-slate-50 prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-blockquote:text-slate-600
+                          prose-table:border prose-table:border-slate-200 prose-table:rounded-lg prose-table:overflow-hidden prose-th:border prose-th:border-slate-200 prose-th:bg-slate-50 prose-th:p-3 prose-th:font-semibold prose-td:border prose-td:border-slate-200 prose-td:p-3
+                          prose-hr:border-slate-200 prose-hr:my-8
+                          prose-a:text-blue-600 prose-a:font-medium prose-a:no-underline hover:prose-a:text-blue-700 hover:prose-a:underline">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code: ({ className, children, ...props }: any) => {
+                                const isInline = !className || !className.includes('language-');
+                                if (isInline) {
+                                  return (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                }
+                                return (
+                                  <MarkdownCodeBlock className={className}>
+                                    {children}
+                                  </MarkdownCodeBlock>
+                                );
+                              }
+                            }}
+                          >
+                            {processedContent}
+                          </ReactMarkdown>
                         </div>
                       );
+                    }
                     case LessonContentType.HTML:
                       return (
                         <div 
