@@ -362,7 +362,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseSummaryResponse> getPublishedCourses() {
+    public List<CourseSummaryResponse> getAllPublished() {
         log.info("Fetching public and published courses for landing page");
 
         List<Course> publicPublishedCourses = courseRepository.findByPublishedTrue();

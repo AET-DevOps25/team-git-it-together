@@ -48,7 +48,7 @@ public interface CourseService {
      *
      * @return List of public and published course responses.
      */
-    List<CourseSummaryResponse> getPublishedCourses();
+    List<CourseSummaryResponse> getAllPublished();
 
     /**
      * Updates an existing course.
