@@ -267,6 +267,53 @@ async def generate_course(req: CourseGenerationRequest):
     except Exception as e:
         raise HTTPException(500, str(e)) from e
 
+# -------------------------------
+# --- Scheduler Endpoints -------
+# -------------------------------
+@app.get(f"{API_PREFIX}/scheduler/status", response_model=SchedulerStatus, tags=["Scheduler"])
+async def get_scheduler_status_endpoint():
+   """Get the current status of the blog embedder scheduler"""
+   return SchedulerStatus(**get_scheduler_status())
+
+
+@app.post(f"{API_PREFIX}/scheduler/control", tags=["Scheduler"])
+async def control_scheduler(request: SchedulerControl):
+   """Control the blog embedder scheduler (start/stop)"""
+   if request.action == "start":
+       start_scheduler()
+       return {"message": "Scheduler started successfully"}
+   elif request.action == "stop":
+       stop_scheduler()
+       return {"message": "Scheduler stopped successfully"}
+   else:
+       raise HTTPException(status_code=400, detail="Invalid action. Use 'start' or 'stop'")
+
+
+@app.post(f"{API_PREFIX}/scheduler/run-now", tags=["Scheduler"])
+async def run_scheduler_now():
+   """Manually trigger the blog embedder job immediately"""
+   try:
+       # Import here to avoid circular imports
+       from .services.scheduler.scheduler_service import _scheduler
+      
+       # Run the job in a separate thread to avoid blocking
+       import threading
+       def run_job():
+           import asyncio
+           async def async_job():
+               urls = await _scheduler.fetch_freecodecamp_articles()
+               await _scheduler.embed_articles(urls)
+           asyncio.run(async_job())
+      
+       thread = threading.Thread(target=run_job, daemon=True)
+       thread.start()
+      
+       return {"message": "Blog embedder job triggered successfully"}
+   except Exception as e:
+       logger.error(f"Error triggering scheduler job: {e}")
+       raise HTTPException(status_code=500, detail=f"Failed to trigger job: {str(e)}")
+
+
 
 # -------------------------------
 # --------- MAIN ----------------
