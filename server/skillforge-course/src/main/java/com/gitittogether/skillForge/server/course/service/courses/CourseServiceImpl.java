@@ -1,17 +1,26 @@
 package com.gitittogether.skillForge.server.course.service.courses;
-import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.PromptResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
-import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
 import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
+import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import com.gitittogether.skillForge.server.course.model.course.Module;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,23 +29,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import java.util.Map;
-import java.util.HashMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,6 +53,10 @@ public class CourseServiceImpl implements CourseService {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    // Shared cache value containing (userId, CourseRequest) to have last generated course for a given user
+    static final ConcurrentHashMap<String, CourseRequest> LAST_GENERATED_COURSES = new ConcurrentHashMap<>();
+
+    
     @Override
     @Transactional
     public CourseResponse createCourse(CourseRequest request) {
@@ -296,14 +300,16 @@ public class CourseServiceImpl implements CourseService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<CourseResponse> getPublicPublishedCourses() {
-        log.info("Fetching public and published courses for landing page");
 
-        List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
-        return publicPublishedCourses.stream()
-                .map(CourseMapper::toCourseResponse)
-                .collect(Collectors.toList());
+    @Override
+    public List<CourseSummaryResponse> getPublishedCourses() {
+    log.info("Fetching public and published courses for landing page");
+
+
+    List<Course> publicPublishedCourses = courseRepository.findByPublishedTrue();
+    return publicPublishedCourses.stream()
+            .map(CourseMapper::toCourseSummaryResponse)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -412,8 +418,8 @@ public class CourseServiceImpl implements CourseService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title) {
+
+    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic) {
         Query query = new Query();
         if (instructor != null && !instructor.isBlank()) {
             query.addCriteria(Criteria.where("instructor").is(instructor));
@@ -433,52 +439,236 @@ public class CourseServiceImpl implements CourseService {
         if (title != null && !title.isBlank()) {
             query.addCriteria(Criteria.where("title").regex(title, "i"));
         }
+        if (isPublished) {
+            query.addCriteria(Criteria.where("published").is(true));
+        }
+        if (isPublic) {
+            query.addCriteria(Criteria.where("public").is(true));
+        }
         List<Course> courses = mongoTemplate.find(query, Course.class);
         return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());
+     }
+     
+     
+     
+    @Override
+    public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String userId, String authHeader) {
+   // 1. Get skills from user-service, fallback to skills from the request
+   List<String> effectiveSkills = req.existingSkills();
+   String prompt = req.prompt();
+
+
+   try {
+       String profileUrl = userServiceUri + "/api/v1/users/" + userId + "/profile";
+       HttpHeaders headers = new HttpHeaders();
+       if (authHeader == null || authHeader.isBlank()) {
+           log.warn("No auth header provided, using service key only for user profile request");
+           headers.set("X-Service-Key", "course-service-key");
+       } else {
+           log.info("Using provided auth header for user profile request");
+           headers.set("Authorization", authHeader);
+           headers.set("X-Service-Key", "course-service-key");
+       }
+       HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+
+       ResponseEntity<String> profileResp = restTemplate.exchange(profileUrl, HttpMethod.GET, entity, String.class);
+
+
+       if (profileResp.getStatusCode().is2xxSuccessful() && profileResp.getBody() != null) {
+           String profileJson = profileResp.getBody();
+           log.info("User profile fetched via user-service: {}", profileJson);
+           ObjectMapper mapper = new ObjectMapper();
+           JsonNode root = mapper.readTree(profileJson);
+           JsonNode skillsNode = root.get("skills");
+           if (skillsNode != null && skillsNode.isArray() && !skillsNode.isEmpty()) {
+               effectiveSkills = mapper.convertValue(skillsNode, new TypeReference<List<String>>() {
+               });
+           }
+       } else {
+           log.warn("User service returned non-OK status: {}", profileResp.getStatusCode());
+       }
+   } catch (Exception ex) {
+       log.warn("Could not fetch or parse skills from user profile for {}: {}", userId, ex.getMessage());
+       // fallback: effectiveSkills already set to req.existingSkills()
+   }
+   log.info("▶️ Calling GenAI to generate learning-path course (prompt='{}') with effective skills={}", prompt, effectiveSkills);
+
+
+   try {
+       // 2. Build request payload for GenAI service
+       Map<String, Object> payload = new HashMap<>();
+       payload.put("prompt", prompt);
+       payload.put("existing_skills", effectiveSkills == null ? List.of() : effectiveSkills);
+
+
+       HttpHeaders headers = new HttpHeaders();
+       headers.setContentType(MediaType.APPLICATION_JSON);
+       HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
+
+
+       String endpoint = genaiServiceUri + "/api/v1/rag/generate-course";
+       ResponseEntity<String> genAiResp = restTemplate.postForEntity(endpoint, httpReq, String.class);
+
+
+       if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
+           log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
+           throw new IllegalStateException("GenAI service failed with statusCode: " + genAiResp.getStatusCode() + "or returned no courseRequest");
+       }
+
+
+       String rawJson = genAiResp.getBody();
+       ObjectMapper mapper = new ObjectMapper();
+       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+
+       CourseRequest courseReq = mapper.readValue(rawJson, CourseRequest.class);
+       // Ensure manual review before publishing
+       courseReq.setPublished(false);
+       courseReq.setPublic(false);
+
+
+       // Store the preview for user confirmation, not persist to DB
+       LAST_GENERATED_COURSES.put(userId, courseReq);
+
+
+       log.info("✅ Generated course from GenAI: {}", courseReq.getTitle());
+       return courseReq;
+   } catch (IllegalArgumentException e) {
+       log.error("❌ generateFromGenAi failed due to duplicate course title: {}", e.getMessage());
+       throw e;
+   } catch (Exception e) {
+       log.error("❌ generateFromGenAi failed: {}", e.getMessage(), e);
+       throw new RuntimeException("Failed to generate course via GenAI", e);
+   }
+}
+
+
+    @Override
+    @Transactional
+    public CourseResponse confirmCourseGeneration(String userId) {
+    try {
+        CourseRequest request = LAST_GENERATED_COURSES.get(userId);
+        if (request == null) {
+            // No course was generated for this user - we nullify the request
+            log.warn("No course request found for user {}", userId);
+            return null;
+        }
+        log.info("Confirming course generation for: {}", request.getTitle());
+        // Create and save the course
+        // Ensure the request has published set to false and public set to false
+        request.setPublished(false);
+        request.setPublic(false);
+        CourseResponse persisted = this.createCourse(request);
+        log.info("✅ Generated and persisted course id={}", persisted.getId());
+        log.info("Now enrolling user {} in the newly created course {}", userId, persisted.getId());
+        this.enrollUserInCourse(persisted.getId(), userId);
+        log.info("✅ Enrolled user {} in course {}", userId, persisted.getId());
+        // clear the last generated course for this user
+        LAST_GENERATED_COURSES.remove(userId);
+        return persisted;
+    } catch (Exception e) {
+        log.error("❌ confirmCourseGeneration failed: {}", e.getMessage(), e);
+        // We re-throw the exception to indicate failure
+        throw e;
+    }
     }
 
     @Override
-    public CourseResponse generateFromGenAi(LearningPathRequest req) {
-        log.info("▶️ Calling GenAI to generate learning-path course (prompt='{}') with existing skills={}", req.prompt(), req.existingSkills());
+    @Transactional
+    public String generateResponseFromGenAi(String prompt) {
+    try {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("prompt", prompt);
 
-        try {
-            // Build request payload for GenAI service
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("prompt", req.prompt());
-            payload.put("existing_skills", req.existingSkills() == null ? List.of() : req.existingSkills());
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-            String endpoint = genaiServiceUri + "/api/v1/rag/generate-course";
-            ResponseEntity<String> genAiResp = restTemplate.postForEntity(endpoint, httpReq, String.class);
 
-            if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
-                log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
-                throw new IllegalStateException("GenAI service failed");
-            }
+        HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
 
-            String rawJson = genAiResp.getBody();
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-            CourseRequest courseReq = mapper.readValue(rawJson, CourseRequest.class);
-            // Ensure manual review before publishing
-            courseReq.setPublished(false);
-            courseReq.setPublic(false);
+        String endpoint = genaiServiceUri + "/api/v1/generate";
+        ResponseEntity<PromptResponse> genAiResp = restTemplate.postForEntity(endpoint, httpReq, PromptResponse.class);
 
-            // Persist via existing logic
-            CourseResponse persisted = this.createCourse(courseReq);
-            log.info("✅ Generated and persisted course id={}", persisted.getId());
-            return persisted;
-        } catch (IllegalArgumentException e) {
-            // Specifically handle duplicate course title error
-            log.error("❌ generateFromGenAi failed due to duplicate course title: {}", e.getMessage());
-            throw e; // Preserve the original exception with its message
-        } catch (Exception e) {
-            log.error("❌ generateFromGenAi failed: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to generate course via GenAI", e);
+
+        if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
+            log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
+            throw new IllegalStateException("GenAI service failed");
         }
+        return genAiResp.getBody().getGenerated_text();
+    } catch (Exception ex) {
+        log.error("Failed to generate response from GenAI", ex);
+        throw new RuntimeException("Failed to generate response from GenAI", ex);
     }
+    }
+
+
+    @Override
+    public EmbedResult crawlWebForCourseContent(String url) {
+    log.info("Crawling web for course content at URL: {}", url);
+    try {
+        String endpoint = genaiServiceUri + "/api/v1/embed";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+
+        Map<String, String> payload = new HashMap<>();
+        payload.put("url", url);
+
+
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+
+
+        ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            String body = response.getBody();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(body);
+            String message = json.has("message") ? json.get("message").asText() : null;
+            Integer chunks = json.has("chunks_embedded") ? json.get("chunks_embedded").asInt() : null;
+
+
+            if (message != null && message.toLowerCase().contains("success") && chunks != null && chunks > 0) {
+                log.info("Successfully crawled and embedded content for URL: {} ({} chunks)", url, chunks);
+                return EmbedResult.builder()
+                        .success(true)
+                        .url(url)
+                        .chunksEmbedded(chunks)
+                        .message(message)
+                        .build();
+            } else {
+                log.error("Crawling finished but not successful: message={}, chunks_embedded={}", message, chunks);
+                return EmbedResult.builder()
+                        .success(false)
+                        .url(url)
+                        .message(message)
+                        .chunksEmbedded(chunks)
+                        .error("Embedding did not complete successfully")
+                        .build();
+            }
+        } else {
+            String body = response.getBody();
+            log.error("Failed to crawl web for course content. Status code: {}, body: {}", response.getStatusCode(), body);
+            return EmbedResult.builder()
+                    .success(false)
+                    .url(url)
+                    .error("HTTP status: " + response.getStatusCode() + ", body: " + body)
+                    .build();
+        }
+    } catch (Exception e) {
+        log.error("Error while crawling web for course content: {}", e.getMessage(), e);
+        return EmbedResult.builder()
+                .success(false)
+                .url(url)
+                .error(e.getMessage())
+                .build();
+    }
+    }
+
+
+
 }
