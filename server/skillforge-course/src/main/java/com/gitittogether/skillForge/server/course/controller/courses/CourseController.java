@@ -64,10 +64,10 @@ private String userServiceUri;
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/public/published")
-    public ResponseEntity<List<CourseResponse>> getPublicPublishedCourses() {
+    @GetMapping("/published")
+    public ResponseEntity<List<CourseSummaryResponse>> getPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
-        List<CourseResponse> responses = courseService.getPublicPublishedCourses();
+        List<CourseSummaryResponse> responses = courseService.getPublishedCourses();
         return ResponseEntity.ok(responses);
     }
 
@@ -134,10 +134,13 @@ private String userServiceUri;
             @RequestParam(required = false) Language language,
             @RequestParam(required = false) String skill,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String title
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Boolean isPublished,
+            @RequestParam(required = false) Boolean isPublic
     ) {
-        log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}", instructor, level, language, skill, category, title);
-        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title);
+        log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}, isPublished={}, isPublic={}",
+                instructor, level, language, skill, category, title, isPublished, isPublic);
+        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title, isPublished, isPublic);
         return ResponseEntity.ok(responses);
     }
 

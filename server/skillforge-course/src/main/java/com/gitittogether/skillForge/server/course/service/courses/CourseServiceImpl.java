@@ -478,7 +478,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title) {
+    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic) {
         Query query = new Query();
         if (instructor != null && !instructor.isBlank()) {
             query.addCriteria(Criteria.where("instructor").is(instructor));
@@ -497,6 +497,12 @@ public class CourseServiceImpl implements CourseService {
         }
         if (title != null && !title.isBlank()) {
             query.addCriteria(Criteria.where("title").regex(title, "i"));
+        }
+        if (isPublished) {
+            query.addCriteria(Criteria.where("published").is(true));
+        }
+        if (isPublic) {
+            query.addCriteria(Criteria.where("public").is(true));
         }
         List<Course> courses = mongoTemplate.find(query, Course.class);
         return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());
