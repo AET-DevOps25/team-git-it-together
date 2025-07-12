@@ -363,9 +363,16 @@ services:
       retries: 3
 
   mongo-exporter:
-    image: bitnami/mongodb-exporter
+    image: percona/mongodb_exporter:0.30
+    command:
+      - --mongodb.uri=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
+      - --collector.dbstats
+      - --collector.topmetrics
+      - --discovering-mode
+      - --compatible-mode
+      - --web.listen-address=:9216
     environment:
-      - MONGODB_URI=mongodb://dev_user:dev_password@skillforge-mongo:27017
+      - MONGODB_URI=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
     ports:
       - "9216:9216"
     networks:
@@ -375,6 +382,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    depends_on:
+      mongo:
+        condition: service_healthy
 
 volumes:
   mongo-data:
