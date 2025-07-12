@@ -362,12 +362,12 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> getPublicPublishedCourses() {
+    public List<CourseSummaryResponse> getPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
 
-        List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
+        List<Course> publicPublishedCourses = courseRepository.findByPublishedTrue();
         return publicPublishedCourses.stream()
-                .map(CourseMapper::toCourseResponse)
+                .map(CourseMapper::toCourseSummaryResponse)
                 .collect(Collectors.toList());
     }
 
