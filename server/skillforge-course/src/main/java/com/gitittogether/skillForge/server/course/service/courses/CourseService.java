@@ -5,6 +5,9 @@ import com.gitittogether.skillForge.server.course.dto.request.course.LearningPat
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 
 import java.util.List;
 
@@ -171,15 +174,18 @@ public interface CourseService {
     /**
      * Flexible search for courses by any combination of criteria. All parameters are optional.
      *
-     * @param instructor The instructor ID or name (optional).
-     * @param level The course level (optional).
-     * @param language The course language (optional).
-     * @param skill The skill substring (optional).
-     * @param category The category substring (optional).
-     * @param title The title substring (optional).
+     * @param instructor  The instructor ID or name (optional).
+     * @param level       The course level (optional).
+     * @param language    The course language (optional).
+     * @param skill       The skill substring (optional).
+     * @param category    The category substring (optional).
+     * @param title       The title substring (optional).
+     * @param isPublished Whether to filter by published status (optional).
+     * @param isPublic    Whether to filter by public status (optional).
      * @return List of matching course responses.
      */
-    List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title);
+    List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic);
+
 
     /** Delegates to GenAI, then saves & enrolls user before returning */
     CourseResponse generateFromGenAi(LearningPathRequest request);
