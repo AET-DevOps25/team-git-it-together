@@ -67,17 +67,7 @@ public class CourseServiceImpl implements CourseService {
         }
         Course course = CourseMapper.requestToCourse(request);
         // Ensure correct module order (starting from 0)
-        if (course.getModules() != null) {
-            for (int i = 0; i < course.getModules().size(); i++) {
-                course.getModules().get(i).setOrder(i);
-            }
-            // Ensure correct lesson order within each module (starting from 0)
-            int startingOrder = 0;
-            for (Module module : course.getModules()) {
-                module.setLessonOrder(startingOrder);
-                startingOrder += module.getNumberOfLessons();
-            }
-        }
+        orderModulesAndLessons(course.getModules());
         Course savedCourse = courseRepository.save(course);
 
         log.info("Created course with ID: {}", savedCourse.getId());
@@ -147,16 +137,7 @@ public class CourseServiceImpl implements CourseService {
 
         // Ensure correct module and lesson order
         if (existingCourse.getModules() != null) {
-            for (int i = 0; i < existingCourse.getModules().size(); i++) {
-                Module mod = existingCourse.getModules().get(i);
-                mod.setOrder(i);
-            }
-            // Ensure correct lesson order within each module (starting from 0)
-            int startingOrder = 0;
-            for (Module module : existingCourse.getModules()) {
-                module.setLessonOrder(startingOrder);
-                startingOrder += module.getNumberOfLessons();
-            }
+            orderModulesAndLessons(existingCourse.getModules());
         }
 
         // Calculate total number of lessons for the course
@@ -722,6 +703,25 @@ public class CourseServiceImpl implements CourseService {
                 enrolledUser.setProgress(Math.min(progressPercentage, 100.0f)); // Cap at 100%
             }
         });
+    }
+
+    /**
+     * Utility method to order modules and lessons within a course
+     *
+     * @param modules List of modules to order
+     */
+    private void orderModulesAndLessons(List<Module> modules) {
+        if (modules != null) {
+            for (int i = 0; i < modules.size(); i++) {
+                modules.get(i).setOrder(i);
+            }
+            // Ensure correct lesson order within each module (starting from 0)
+            int startingOrder = 0;
+            for (Module module : modules) {
+                module.setLessonOrder(startingOrder);
+                startingOrder += module.getNumberOfLessons();
+            }
+        }
     }
 
 }
