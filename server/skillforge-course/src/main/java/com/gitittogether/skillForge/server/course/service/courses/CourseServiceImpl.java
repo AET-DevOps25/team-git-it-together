@@ -35,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CourseServiceImpl implements CourseService {
     // Shared cache value containing (userId, CourseRequest) to have last generated course for a given user
-    static final HashMap<String, CourseRequest> LAST_GENERATED_COURSES = new HashMap<>();
+    static final ConcurrentHashMap<String, CourseRequest> LAST_GENERATED_COURSES = new ConcurrentHashMap<>();
 
     private final CourseRepository courseRepository;
     private final RestTemplate restTemplate = new RestTemplate();
