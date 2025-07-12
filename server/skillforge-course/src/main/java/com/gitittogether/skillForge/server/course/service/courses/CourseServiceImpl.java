@@ -1,17 +1,27 @@
 package com.gitittogether.skillForge.server.course.service.courses;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.course.PromptResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
-import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
 import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
+import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import com.gitittogether.skillForge.server.course.model.course.Module;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,23 +30,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import java.util.Map;
-import java.util.HashMap;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -159,6 +158,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         // Calculate total number of lessons for the course
+        assert existingCourse.getModules() != null;
         int totalLessons = existingCourse.getModules().stream()
                 .mapToInt(Module::getNumberOfLessons)
                 .sum();

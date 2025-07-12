@@ -5,6 +5,7 @@ import com.gitittogether.skillForge.server.course.dto.request.course.LearningPat
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
@@ -13,17 +14,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/courses")
