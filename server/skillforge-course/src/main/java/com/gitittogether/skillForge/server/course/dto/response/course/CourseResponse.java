@@ -28,8 +28,8 @@ public class CourseResponse {
     private List<String> categories;
     private Level level;
     private String thumbnailUrl;
-    private boolean published;
-    private boolean isPublic;
+    private Boolean published;
+    private Boolean isPublic;
     private Language language;
     private double rating;
     private List<EnrolledUserInfo> enrolledUsers;

@@ -50,10 +50,10 @@ public class Course {
     private String thumbnailUrl;
 
     @Builder.Default
-    private boolean published = true; // Indicates if the course is published and available to users
+    private Boolean published = true; // Indicates if the course is published and available to users
 
     @Builder.Default
-    private boolean isPublic = true; // Indicates if the course is public (showcased on landing page)
+    private Boolean isPublic = true; // Indicates if the course is public (showcased on landing page)
 
     @Builder.Default
     private Language language = Language.EN; // Default language is English

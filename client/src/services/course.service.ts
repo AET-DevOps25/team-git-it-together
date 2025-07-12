@@ -1,5 +1,5 @@
 import { API_BASE_URL } from '@/constants/app.ts';
-import type { CourseResponse, CourseSummaryResponse, Level, Language } from '@/types';
+import type { CourseResponse, CourseSummaryResponse, Level, Language, CoursePayload } from '@/types';
 import { parseErrorResponse } from '@/utils/response.utils.ts';
 
 const BASE_URL = `${API_BASE_URL}/courses`;
@@ -58,6 +58,27 @@ export async function getAllCourses(): Promise<CourseSummaryResponse[]> {
 }
 
 /**
+ * Fetch all published courses (requires authentication).
+ * Requires that setAuthToken(token) has been called earlier.
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function getAllPublishedCourses(): Promise<CourseSummaryResponse[]> {
+  const resp = await fetch(`${BASE_URL}/published`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  return await resp.json();
+}
+
+/**
  * Fetch a specific course by ID (requires authentication).
  * Requires that setAuthToken(token) has been called earlier.
  * @param courseId The ID of the course to fetch
@@ -96,6 +117,8 @@ export async function searchCourses(params: {
   skill?: string;
   category?: string;
   title?: string;
+  isPublished?: boolean;
+  isPublic?: boolean;
 }): Promise<CourseSummaryResponse[]> {
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
@@ -214,7 +237,14 @@ export async function completeLesson(courseId: string, lessonId: string, userId:
     enrolledUsers: updatedEnrolledUsers
   };
 
-  console.log('Sending update request:', updateRequest);
+  console.log('CompleteLesson Debug:', {
+    courseId,
+    lessonId,
+    userId,
+    currentLessonOrder: parseInt(lessonId),
+    newCurrentLesson: parseInt(lessonId) + 1,
+    updateRequest
+  });
 
   const resp = await fetch(`${BASE_URL}/${courseId}`, {
     method: 'PUT',
@@ -364,4 +394,147 @@ export async function getUserEnrolledCourses(userId: string): Promise<any[]> {
   }
 
   return await resp.json();
+}
+
+/**
+ * Generate a response from a prompt using the AI model (requires authentication).
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param prompt The prompt to send to the AI model
+ * @returns The AI-generated response
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function generateResponseFromPrompt(prompt: string): Promise<string> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+  // POST "/generate/prompt"
+  const resp = await fetch(`${BASE_URL}/generate/prompt`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  const raw = await resp.text();
+  try {
+    const data = JSON.parse(raw);
+    return data.response;
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * Generate a course for a user based on a prompt and skills (requires authentication).
+ * Requires that setAuthToken(token) has been called earlier.
+ * @param userId The ID of the user for whom to generate the course
+ * @param prompt The prompt to guide course generation
+ * @param skills An array of skills to include in the course
+ * @returns The generated course content
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function generateCourseForUser(userId: string, prompt: string, skills: string[]): Promise<CoursePayload | string> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+  // POST "/generate/learning_path/{userId}"
+  const resp = await fetch(`${BASE_URL}/generate/learning_path/${userId}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ prompt, skills }),
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  const raw = await resp.text();
+  try {
+    const data = JSON.parse(raw);
+    // The backend returns the course object directly, not wrapped in a 'response' property
+    return data;
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * Confirm course generation for a user (requires authentication).
+ * Requires that setAuthToken(token) has been called earlier.
+ * 
+ * This endpoint will auto confirm the last generated course for the user.
+ * It is used to finalize the course generation process after the AI has created the course content.
+ * 
+ * @param userId The ID of the user confirming the course generation
+ * @returns Confirmation message or updated course data
+ * @throws ApiError object { status: number, message: string } on 4xx/5xx or if no token
+ */
+export async function confirmCourseGeneration(userId: string): Promise<CourseResponse | string> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+  //POST "/generate/learning_path/{userId}/confirm"
+  const resp = await fetch(`${BASE_URL}/generate/learning_path/${userId}/confirm`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  const raw = await resp.text();
+  try {
+    const data = JSON.parse(raw);
+    return data;
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * Crawl and embed a URL.
+ * 
+ * This endpoint will crawl the URL and embed the content into the database of the genai service.
+ * This will improve the quality of the course generation.
+ * 
+ * @param url The URL to crawl and embed
+ * @returns The crawled and embedded data
+ */
+export async function crawlAndEmbedUrl(url: string): Promise<any> {
+  if (!authToken) {
+    throw { status: 401, message: 'No authentication token provided' };
+  }
+
+  const resp = await fetch(`${BASE_URL}/embed/url`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify({ url }),
+  });
+
+  if (!resp.ok) {
+    throw await parseErrorResponse(resp);
+  }
+
+  const raw = await resp.text();
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { raw };
+  }
 }

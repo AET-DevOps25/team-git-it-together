@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookOpen, Users, Star, Loader2, Search, X, Bookmark, BookmarkCheck, Brain } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import * as courseService from '@/services/course.service';
 import type { CourseSummaryResponse } from '@/types';
 import { Level, Language } from '@/types';
@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const Courses = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, updateUserBookmarks } = useContext(AuthContext);
+  const { user, loading: authLoading, updateUserBookmarks } = useAuth();
   const { toast } = useToast();
   const [activeCategory, setActiveCategory] = useState('All');
   const [courses, setCourses] = useState<CourseSummaryResponse[]>([]);
@@ -39,33 +39,9 @@ const Courses = () => {
   const debouncedSearchSkill = useDebounce(searchSkill, 300);
   const debouncedSearchCategory = useDebounce(searchCategory, 300);
 
-  // Real-time search effect
-  const fetchOriginalCourses = React.useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-  
-      let fetchedCourses: CourseSummaryResponse[];
-      if (user) {
-        // User is logged in, fetch all courses
-        fetchedCourses = await courseService.getAllCourses();
-      } else {
-        // User is not logged in, fetch public courses only
-        fetchedCourses = await courseService.getPublicCourses();
-      }
-  
-      setCourses(fetchedCourses);
-    } catch (err: any) {
-      console.error('Error fetching courses:', err);
-      setError(err.message || 'Failed to fetch courses');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-  
-  // 2. Real-time search effect, now with fetchOriginalCourses as a dependency
+  // Single effect to handle both initial fetch and search
   useEffect(() => {
-    const performSearch = async () => {
+    const fetchCourses = async () => {
       // Only search if any search criteria are provided
       const hasSearchCriteria = debouncedSearchTitle || 
                                debouncedSearchInstructor || 
@@ -74,46 +50,55 @@ const Courses = () => {
                                debouncedSearchSkill || 
                                debouncedSearchCategory;
   
-      if (!hasSearchCriteria) {
-        // If no search criteria, fetch original courses
-        await fetchOriginalCourses();
-        return;
-      }
-  
       try {
-        setIsSearching(true);
-        setError(null);
+        if (hasSearchCriteria) {
+          setIsSearching(true);
+          setError(null);
   
-        const searchResults = await courseService.searchCourses({
-          instructor: debouncedSearchInstructor || undefined,
-          level: searchLevel === 'all' ? undefined : searchLevel,
-          language: searchLanguage === 'all' ? undefined : searchLanguage,
-          skill: debouncedSearchSkill || undefined,
-          category: debouncedSearchCategory || undefined,
-          title: debouncedSearchTitle || undefined,
-        });
+          const searchResults = await courseService.searchCourses({
+            instructor: debouncedSearchInstructor || undefined,
+            level: searchLevel === 'all' ? undefined : searchLevel,
+            language: searchLanguage === 'all' ? undefined : searchLanguage,
+            skill: debouncedSearchSkill || undefined,
+            category: debouncedSearchCategory || undefined,
+            title: debouncedSearchTitle || undefined,
+            isPublished: true,
+          });
   
-        setCourses(searchResults);
+          setCourses(searchResults);
+        } else {
+          setLoading(true);
+          setError(null);
+  
+          let fetchedCourses: CourseSummaryResponse[];
+          if (user) {
+            // User is logged in, fetch all courses
+            fetchedCourses = await courseService.getAllPublishedCourses();
+          } else {
+            // User is not logged in, fetch public courses only
+            fetchedCourses = await courseService.getPublicCourses();
+          }
+  
+          setCourses(fetchedCourses);
+        }
       } catch (err: any) {
-        console.error('Error searching courses:', err);
-        setError(err.message || 'Failed to search courses');
+        console.error('Error fetching courses:', err);
+        setError(err.message || 'Failed to fetch courses');
       } finally {
+        setLoading(false);
         setIsSearching(false);
       }
     };
-  
-    performSearch();
+
+    // Only fetch if auth is not loading
+    if (!authLoading) {
+      fetchCourses();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     debouncedSearchTitle, debouncedSearchInstructor, searchLevel, searchLanguage, 
-    debouncedSearchSkill, debouncedSearchCategory, user, fetchOriginalCourses
+    debouncedSearchSkill, debouncedSearchCategory, user?.id, authLoading
   ]);
-  
-  // 3. Initial fetch effect (no change needed, as fetchOriginalCourses is stable)
-  useEffect(() => {
-    if (!authLoading) {
-      fetchOriginalCourses();
-    }
-  }, [user, authLoading, fetchOriginalCourses]);
 
   // Extract unique categories from courses
   const allCategories = courses.flatMap(course => course.categories);

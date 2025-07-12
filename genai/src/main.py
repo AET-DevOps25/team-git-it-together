@@ -143,7 +143,7 @@ async def health():
             content={"status": "error", "message": "Dependency failure. See logs for details."}
         )
 
-@app.get(f"{API_PREFIX}/ping", tags=["System"])
+@app.get("/ping", tags=["System"])
 async def ping():
     """
     Lightweight liveness check. Confirms the API process is running, but does not check dependencies.
@@ -266,7 +266,7 @@ async def generate_completion(request: GenerateRequest):
 # ──────────────────────────────────────────────────────────────────────────
 # RAG endpoint
 # ──────────────────────────────────────────────────────────────────────────
-@app.post("/api/v1/rag/generate-course", response_model=Course, tags=["rag"])
+@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"])
 async def generate_course(req: CourseGenerationRequest):
     """
     • POST because generation is a side-effectful operation (non-idempotent).

@@ -1,10 +1,11 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useCallback } from 'react';
 import type { LoginPayload, UserLoginResponse } from '@/types';
 import { useNavigate } from 'react-router-dom';
-import * as userService from '@/services/user.service.ts';
-import * as courseService from '@/services/course.service.ts';
-import * as dashboardService from '@/services/dashboard.service.ts';
-import { AuthContext } from '@/contexts/AuthContext.tsx';
+import * as userService from '@/services/user.service';
+import * as courseService from '@/services/course.service';
+import * as dashboardService from '@/services/dashboard.service';
+import * as aiChatService from '@/services/aiChat.service';
+import { AuthContext } from '@/contexts/AuthContext';
 
 // Extended user type that includes profile data
 interface ExtendedUserData extends UserLoginResponse {
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userService.setAuthToken(jwtToken);
     courseService.setAuthToken(jwtToken);
     dashboardService.setAuthToken(jwtToken);
+    aiChatService.setAuthToken(jwtToken);
     setToken(jwtToken);
     setUser(userData);
   }
@@ -95,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     // if response.id exists, registration was successful
     if (response && response.id) {
-      console.log('Registration successful:', response);
+
       //For now, we login the user immediately after registration - Later you might want to redirect to a confirmation page
       const loginPayload: LoginPayload = {
         email: response.email,
@@ -136,6 +138,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userService.setAuthToken(savedToken);
         courseService.setAuthToken(savedToken);
         dashboardService.setAuthToken(savedToken);
+        aiChatService.setAuthToken(savedToken);
         const parsedUser: ExtendedUserData = JSON.parse(savedUserString);
         setToken(savedToken);
         setUser(parsedUser);
@@ -153,12 +156,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Function to update user's bookmarked courses
-  const updateUserBookmarks = (courseId: string, isBookmarked: boolean) => {
+  const updateUserBookmarks = useCallback((courseId: string, isBookmarked: boolean) => {
     if (!user) return;
     
+    // Check if the bookmark status is actually changing to avoid unnecessary updates
+    const currentBookmarks = user.bookmarkedCourseIds || [];
+    const isCurrentlyBookmarked = currentBookmarks.includes(courseId);
+    
+    if (isCurrentlyBookmarked === isBookmarked) {
+      // No change needed
+      return;
+    }
+    
     const updatedBookmarks = isBookmarked 
-      ? [...(user.bookmarkedCourseIds || []), courseId]
-      : (user.bookmarkedCourseIds || []).filter(id => id !== courseId);
+      ? [...currentBookmarks, courseId]
+      : currentBookmarks.filter(id => id !== courseId);
     
     const updatedUser = {
       ...user,
@@ -170,7 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Update storage
     const storage = localStorage.getItem('token') ? localStorage : sessionStorage;
     storage.setItem('user', JSON.stringify(updatedUser));
-  };
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, token, loading, login, logout, register, updateUserBookmarks }}>
