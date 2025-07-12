@@ -12,11 +12,9 @@ import com.gitittogether.skillForge.server.course.service.courses.CourseService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -28,9 +26,6 @@ import java.util.Map;
 public class CourseController {
 
     private final CourseService courseService;
-
-    @Value("${user.service.uri:http://user-service:8082}")
-    private String userServiceUri;
 
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
@@ -139,6 +134,7 @@ public class CourseController {
         List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title, isPublished, isPublic);
         return ResponseEntity.ok(responses);
     }
+
     @GetMapping("/search/instructor/{instructor}")
     public ResponseEntity<List<CourseResponse>> getCoursesByInstructor(@PathVariable String instructor) {
         log.info("Fetching courses by instructor: {}", instructor);
@@ -182,32 +178,63 @@ public class CourseController {
     }
 
     /**
-    * Generates a brand-new course via GenAI + RAG, then persists & returns it.
-    * Chosen as POST because we are **creating** a new server-side resource
-    */
+     * Generates a brand-new course via GenAI + RAG, then persists & returns it.
+     * Chosen as POST because we are **creating** a new server-side resource
+     */
     @PostMapping("/generate/learning_path/{userId}")
     public ResponseEntity<CourseRequest> generateCourseForUser(@PathVariable String userId, @RequestBody LearningPathRequest req, HttpServletRequest servletRequest) {
-    log.info("Generating course for user: {}", userId);
-    CourseRequest generated = courseService.generateCourseFromGenAi(req, userId, servletRequest.getHeader("Authorization"));
-    return ResponseEntity.ok(generated);
+        log.info("Generating course for user: {}", userId);
+        CourseRequest generated = courseService.generateCourseFromGenAi(req, userId, servletRequest.getHeader("Authorization"));
+        return ResponseEntity.ok(generated);
     }
-
 
     /**
-    * Confirms the generation of a course from a Learning Path request.
-    * This method is called after the course has been generated and the user has reviewed it.
-    * It retrieves the last generated course details, creates the course in the database, enrolls the user, and returns the course response.
-    *
-    * @param userId The ID of the user confirming the course generation.
-    * @return CourseResponse containing the confirmed course details.
-    */
+     * Confirms the generation of a course from a Learning Path request.
+     * This method is called after the course has been generated and the user has reviewed it.
+     * It retrieves the last generated course details, creates the course in the database, enrolls the user, and returns the course response.
+     *
+     * @param userId The ID of the user confirming the course generation.
+     * @return CourseResponse containing the confirmed course details.
+     */
     @PostMapping("/generate/learning_path/{userId}/confirm")
     public ResponseEntity<CourseResponse> confirmGeneratedCourse(@PathVariable String userId) {
-    log.info("Confirming course generation for user: {}", userId);
-    CourseResponse confirmed = courseService.confirmCourseGeneration(userId);
-    return ResponseEntity.ok(confirmed);
+        log.info("Confirming course generation for user: {}", userId);
+        CourseResponse confirmed = courseService.confirmCourseGeneration(userId);
+        return ResponseEntity.ok(confirmed);
     }
 
+    /**
+     * Generates a response to a given Prompt.
+     * This is delegated to the GenAi Service
+     *
+     * @param prompt The prompt to generate a response for.
+     * @return The generated response as a String.
+     */
+    @PostMapping("/generate/prompt")
+    public ResponseEntity<String> generateResponseFromPrompt(@RequestBody String prompt) {
+        log.info("Generating response to prompt: {}", prompt);
+        String generatedResponse = courseService.generateResponseFromGenAi(prompt);
+        return ResponseEntity.ok(generatedResponse);
+    }
 
+    /**
+     * Embeds a url into the GenAI service for future retrieval.
+     *
+     * @param urlPayload The JSON object containing the URL to embed, e.g. {"url": "https://example.com"}
+     * @return ResponseEntity with the status of the operation.
+     */
+    @PostMapping("/crawl/url")
+    public ResponseEntity<?> crawlWebUrl(@RequestBody Map<String, String> urlPayload) {
+        String url = urlPayload.get("url");
+        log.info("Embedding URL into GenAI service: {}", url);
+
+        EmbedResult result = courseService.crawlWebForCourseContent(url);
+
+        if (result.isSuccess()) {
+            return ResponseEntity.ok(result);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(result);
+        }
+    }
 
 } 
