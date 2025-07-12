@@ -8,6 +8,7 @@ import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUs
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
