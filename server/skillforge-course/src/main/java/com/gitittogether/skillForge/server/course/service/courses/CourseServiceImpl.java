@@ -642,7 +642,8 @@ public class CourseServiceImpl implements CourseService {
                 log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
                 throw new IllegalStateException("GenAI service failed");
             }
-            return genAiResp.getBody().getGenerated_text();
+            PromptResponse body = genAiResp.getBody();
+            return body != null ? body.getGenerated_text() : null;
         } catch (Exception ex) {
             log.error("Failed to generate response from GenAI", ex);
             throw new RuntimeException("Failed to generate response from GenAI", ex);
