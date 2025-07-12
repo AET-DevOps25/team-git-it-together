@@ -1,15 +1,18 @@
-
 package com.gitittogether.skillForge.server.course.service.courses;
+
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.PromptResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
 import com.gitittogether.skillForge.server.course.exception.ResourceNotFoundException;
 import com.gitittogether.skillForge.server.course.mapper.course.CourseMapper;
 import com.gitittogether.skillForge.server.course.mapper.course.EnrolledUserInfoMapper;
@@ -17,6 +20,8 @@ import com.gitittogether.skillForge.server.course.mapper.course.ModuleMapper;
 import com.gitittogether.skillForge.server.course.model.course.Course;
 import com.gitittogether.skillForge.server.course.model.course.EnrolledUserInfo;
 import com.gitittogether.skillForge.server.course.model.course.Module;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.repository.course.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,10 +34,10 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+
 import java.util.*;
 import java.util.stream.Collectors;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -296,16 +301,6 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> getPublicPublishedCourses() {
-        log.info("Fetching public and published courses for landing page");
-
-        List<Course> publicPublishedCourses = courseRepository.findByIsPublicTrueAndPublishedTrue();
-        return publicPublishedCourses.stream()
-                .map(CourseMapper::toCourseResponse)
-                .collect(Collectors.toList());
-    }
-
-    @Override
     @Transactional
     public void bookmarkCourse(String courseId, String userId) {
         log.info("Bookmarking course {} for user {}", courseId, userId);
@@ -411,8 +406,8 @@ public class CourseServiceImpl implements CourseService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title) {
+
+    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic) {
         Query query = new Query();
         if (instructor != null && !instructor.isBlank()) {
             query.addCriteria(Criteria.where("instructor").is(instructor));
@@ -432,11 +427,18 @@ public class CourseServiceImpl implements CourseService {
         if (title != null && !title.isBlank()) {
             query.addCriteria(Criteria.where("title").regex(title, "i"));
         }
+        if (isPublished) {
+            query.addCriteria(Criteria.where("published").is(true));
+        }
+        if (isPublic) {
+            query.addCriteria(Criteria.where("public").is(true));
+        }
         List<Course> courses = mongoTemplate.find(query, Course.class);
         return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());
-    }
-
-
+     }
+     
+     
+     
     @Override
 public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String userId, String authHeader) {
    // 1. Get skills from user-service, fallback to skills from the request
@@ -559,5 +561,102 @@ public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String use
         throw e;
     }
     }
+
+    @Override
+@Transactional
+public String generateResponseFromGenAi(String prompt) {
+   try {
+       Map<String, Object> payload = new HashMap<>();
+       payload.put("prompt", prompt);
+
+
+       HttpHeaders headers = new HttpHeaders();
+       headers.setContentType(MediaType.APPLICATION_JSON);
+
+
+       HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
+
+
+       String endpoint = genaiServiceUri + "/api/v1/generate";
+       ResponseEntity<PromptResponse> genAiResp = restTemplate.postForEntity(endpoint, httpReq, PromptResponse.class);
+
+
+       if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
+           log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
+           throw new IllegalStateException("GenAI service failed");
+       }
+       return genAiResp.getBody().getGenerated_text();
+   } catch (Exception ex) {
+       log.error("Failed to generate response from GenAI", ex);
+       throw new RuntimeException("Failed to generate response from GenAI", ex);
+   }
+}
+
+
+@Override
+public EmbedResult crawlWebForCourseContent(String url) {
+   log.info("Crawling web for course content at URL: {}", url);
+   try {
+       String endpoint = genaiServiceUri + "/api/v1/embed";
+       HttpHeaders headers = new HttpHeaders();
+       headers.setContentType(MediaType.APPLICATION_JSON);
+
+
+       Map<String, String> payload = new HashMap<>();
+       payload.put("url", url);
+
+
+       HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+
+
+       ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+
+
+       if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+           String body = response.getBody();
+           ObjectMapper mapper = new ObjectMapper();
+           JsonNode json = mapper.readTree(body);
+           String message = json.has("message") ? json.get("message").asText() : null;
+           Integer chunks = json.has("chunks_embedded") ? json.get("chunks_embedded").asInt() : null;
+
+
+           if (message != null && message.toLowerCase().contains("success") && chunks != null && chunks > 0) {
+               log.info("Successfully crawled and embedded content for URL: {} ({} chunks)", url, chunks);
+               return EmbedResult.builder()
+                       .success(true)
+                       .url(url)
+                       .chunksEmbedded(chunks)
+                       .message(message)
+                       .build();
+           } else {
+               log.error("Crawling finished but not successful: message={}, chunks_embedded={}", message, chunks);
+               return EmbedResult.builder()
+                       .success(false)
+                       .url(url)
+                       .message(message)
+                       .chunksEmbedded(chunks)
+                       .error("Embedding did not complete successfully")
+                       .build();
+           }
+       } else {
+           String body = response.getBody();
+           log.error("Failed to crawl web for course content. Status code: {}, body: {}", response.getStatusCode(), body);
+           return EmbedResult.builder()
+                   .success(false)
+                   .url(url)
+                   .error("HTTP status: " + response.getStatusCode() + ", body: " + body)
+                   .build();
+       }
+   } catch (Exception e) {
+       log.error("Error while crawling web for course content: {}", e.getMessage(), e);
+       return EmbedResult.builder()
+               .success(false)
+               .url(url)
+               .error(e.getMessage())
+               .build();
+   }
+}
+
+
 
 }
