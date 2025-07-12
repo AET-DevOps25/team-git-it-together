@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
-import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -300,6 +299,18 @@ public class CourseServiceImpl implements CourseService {
                 .collect(Collectors.toList());
     }
 
+
+    @Override
+    public List<CourseSummaryResponse> getPublishedCourses() {
+    log.info("Fetching public and published courses for landing page");
+
+
+    List<Course> publicPublishedCourses = courseRepository.findByPublishedTrue();
+    return publicPublishedCourses.stream()
+            .map(CourseMapper::toCourseSummaryResponse)
+            .collect(Collectors.toList());
+    }
+
     @Override
     @Transactional
     public void bookmarkCourse(String courseId, String userId) {
@@ -440,7 +451,7 @@ public class CourseServiceImpl implements CourseService {
      
      
     @Override
-public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String userId, String authHeader) {
+    public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String userId, String authHeader) {
    // 1. Get skills from user-service, fallback to skills from the request
    List<String> effectiveSkills = req.existingSkills();
    String prompt = req.prompt();
@@ -563,99 +574,99 @@ public CourseRequest generateCourseFromGenAi(LearningPathRequest req, String use
     }
 
     @Override
-@Transactional
-public String generateResponseFromGenAi(String prompt) {
-   try {
-       Map<String, Object> payload = new HashMap<>();
-       payload.put("prompt", prompt);
+    @Transactional
+    public String generateResponseFromGenAi(String prompt) {
+    try {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("prompt", prompt);
 
 
-       HttpHeaders headers = new HttpHeaders();
-       headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
 
-       HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
+        HttpEntity<Map<String, Object>> httpReq = new HttpEntity<>(payload, headers);
 
 
-       String endpoint = genaiServiceUri + "/api/v1/generate";
-       ResponseEntity<PromptResponse> genAiResp = restTemplate.postForEntity(endpoint, httpReq, PromptResponse.class);
+        String endpoint = genaiServiceUri + "/api/v1/generate";
+        ResponseEntity<PromptResponse> genAiResp = restTemplate.postForEntity(endpoint, httpReq, PromptResponse.class);
 
 
-       if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
-           log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
-           throw new IllegalStateException("GenAI service failed");
-       }
-       return genAiResp.getBody().getGenerated_text();
-   } catch (Exception ex) {
-       log.error("Failed to generate response from GenAI", ex);
-       throw new RuntimeException("Failed to generate response from GenAI", ex);
-   }
-}
+        if (!genAiResp.getStatusCode().is2xxSuccessful() || genAiResp.getBody() == null) {
+            log.error("GenAI responded with status={} body={}", genAiResp.getStatusCode(), genAiResp.getBody());
+            throw new IllegalStateException("GenAI service failed");
+        }
+        return genAiResp.getBody().getGenerated_text();
+    } catch (Exception ex) {
+        log.error("Failed to generate response from GenAI", ex);
+        throw new RuntimeException("Failed to generate response from GenAI", ex);
+    }
+    }
 
 
-@Override
-public EmbedResult crawlWebForCourseContent(String url) {
-   log.info("Crawling web for course content at URL: {}", url);
-   try {
-       String endpoint = genaiServiceUri + "/api/v1/embed";
-       HttpHeaders headers = new HttpHeaders();
-       headers.setContentType(MediaType.APPLICATION_JSON);
+    @Override
+    public EmbedResult crawlWebForCourseContent(String url) {
+    log.info("Crawling web for course content at URL: {}", url);
+    try {
+        String endpoint = genaiServiceUri + "/api/v1/embed";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
 
-       Map<String, String> payload = new HashMap<>();
-       payload.put("url", url);
+        Map<String, String> payload = new HashMap<>();
+        payload.put("url", url);
 
 
-       HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
+        HttpEntity<Map<String, String>> request = new HttpEntity<>(payload, headers);
 
 
-       ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(endpoint, request, String.class);
 
 
-       if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-           String body = response.getBody();
-           ObjectMapper mapper = new ObjectMapper();
-           JsonNode json = mapper.readTree(body);
-           String message = json.has("message") ? json.get("message").asText() : null;
-           Integer chunks = json.has("chunks_embedded") ? json.get("chunks_embedded").asInt() : null;
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            String body = response.getBody();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(body);
+            String message = json.has("message") ? json.get("message").asText() : null;
+            Integer chunks = json.has("chunks_embedded") ? json.get("chunks_embedded").asInt() : null;
 
 
-           if (message != null && message.toLowerCase().contains("success") && chunks != null && chunks > 0) {
-               log.info("Successfully crawled and embedded content for URL: {} ({} chunks)", url, chunks);
-               return EmbedResult.builder()
-                       .success(true)
-                       .url(url)
-                       .chunksEmbedded(chunks)
-                       .message(message)
-                       .build();
-           } else {
-               log.error("Crawling finished but not successful: message={}, chunks_embedded={}", message, chunks);
-               return EmbedResult.builder()
-                       .success(false)
-                       .url(url)
-                       .message(message)
-                       .chunksEmbedded(chunks)
-                       .error("Embedding did not complete successfully")
-                       .build();
-           }
-       } else {
-           String body = response.getBody();
-           log.error("Failed to crawl web for course content. Status code: {}, body: {}", response.getStatusCode(), body);
-           return EmbedResult.builder()
-                   .success(false)
-                   .url(url)
-                   .error("HTTP status: " + response.getStatusCode() + ", body: " + body)
-                   .build();
-       }
-   } catch (Exception e) {
-       log.error("Error while crawling web for course content: {}", e.getMessage(), e);
-       return EmbedResult.builder()
-               .success(false)
-               .url(url)
-               .error(e.getMessage())
-               .build();
-   }
-}
+            if (message != null && message.toLowerCase().contains("success") && chunks != null && chunks > 0) {
+                log.info("Successfully crawled and embedded content for URL: {} ({} chunks)", url, chunks);
+                return EmbedResult.builder()
+                        .success(true)
+                        .url(url)
+                        .chunksEmbedded(chunks)
+                        .message(message)
+                        .build();
+            } else {
+                log.error("Crawling finished but not successful: message={}, chunks_embedded={}", message, chunks);
+                return EmbedResult.builder()
+                        .success(false)
+                        .url(url)
+                        .message(message)
+                        .chunksEmbedded(chunks)
+                        .error("Embedding did not complete successfully")
+                        .build();
+            }
+        } else {
+            String body = response.getBody();
+            log.error("Failed to crawl web for course content. Status code: {}, body: {}", response.getStatusCode(), body);
+            return EmbedResult.builder()
+                    .success(false)
+                    .url(url)
+                    .error("HTTP status: " + response.getStatusCode() + ", body: " + body)
+                    .build();
+        }
+    } catch (Exception e) {
+        log.error("Error while crawling web for course content: {}", e.getMessage(), e);
+        return EmbedResult.builder()
+                .success(false)
+                .url(url)
+                .error(e.getMessage())
+                .build();
+    }
+    }
 
 
 
