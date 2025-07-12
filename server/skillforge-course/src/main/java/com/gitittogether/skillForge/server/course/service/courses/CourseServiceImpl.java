@@ -464,7 +464,7 @@ public class CourseServiceImpl implements CourseService {
     }
 
     @Override
-    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic) {
+    public List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, Boolean isPublished, Boolean isPublic) {
         Query query = new Query();
         if (instructor != null && !instructor.isBlank()) {
             query.addCriteria(Criteria.where("instructor").is(instructor));
@@ -484,11 +484,11 @@ public class CourseServiceImpl implements CourseService {
         if (title != null && !title.isBlank()) {
             query.addCriteria(Criteria.where("title").regex(title, "i"));
         }
-        if (isPublished) {
-            query.addCriteria(Criteria.where("published").is(true));
+        if (isPublished != null) {
+            query.addCriteria(Criteria.where("published").is(isPublished));
         }
-        if (isPublic) {
-            query.addCriteria(Criteria.where("public").is(true));
+        if (isPublic != null) {
+            query.addCriteria(Criteria.where("isPublic").is(isPublic));
         }
         List<Course> courses = mongoTemplate.find(query, Course.class);
         return courses.stream().map(CourseMapper::toCourseResponse).collect(Collectors.toList());

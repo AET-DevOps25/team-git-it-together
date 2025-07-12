@@ -51,10 +51,10 @@ public class CourseRequest {
     private String thumbnailUrl;
 
     @Builder.Default
-    private boolean published = true;
+    private Boolean published = true;
 
     @Builder.Default
-    private boolean isPublic = true;
+    private Boolean isPublic = true;
 
     @NotNull
     @Builder.Default
@@ -63,7 +63,4 @@ public class CourseRequest {
     @Builder.Default
     private double rating = 0.0;
 
-    public void setIsPublic(boolean b) {
-        this.isPublic = b;
-    }
 }

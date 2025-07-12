@@ -29,8 +29,8 @@ public class CourseSummaryResponse {
     private int numberOfEnrolledUsers;
     private List<String> categories;
     private Level level;
-    private boolean isPublic;
-    private boolean published;
+    private Boolean isPublic;
+    private Boolean published;
     private Language language;
     private double rating;
     private List<EnrolledUserInfo> enrolledUsers;

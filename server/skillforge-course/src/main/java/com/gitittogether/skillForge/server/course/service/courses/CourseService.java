@@ -184,7 +184,7 @@ public interface CourseService {
      * @param isPublic    Whether to filter by public status (optional).
      * @return List of matching course responses.
      */
-    List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, boolean isPublished, boolean isPublic);
+    List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, Boolean isPublished, Boolean isPublic);
 
 
     /**
