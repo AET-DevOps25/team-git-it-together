@@ -17,16 +17,33 @@ scrape_configs:
 
   # ----- GenAI FastAPI -----
   - job_name: genai
+    metric_relabel_configs:
+      # duplicate app label into app_name for FastAPI dashboard
+      - source_labels: ["job"]
+        target_label: "app_name"
+        regex: "(.*)"
+        replacement: "$1"
     static_configs:
       - targets: [ 'skillforge-genai:8888' ]
 
   # ----- Traefik Proxy -----
   - job_name: traefik
+    metric_relabel_configs:
+      # add static namespace label expected by upstream Traefik dashboard
+      - target_label: "namespace"
+        replacement: "default"
+      # add service label for dashboard compatibility
+      - target_label: "service"
+        replacement: "traefik"
     static_configs:
-      - targets: [ 'reverse-proxy:8085' ]
+      - targets: [ 'traefik:8085' ]
 
   # ----- Database exporters -----
   - job_name: mongo_exporter
+    metric_relabel_configs:
+      # rename job label so MongoDB dashboard variable matches
+      - target_label: "job"
+        replacement: "mongodb-exporter"
     static_configs:
       - targets: [ 'mongo-exporter:9216' ]
 
