@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -13,11 +13,9 @@ import { getDashboardData, type DashboardData, type DashboardCourse } from '@/se
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import * as courseService from '@/services/course.service';
-import { AuthContext } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const { user } = useAuth();
-  const { updateUserBookmarks } = useContext(AuthContext);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -31,7 +29,6 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user?.id) return;
-      
       try {
         setLoading(true);
         setError(null);
@@ -50,7 +47,6 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-
     fetchDashboardData();
   }, [user?.id, toast]);
 
@@ -207,50 +203,65 @@ const Dashboard = () => {
                     <CardDescription>Pick up where you left off</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {enrolledCourses.slice(0, 2).map((course) => (
-                      <div
-                        key={course.id}
-                        className="rounded-lg border p-4 transition-shadow hover:shadow-md"
-                      >
-                        <div className="mb-3 flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{course.title}</h3>
-                            <p className="mb-2 text-sm text-gray-600">Next: {course.nextLesson}</p>
-                            <div className="flex items-center space-x-2">
-                              <Badge variant="secondary">{course.category}</Badge>
-                              <Badge variant="outline">{course.difficulty}</Badge>
-                            </div>
+                    {(() => {
+                      const coursesWithProgress = enrolledCourses.filter(course => course.progress > 0);
+                      const coursesToShow = coursesWithProgress.length > 0 
+                        ? coursesWithProgress 
+                        : enrolledCourses; // Show all enrolled courses if none have progress
+                      
+                      if (coursesToShow.length === 0) {
+                        return (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 mb-4">No courses in progress</p>
+                            <Button className="mt-2" onClick={() => navigate('/courses')}>
+                              Start a New Course
+                            </Button>
                           </div>
-                          <Button size="sm" onClick={() => handleContinueCourse(course)}>
-                            Continue
-                          </Button>
+                        );
+                      }
+                      
+                      return coursesToShow.map((course) => (
+                        <div
+                          key={course.id}
+                          className="rounded-lg border p-4 transition-shadow hover:shadow-md"
+                        >
+                          <div className="mb-3 flex items-start justify-between">
+                            <div>
+                              <h3 className="font-semibold text-gray-900">{course.title}</h3>
+                              <p className="mb-2 text-sm text-gray-600">
+                                {course.progress > 0 ? `Next: ${course.nextLesson}` : 'Ready to start'}
+                              </p>
+                              <div className="flex items-center space-x-2">
+                                <Badge variant="secondary">{course.category}</Badge>
+                                <Badge variant="outline">{course.difficulty}</Badge>
+                              </div>
+                            </div>
+                            <Button size="sm" onClick={() => handleContinueCourse(course)}>
+                              {course.progress > 0 ? 'Continue' : 'Start'}
+                            </Button>
+                          </div>
+                          <Progress value={course.progress} className="h-2" />
+                          <div className="mt-2 flex justify-between text-sm text-gray-600">
+                            <span>
+                              {course.completedLessons}/{course.totalLessons} lessons
+                            </span>
+                            <span>{course.progress}% complete</span>
+                          </div>
                         </div>
-                        <Progress value={course.progress} className="h-2" />
-                        <div className="mt-2 flex justify-between text-sm text-gray-600">
-                          <span>
-                            {course.completedLessons}/{course.totalLessons} lessons
-                          </span>
-                          <span>{course.progress}% complete</span>
-                        </div>
-                      </div>
-                    ))}
-                    {enrolledCourses.length === 0 && (
-                      <div className="text-center py-8">
-                        <p className="text-gray-500">No courses in progress</p>
-                        <Button className="mt-2" onClick={() => navigate('/courses')}>
-                          Browse Courses
-                        </Button>
-                      </div>
-                    )}
+                      ));
+                    })()}
                   </CardContent>
                 </Card>
               </div>
 
               {/* AI Chat Assistant */}
-              <AIChatAssistant userSkills={[
-                ...(dashboardData.skillsInProgress || []),
-                ...(dashboardData.currentSkills || [])
-              ]} />
+              <AIChatAssistant 
+                userSkills={[
+                  ...(dashboardData.skillsInProgress || []),
+                  ...(dashboardData.currentSkills || [])
+                ]} 
+                disableCourseGeneration={true}
+              />
             </div>
           </TabsContent>
 
@@ -260,7 +271,7 @@ const Dashboard = () => {
               {enrolledCourses.length > 0 && (
                 <div>
                   <h3 className="mb-4 text-lg font-semibold">Courses in Progress</h3>
-                  {enrolledCourses.map((course) => (
+                  {enrolledCourses.sort((a, b) => b.progress - a.progress).map((course) => (
                     <Card key={course.id} className="mb-4">
                       <CardContent className="p-6">
                         <div className="mb-4 flex items-start justify-between">
@@ -276,7 +287,7 @@ const Dashboard = () => {
                             </div>
                           </div>
                           <Button onClick={() => handleContinueCourse(course)}>
-                            Continue
+                            {course.progress > 0 ? 'Continue' : 'Start'}
                           </Button>
                         </div>
                         <div className="space-y-2">
@@ -335,33 +346,7 @@ const Dashboard = () => {
                     </Card>
                   ))}
                 </div>
-              )}
-
-              {/* Bookmarked Courses */}
-              {localBookmarkedCourses.length > 0 && (
-                <div>
-                  <h3 className="mb-4 text-lg font-semibold">Bookmarked Courses</h3>
-                  {localBookmarkedCourses.map((course) => (
-                    <Card key={course.id} className="mb-4">
-                      <CardContent className="p-6">
-                        <div className="mb-4 flex items-start justify-between">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900">{course.title}</h3>
-                            <p className="mb-2 text-gray-600">{course.description}</p>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span>{course.instructor}</span>
-                              <Badge variant="secondary">{course.category}</Badge>
-                            </div>
-                          </div>
-                          <Button onClick={() => navigate(`/courses/${course.id}`)}>
-                            View Course
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+              )}              
 
               {enrolledCourses.length === 0 && completedCourses.length === 0 && localBookmarkedCourses.length === 0 && (
                 <div className="text-center py-8">
@@ -399,32 +384,27 @@ const Dashboard = () => {
                             </div>
                           )}
                           
-                          {/* Bookmark Icon Overlay */}
+                          {/* Bookmark Icon Overlay - Only for unbookmarking in bookmarks tab */}
                           {user && (
                             <button
                               onClick={(event) => {
                                 event.stopPropagation();
-                                // For bookmarked courses, we'll unbookmark them
-                                const isBookmarked = user.bookmarkedCourseIds?.includes(course.id);
-                                if (isBookmarked) {
-                                  // Call the bookmark service to unbookmark
-                                  courseService.unbookmarkCourse(course.id, user.id).then(() => {
-                                    updateUserBookmarks(course.id, false);
-                                    // Update local state to remove the course from bookmarked list
-                                    setLocalBookmarkedCourses(prev => prev.filter(c => c.id !== course.id));
-                                    toast({
-                                      title: 'Bookmark Removed',
-                                      description: 'Course removed from your bookmarks.',
-                                      variant: 'default',
-                                    });
-                                  }).catch((err: any) => {
-                                    toast({
-                                      title: 'Bookmark Failed',
-                                      description: err.message || 'Could not remove bookmark.',
-                                      variant: 'destructive',
-                                    });
+                                // In bookmarks tab, we only unbookmark courses
+                                courseService.unbookmarkCourse(course.id, user.id).then(() => {
+                                  // Update local state only - no need to call updateUserBookmarks since we're already updating local state
+                                  setLocalBookmarkedCourses(prev => prev.filter(c => c.id !== course.id));
+                                  toast({
+                                    title: 'Bookmark Removed',
+                                    description: 'Course removed from your bookmarks.',
+                                    variant: 'default',
                                   });
-                                }
+                                }).catch((err: any) => {
+                                  toast({
+                                    title: 'Bookmark Failed',
+                                    description: err.message || 'Could not remove bookmark.',
+                                    variant: 'destructive',
+                                  });
+                                });
                               }}
                               className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-blue-600 shadow-md hover:bg-white hover:shadow-lg transition-all duration-200"
                             >
