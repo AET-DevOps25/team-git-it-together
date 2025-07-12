@@ -237,7 +237,7 @@ public interface CourseService {
     * @param prompt The prompt to generate a response for.
     * @return The generated response as a String.
     */
-   //This methode can be moved to a separate service //TODO: refactor
+   //This method can be moved to a separate service //TODO: refactor
    String generateResponseFromGenAi(String prompt);
 
 
