@@ -12,13 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.http.HttpHeaders;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,10 +24,9 @@ import java.util.List;
 public class CourseController {
 
     private final CourseService courseService;
-private final RestTemplate restTemplate = new RestTemplate();
 
-@Value("${user.service.uri:http://user-service:8082}")
-private String userServiceUri;
+    @Value("${user.service.uri:http://user-service:8082}")
+    private String userServiceUri;
 
     @PostMapping
     public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
@@ -184,54 +176,32 @@ private String userServiceUri;
     }
 
     /**
-     * Generates a brand-new course via GenAI + RAG, then persists & returns it.
-     * Chosen as POST because we are **creating** a new server-side resource
-     * (the course) – even though the body only contains “input” data.
-     */
-    /*
-     * New variant that accepts userId in path.
-     * Example: POST /api/v1/courses/generate/learning_path/{userId}
-     */
+    * Generates a brand-new course via GenAI + RAG, then persists & returns it.
+    * Chosen as POST because we are **creating** a new server-side resource
+    */
     @PostMapping("/generate/learning_path/{userId}")
-    public ResponseEntity<CourseResponse> generateCourseForUser(@PathVariable String userId,
-                                                                @RequestBody LearningPathRequest req,
-                                                                HttpServletRequest servletRequest) {
-        
-
-        // Fetch user profile from user-service just for logging/demo
-        try {
-            String profileUrl = userServiceUri + "/api/v1/users/" + userId + "/profile";
-            String authHeader = servletRequest.getHeader("Authorization");
-            HttpHeaders headers = new HttpHeaders();
-            if (authHeader != null && !authHeader.isBlank()) {
-                headers.set("Authorization", authHeader);
-            }
-            HttpEntity<Void> entity = new HttpEntity<>(headers);
-            String profileJson = restTemplate.exchange(profileUrl, HttpMethod.GET, entity, String.class).getBody();
-            log.info("User profile fetched via user-service: {}", profileJson);
-            // extract skills field from JSON
-            List<String> extractedSkills = null;
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(profileJson);
-                JsonNode skillsNode = root.get("skills");
-                if (skillsNode != null && skillsNode.isArray()) {
-                    extractedSkills = mapper.convertValue(skillsNode, new TypeReference<List<String>>() {});
-                }
-            } catch (Exception parseEx) {
-                log.warn("Could not parse skills from user profile: {}", parseEx.getMessage());
-            }
-            log.info("Generating course for user={} prompt='{}' skills={}", userId, req.prompt(), extractedSkills);
-            req = new LearningPathRequest(req.prompt(), extractedSkills);
-
-        } catch (Exception ex) {
-            log.warn("Failed to fetch user profile for {}: {}", userId, ex.getMessage());
-        }
-
-        // create the course after we logged the profile
-        CourseResponse generated = courseService.generateFromGenAi(req);
-        CourseResponse enrolled = courseService.enrollUserInCourse(generated.getId(), userId);
-        return ResponseEntity.ok(enrolled);
+    public ResponseEntity<CourseRequest> generateCourseForUser(@PathVariable String userId, @RequestBody LearningPathRequest req, HttpServletRequest servletRequest) {
+    log.info("Generating course for user: {}", userId);
+    CourseRequest generated = courseService.generateCourseFromGenAi(req, userId, servletRequest.getHeader("Authorization"));
+    return ResponseEntity.ok(generated);
     }
+
+
+    /**
+    * Confirms the generation of a course from a Learning Path request.
+    * This method is called after the course has been generated and the user has reviewed it.
+    * It retrieves the last generated course details, creates the course in the database, enrolls the user, and returns the course response.
+    *
+    * @param userId The ID of the user confirming the course generation.
+    * @return CourseResponse containing the confirmed course details.
+    */
+    @PostMapping("/generate/learning_path/{userId}/confirm")
+    public ResponseEntity<CourseResponse> confirmGeneratedCourse(@PathVariable String userId) {
+    log.info("Confirming course generation for user: {}", userId);
+    CourseResponse confirmed = courseService.confirmCourseGeneration(userId);
+    return ResponseEntity.ok(confirmed);
+    }
+
+
 
 } 
