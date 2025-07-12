@@ -57,9 +57,9 @@ public class CourseController {
     }
 
     @GetMapping("/public/published")
-    public ResponseEntity<List<CourseResponse>> getPublicPublishedCourses() {
+    public ResponseEntity<List<CourseSummaryResponse>> getPublishedCourses() {
         log.info("Fetching public and published courses for landing page");
-        List<CourseResponse> responses = courseService.getPublicPublishedCourses();
+        List<CourseSummaryResponse> responses = courseService.getPublishedCourses();
         return ResponseEntity.ok(responses);
     }
 
@@ -121,18 +121,23 @@ public class CourseController {
 
     @GetMapping("/search")
     public ResponseEntity<List<CourseResponse>> searchCourses(
-            @RequestParam(required = false) String instructor,
-            @RequestParam(required = false) Level level,
-            @RequestParam(required = false) Language language,
-            @RequestParam(required = false) String skill,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String title
+           @RequestParam(required = false) String instructor,
+           @RequestParam(required = false) Level level,
+           @RequestParam(required = false) Language language,
+           @RequestParam(required = false) String skill,
+           @RequestParam(required = false) String category,
+           @RequestParam(required = false) String title,
+           @RequestParam(required = false) boolean isPublished,
+           @RequestParam(required = false) boolean isPublic
     ) {
-        log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}", instructor, level, language, skill, category, title);
-        List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title);
-        return ResponseEntity.ok(responses);
+       log.info("Advanced search: instructor={}, level={}, language={}, skill={}, category={}, title={}, isPublished={}, isPublic={}",
+               instructor, level, language, skill, category, title, isPublished, isPublic);
+       List<CourseResponse> responses = courseService.advancedSearch(instructor, level, language, skill, category, title, isPublished, isPublic);
+       return ResponseEntity.ok(responses);
     }
-
+    
+    
+    
     @GetMapping("/search/instructor/{instructor}")
     public ResponseEntity<List<CourseResponse>> getCoursesByInstructor(@PathVariable String instructor) {
         log.info("Fetching courses by instructor: {}", instructor);
