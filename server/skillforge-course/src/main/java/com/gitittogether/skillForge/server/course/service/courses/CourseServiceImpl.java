@@ -65,6 +65,18 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("Course with this title already exists");
         }
         Course course = CourseMapper.requestToCourse(request);
+        // Ensure correct module order (starting from 0)
+        if (course.getModules() != null) {
+            for (int i = 0; i < course.getModules().size(); i++) {
+                course.getModules().get(i).setOrder(i);
+            }
+            // Ensure correct lesson order within each module (starting from 0)
+            int startingOrder = 0;
+            for (Module module : course.getModules()) {
+                module.setLessonOrder(startingOrder);
+                startingOrder += module.getNumberOfLessons();
+            }
+        }
         Course savedCourse = courseRepository.save(course);
 
         log.info("Created course with ID: {}", savedCourse.getId());
@@ -99,9 +111,12 @@ public class CourseServiceImpl implements CourseService {
         Course existingCourse = courseRepository.findById(courseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
 
-        if (request.getTitle() != null) existingCourse.setTitle(request.getTitle());
-        if (request.getDescription() != null) existingCourse.setDescription(request.getDescription());
-        if (request.getInstructor() != null) existingCourse.setInstructor(request.getInstructor());
+        if (request.getTitle() != null && !request.getTitle().isBlank())
+            existingCourse.setTitle(request.getTitle());
+        if (request.getDescription() != null && !request.getDescription().isBlank())
+            existingCourse.setDescription(request.getDescription());
+        if (request.getInstructor() != null && !request.getInstructor().isBlank())
+            existingCourse.setInstructor(request.getInstructor());
 
         // Merge skills
         if (request.getSkills() != null && !request.getSkills().isEmpty()) {
@@ -122,33 +137,76 @@ public class CourseServiceImpl implements CourseService {
             List<Module> existingModules = existingCourse.getModules();
             Set<String> existingTitles = existingModules.stream().map(Module::getTitle).collect(Collectors.toSet());
             List<Module> newModules = request.getModules().stream()
-                .map(ModuleMapper::requestToModule)
-                .filter(m -> !existingTitles.contains(m.getTitle()))
-                .toList();
+                    .map(ModuleMapper::requestToModule)
+                    .filter(m -> !existingTitles.contains(m.getTitle()))
+                    .toList();
             existingModules.addAll(newModules);
             existingCourse.setModules(existingModules);
         }
 
-        // Merge enrolledUsers by userId (add new users only)
+        // Ensure correct module and lesson order
+        if (existingCourse.getModules() != null) {
+            for (int i = 0; i < existingCourse.getModules().size(); i++) {
+                Module mod = existingCourse.getModules().get(i);
+                mod.setOrder(i);
+            }
+            // Ensure correct lesson order within each module (starting from 0)
+            int startingOrder = 0;
+            for (Module module : existingCourse.getModules()) {
+                module.setLessonOrder(startingOrder);
+                startingOrder += module.getNumberOfLessons();
+            }
+        }
+
+        // Calculate total number of lessons for the course
+        int totalLessons = existingCourse.getModules().stream()
+                .mapToInt(Module::getNumberOfLessons)
+                .sum();
+
+        // Handle enrolledUsers (add new users and update existing users)
         if (request.getEnrolledUsers() != null && !request.getEnrolledUsers().isEmpty()) {
             List<EnrolledUserInfo> existingUsers = existingCourse.getEnrolledUsers();
-            Set<String> existingUserIds = existingUsers.stream().map(EnrolledUserInfo::getUserId).collect(Collectors.toSet());
-            List<EnrolledUserInfo> newUsers = request.getEnrolledUsers().stream()
-                .map(EnrolledUserInfoMapper::requestToEnrolledUserInfo)
-                .filter(u -> !existingUserIds.contains(u.getUserId()))
-                .toList();
-            existingUsers.addAll(newUsers);
+            Map<String, EnrolledUserInfo> existingUsersMap = existingUsers.stream()
+                    .collect(Collectors.toMap(EnrolledUserInfo::getUserId, u -> u));
+
+            for (EnrolledUserInfoRequest requestUser : request.getEnrolledUsers()) {
+                EnrolledUserInfo existingUser = existingUsersMap.get(requestUser.getUserId());
+
+                if (existingUser != null) {
+                    // Update existing user's currentLesson
+                    existingUser.setCurrentLesson(requestUser.getCurrentLesson());
+                    log.info("Updated user {} currentLesson to {}", requestUser.getUserId(), requestUser.getCurrentLesson());
+                } else {
+                    // Add new user
+                    EnrolledUserInfo newUser = EnrolledUserInfoMapper.requestToEnrolledUserInfo(requestUser);
+                    newUser.setTotalNumberOfLessons(totalLessons);
+                    existingUsers.add(newUser);
+                    log.info("Added new user {} to course", requestUser.getUserId());
+                }
+            }
+
             existingCourse.setEnrolledUsers(existingUsers);
         }
 
-        if (request.getNumberOfEnrolledUsers() != null) existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
+        // Update totalNumberOfLessons for existing users who might have 0
+        existingCourse.getEnrolledUsers().stream()
+                .filter(u -> u.getTotalNumberOfLessons() == 0)
+                .forEach(u -> u.setTotalNumberOfLessons(totalLessons));
+
+        // Calculate and update progress for all enrolled users based on currentLesson
+        updateProgressForAllEnrolledUsers(existingCourse, totalLessons);
+
+        if (request.getNumberOfEnrolledUsers() != null)
+            existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
         if (request.getLevel() != null) existingCourse.setLevel(request.getLevel());
         if (request.getThumbnailUrl() != null) existingCourse.setThumbnailUrl(request.getThumbnailUrl());
         if (request.getLanguage() != null) existingCourse.setLanguage(request.getLanguage());
+
+        // Handle booleans as objects if you want partial update; here forced to always update
         existingCourse.setPublished(request.isPublished());
         existingCourse.setPublic(request.isPublic());
+        // Rating is optional, so only update if provided
         if (request.getRating() != 0.0) existingCourse.setRating(request.getRating());
-
         Course savedCourse = courseRepository.save(existingCourse);
         log.info("Updated course with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
@@ -182,11 +240,18 @@ public class CourseServiceImpl implements CourseService {
             throw new IllegalArgumentException("User is already enrolled in this course");
         }
 
+        // Calculate total number of lessons
+        int totalLessons = course.getModules().stream()
+                .mapToInt(Module::getNumberOfLessons)
+                .sum();
+
         // Create EnrolledUserInfo
         EnrolledUserInfo enrolledUser = EnrolledUserInfo.builder()
                 .userId(userId)
                 .progress(0.0f)
                 .skills(new ArrayList<>(course.getSkills()))
+                .currentLesson(0)
+                .totalNumberOfLessons(totalLessons)
                 .build();
         course.getEnrolledUsers().add(enrolledUser);
         course.setNumberOfEnrolledUsers(course.getNumberOfEnrolledUsers() + 1);
