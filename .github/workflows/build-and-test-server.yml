@@ -52,6 +52,20 @@ jobs:
           name: coverage-reports-gateway-service
           path: ${{ github.workspace }}/server/skillforge-gateway/build/reports/jacoco/test/
           retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
+            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -59,10 +73,13 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-gateway-service)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "### Gateway Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
 
@@ -99,6 +116,20 @@ jobs:
           name: coverage-reports-user-service
           path: ${{ github.workspace }}/server/skillforge-user/build/reports/jacoco/test/
           retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
+            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -106,10 +137,13 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-user-service)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "### User Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
   test-course-service:
@@ -148,6 +182,20 @@ jobs:
           name: coverage-reports-course-service
           path: ${{ github.workspace }}/server/skillforge-course/build/reports/jacoco/test/
           retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
+            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
+            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -155,9 +203,12 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-course-service)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "### Course Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
