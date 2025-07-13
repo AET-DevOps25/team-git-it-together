@@ -57,18 +57,35 @@ jobs:
         run: |
           COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
           if [ -f "$COVERAGE_XML" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
 
-            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
-            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
 
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
+            echo "COVERAGE FILE NOT FOUND"
             echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
-          fi
+          fI
       - name: Post workflow summary
         if: always()
         run: |
@@ -85,7 +102,6 @@ jobs:
           echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
-
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
@@ -124,15 +140,32 @@ jobs:
         run: |
           COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
           if [ -f "$COVERAGE_XML" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
 
-            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
-            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
 
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
+            echo "COVERAGE FILE NOT FOUND"
             echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
           fi
@@ -193,15 +226,32 @@ jobs:
         run: |
           COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
           if [ -f "$COVERAGE_XML" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
 
-            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
-            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
 
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
+            echo "COVERAGE FILE NOT FOUND"
             echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
           fi
