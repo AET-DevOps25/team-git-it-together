@@ -128,11 +128,11 @@ jobs:
                 echo '```' >> $GITHUB_STEP_SUMMARY
               fi
 
-              # Extract coverage summary
-              COVERAGE_INFO=$(grep -A 20 "Coverage report from v8" test-clean.txt | head -20)
+              # Extract and filter coverage summary from cleaned output
+              COVERAGE_INFO=$(awk '/Coverage report from v8/,0' test-clean.txt | grep -E '^All files|^ src/services|^  src/services' | head -n 20)
               if [ -n "$COVERAGE_INFO" ]; then
                 echo "" >> $GITHUB_STEP_SUMMARY
-                echo "**Coverage Summary:**" >> $GITHUB_STEP_SUMMARY
+                echo "**Coverage Summary (src/services only):**" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
                 echo "$COVERAGE_INFO" >> $GITHUB_STEP_SUMMARY
                 echo '```' >> $GITHUB_STEP_SUMMARY
