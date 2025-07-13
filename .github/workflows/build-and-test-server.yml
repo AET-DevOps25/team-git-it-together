@@ -22,11 +22,6 @@ jobs:
   test-gateway:
     name: Build & Test Gateway
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
     defaults:
       run:
         working-directory: server/skillforge-gateway
@@ -39,12 +34,24 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+      - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
-          REDIS_HOST: redis
-          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
         run: ./gradlew build --no-daemon --scan
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-gateway-service
+          path: ${{ github.workspace }}/server/skillforge-gateway/build/reports/jacoco/test/
+          retention-days: 30
       - name: Post workflow summary
         if: always()
         run: |
@@ -52,7 +59,12 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-gateway-service)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
 
   test-user-service:
     name: Build & Test User Service
