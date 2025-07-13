@@ -84,7 +84,7 @@ jobs:
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports
+          name: coverage-reports-user-service
           path: ${{ github.workspace }}/server/skillforge-user/build/reports/jacoco/test/
           retention-days: 30
       - name: Post workflow summary
@@ -97,7 +97,7 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-user-service)](./)" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
   test-course-service:
@@ -133,7 +133,7 @@ jobs:
       - name: Upload coverage reports
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-reports
+          name: coverage-reports-course-service
           path: ${{ github.workspace }}/server/skillforge-course/build/reports/jacoco/test/
           retention-days: 30
       - name: Post workflow summary
@@ -146,6 +146,6 @@ jobs:
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
           echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports-course-service)](./)" >> $GITHUB_STEP_SUMMARY
           echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
           echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
