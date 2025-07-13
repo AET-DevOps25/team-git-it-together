@@ -57,11 +57,6 @@ jobs:
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-user
@@ -74,13 +69,33 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+      - name: Run unit tests with coverage
         env:
           SPRING_PROFILES_ACTIVE: test
-          JWT_SECRET: test-jwt-secret
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
           JWT_EXPIRATION_MS: 3600000
-          MONGO_URL: mongodb://localhost:27017/test
-        run: ./gradlew build --no-daemon --scan
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+      - name: Display coverage summary
+        run: |
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- HTML Report: Available in build artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage thresholds: Line 55%, Branch 40%" >> $GITHUB_STEP_SUMMARY
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            build/reports/jacoco/test/html/
+            build/reports/jacoco/test/jacocoTestReport.xml
+          retention-days: 30
+      - name: Build application
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew build -x test --no-daemon
       - name: Post workflow summary
         if: always()
         run: |
