@@ -95,70 +95,70 @@ jobs:
             echo "No build output found - Build and Test Client workflow failed."
             exit 1
           fi
-          - name: Post workflow summary
-          if: always()
-          run: |
-            echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
-            echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-            echo "- Node Version: $(node -v)" >> $GITHUB_STEP_SUMMARY
-        
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Test Results" >> $GITHUB_STEP_SUMMARY
-        
-            if [ "${{ steps.run-tests.outputs.tests_found }}" = "true" ]; then
-              if [ "${{ steps.run-tests.outputs.test_exit_code }}" = "0" ]; then
-                echo "✅ **Tests Passed**" >> $GITHUB_STEP_SUMMARY
-              else
-                echo "❌ **Tests Failed**" >> $GITHUB_STEP_SUMMARY
-              fi
-        
-              # Strip ANSI escape codes from test-output.txt
-              if [ -f test-output.txt ]; then
-                sed -r "s/\x1B\[[0-9;]*[mK]//g" test-output.txt > test-clean.txt
-        
-                # Extract test statistics
-                TEST_STATS=$(grep -E "Test Files|Tests" test-clean.txt | tail -2)
-                if [ -n "$TEST_STATS" ]; then
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "**Test Statistics:**" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  echo "$TEST_STATS" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                fi
-        
-                # Extract coverage summary
-                COVERAGE_INFO=$(grep -A 20 "Coverage report from v8" test-clean.txt | head -20)
-                if [ -n "$COVERAGE_INFO" ]; then
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "**Coverage Summary:**" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                  echo "$COVERAGE_INFO" >> $GITHUB_STEP_SUMMARY
-                  echo '```' >> $GITHUB_STEP_SUMMARY
-                fi
-              fi
+      - name: Post workflow summary
+        if: always()
+        run: |
+          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Node Version: $(node -v)" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.run-tests.outputs.tests_found }}" = "true" ]; then
+            if [ "${{ steps.run-tests.outputs.test_exit_code }}" = "0" ]; then
+              echo "✅ **Tests Passed**" >> $GITHUB_STEP_SUMMARY
             else
-              echo "⚠️ **No tests found** - Skipped test execution" >> $GITHUB_STEP_SUMMARY
+              echo "❌ **Tests Failed**" >> $GITHUB_STEP_SUMMARY
             fi
-        
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Build Results" >> $GITHUB_STEP_SUMMARY
-        
-            if [ -d dist ]; then
-              echo "✅ **Build successful** - Output found in dist/" >> $GITHUB_STEP_SUMMARY
-              BUILD_SIZE=$(du -sh dist 2>/dev/null | cut -f1)
-              if [ -n "$BUILD_SIZE" ]; then
-                echo "- Build size: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+
+            # Strip ANSI escape codes from test-output.txt
+            if [ -f test-output.txt ]; then
+              sed -r "s/\x1B\[[0-9;]*[mK]//g" test-output.txt > test-clean.txt
+
+              # Extract test statistics
+              TEST_STATS=$(grep -E "Test Files|Tests" test-clean.txt | tail -2)
+              if [ -n "$TEST_STATS" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Test Statistics:**" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                echo "$TEST_STATS" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
               fi
-            else
-              echo "❌ **Build failed** - No dist/ directory found" >> $GITHUB_STEP_SUMMARY
+
+              # Extract coverage summary
+              COVERAGE_INFO=$(grep -A 20 "Coverage report from v8" test-clean.txt | head -20)
+              if [ -n "$COVERAGE_INFO" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Coverage Summary:**" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                echo "$COVERAGE_INFO" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+              fi
             fi
-        
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "### Code Quality" >> $GITHUB_STEP_SUMMARY
-            if [ "${{ steps.lint.outcome }}" = "success" ]; then
-              echo "✅ **Linting passed**" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "⚠️ **Linting failed** (continued on error)" >> $GITHUB_STEP_SUMMARY
-            fi        
+          else
+            echo "⚠️ **No tests found** - Skipped test execution" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Results" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d dist ]; then
+            echo "✅ **Build successful** - Output found in dist/" >> $GITHUB_STEP_SUMMARY
+            BUILD_SIZE=$(du -sh dist 2>/dev/null | cut -f1)
+            if [ -n "$BUILD_SIZE" ]; then
+              echo "- Build size: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Build failed** - No dist/ directory found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Quality" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.lint.outcome }}" = "success" ]; then
+            echo "✅ **Linting passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Linting failed** (continued on error)" >> $GITHUB_STEP_SUMMARY
+          fi
