@@ -1,51 +1,19 @@
-# Optimized test configuration for faster execution
+# Test configuration for unit tests (no MongoDB needed - using mocks)
+
+server:
+  port: 0  # Use random port for tests
+
 spring:
   config:
     activate:
       on-profile: test
-  
-  # Disable unnecessary features for faster startup
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
 
-  # Disable MongoDB for tests (will be mocked)
-  data:
-    mongodb:
-      enabled: false
-  
-  # Disable security for faster tests
-  security:
-    enabled: false
-  
-  # Disable web server for context load tests
-  main:
-    web-application-type: none
-  
-  # Disable JPA/Hibernate features
-  jpa:
-    hibernate:
-      ddl-auto: none
-    show-sql: false
+jwt:
+  secret: ${JWT_SECRET:test-jwt-secret-key-for-testing-only}
+  expirationMs: ${JWT_EXPIRATION_MS:3600000}
 
-# Disable logging for faster execution
 logging:
   level:
     root: WARN
-    com.gitittogether.skillForge.server.user: WARN
-    org.springframework: WARN
-    org.mongodb: WARN
-
-# Disable metrics
-management:
-  endpoints:
-    access:
-      default: none
-  endpoint:
-    health:
-      access: none
-
-# JWT configuration for tests
-jwt:
-  secret: test-jwt-secret-key-for-testing-only
-  expirationMs: 3600000 
+    com.gitittogether.skillForge.server.user: DEBUG
+    org.springframework.test: DEBUG 
