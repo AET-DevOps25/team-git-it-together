@@ -576,6 +576,20 @@
       "type": "stat"
     },
     {
+      "datasource": {"type":"prometheus","uid":"DS_PROMETHEUS"},
+      "description": "Current application version (label)",
+      "fieldConfig": {"defaults": {"mappings": [],"thresholds": {"mode":"absolute","steps":[{"color":"green"}]},"unit":"short"},"overrides": []},
+      "gridPos": {"h":4,"w":4,"x":20,"y":13},
+      "id": 34,
+      "options": {"colorMode":"value","graphMode":"none","justifyMode":"auto","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"value_and_name"},
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"DS_PROMETHEUS"},"expr":"app_version_info{job=\"genai\"}","instant":true,"refId":"A"}
+      ],
+      "title": "App Version",
+      "type": "stat"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "DS_PROMETHEUS"
