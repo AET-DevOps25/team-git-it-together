@@ -32,3 +32,20 @@ groups:
           severity: critical
         annotations:
           summary: "Redis exporter is down"
+
+      - alert: GenAIHighLatency
+        expr: histogram_quantile(0.90, sum(rate(http_request_duration_seconds_bucket{handler="/api/v1/generate",job="genai"}[5m])) by (le)) > 0.1
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "GenAI service response time is high (>0.1s for 90th percentile)"
+          description: "The GenAI service is experiencing high response times, which may affect user experience with AI-generated content."
+          
+      - alert: TestAlert
+        expr: vector(1) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Test alert that should always fire"
+          description: "This is a test alert that should always fire to verify alerting is working."
