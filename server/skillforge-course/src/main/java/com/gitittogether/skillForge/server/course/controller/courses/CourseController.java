@@ -10,6 +10,7 @@ import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
 import com.gitittogether.skillForge.server.course.service.courses.CourseService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping
-    public ResponseEntity<CourseResponse> createCourse(@RequestBody CourseRequest request) {
+    public ResponseEntity<CourseResponse> createCourse(@Valid @RequestBody CourseRequest request) {
         log.info("Creating new course: {}", request.getTitle());
         CourseResponse response = courseService.createCourse(request);
         return ResponseEntity.ok(response);
@@ -63,7 +64,7 @@ public class CourseController {
     }
 
     @PutMapping("/{courseId}")
-    public ResponseEntity<CourseResponse> updateCourse(@PathVariable String courseId, @RequestBody CourseRequest request) {
+    public ResponseEntity<CourseResponse> updateCourse(@PathVariable String courseId, @Valid @RequestBody CourseRequest request) {
         log.info("Updating course: {}", courseId);
         CourseResponse response = courseService.updateCourse(courseId, request);
         return ResponseEntity.ok(response);

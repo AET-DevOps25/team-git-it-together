@@ -1,7 +1,7 @@
 # Test configuration for unit tests (no MongoDB needed - using mocks)
 
 server:
-  port: 0  # Use random port for tests
+  port: 0
 
 spring:
   config:
