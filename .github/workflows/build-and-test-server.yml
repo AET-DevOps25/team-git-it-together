@@ -85,7 +85,7 @@ jobs:
             echo "COVERAGE FILE NOT FOUND"
             echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
-          fI
+          fi
       - name: Post workflow summary
         if: always()
         run: |
