@@ -13,6 +13,12 @@
   "__requires": [
     {
       "type": "panel",
+      "id": "alertlist",
+      "name": "Alert list",
+      "version": ""
+    },
+    {
+      "type": "panel",
       "id": "bargauge",
       "name": "Bar gauge",
       "version": ""
@@ -490,6 +496,152 @@
       ],
       "title": "Request Per Sec",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "DS_PROMETHEUS"
+      },
+      "description": "Uptime of the GenAI container in hours",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green" }
+            ]
+          },
+          "unit": "hour"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h":4,"w":4,"x":0,"y":13},
+      "id": 30,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs":["lastNotNull"],"fields":"","values":false},
+        "textMode": "auto"
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"DS_PROMETHEUS"},"expr":"(time() - process_start_time_seconds{job=\"genai\"})/3600","instant":true,"refId":"A"}
+      ],
+      "title": "Uptime (h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type":"prometheus","uid":"DS_PROMETHEUS"},
+      "description": "Container restarts in last 24h (changes in start time)",
+      "fieldConfig": {"defaults": {"mappings": [],"thresholds": {"mode":"absolute","steps":[{"color":"green"},{"color":"red","value":1}]},"unit":"short"},"overrides": []},
+      "gridPos": {"h":4,"w":4,"x":4,"y":13},
+      "id": 31,
+      "options": {"colorMode":"value","graphMode":"area","justifyMode":"auto","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto"},
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"DS_PROMETHEUS"},"expr":"changes(process_start_time_seconds{job=\"genai\"}[24h])","instant":true,"refId":"A"}
+      ],
+      "title": "Restarts (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type":"prometheus","uid":"DS_PROMETHEUS"},
+      "description": "Resident memory of the GenAI process in MB",
+      "fieldConfig": {"defaults": {"unit":"megabytes","mappings": [],"thresholds": {"mode":"absolute","steps":[{"color":"green"},{"color":"red","value":512}]},"decimals":0},"overrides": []},
+      "gridPos": {"h":4,"w":4,"x":8,"y":13},
+      "id": 32,
+      "options": {"colorMode":"value","graphMode":"area","justifyMode":"auto","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto"},
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"DS_PROMETHEUS"},"expr":"process_resident_memory_bytes{job=\"genai\"}/1024/1024","instant":true,"refId":"A"}
+      ],
+      "title": "Memory RSS (MB)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type":"prometheus","uid":"DS_PROMETHEUS"},
+      "description": "Approximate CPU usage % for GenAI process",
+      "fieldConfig": {"defaults": {"unit":"percent","mappings": [],"thresholds": {"mode":"absolute","steps":[{"color":"green"},{"color":"yellow","value":50},{"color":"red","value":80}]},"decimals":1},"overrides": []},
+      "gridPos": {"h":4,"w":4,"x":12,"y":13},
+      "id": 33,
+      "options": {"colorMode":"value","graphMode":"area","justifyMode":"auto","orientation":"auto","reduceOptions":{"calcs":["lastNotNull"],"fields":"","values":false},"textMode":"auto"},
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {"datasource":{"type":"prometheus","uid":"DS_PROMETHEUS"},"expr":"rate(process_cpu_seconds_total{job=\"genai\"}[1m])*100","instant":true,"refId":"A"}
+      ],
+      "title": "CPU Util (%)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "DS_PROMETHEUS"
+      },
+      "description": "Shows active alerts related to the GenAI service and other microservices",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 28,
+      "options": {
+        "alertName": "",
+        "dashboardAlerts": false,
+        "dashboardTitle": "",
+        "maxItems": 5,
+        "showInstances": true,
+        "sortOrder": 1,
+        "stateFilter": {
+          "firing": true,
+          "pending": true
+        },
+        "tags": []
+      },
+      "pluginVersion": "12.0.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "DS_PROMETHEUS"
+          },
+          "editorMode": "code",
+          "expr": "",
+          "instant": false,
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Active Alerts",
+      "type": "alertlist"
     }
   ],
   "refresh": "5s",
