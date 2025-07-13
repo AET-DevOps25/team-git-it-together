@@ -78,6 +78,36 @@
   "links": [],
   "panels": [
     {
+      "datasource": {"type": "prometheus", "uid": "DS_PROMETHEUS"},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green"}]},
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+      "id": 3001,
+      "options": {
+        "showHeader": true,
+        "sortBy": [{"desc": false, "displayName": "version"}]
+      },
+      "pluginVersion": "8.0.0",
+      "targets": [
+        {
+          "expr": "app_version_info{job=\"genai\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Deployed Service Version (GenAI)",
+      "type": "table"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "DS_PROMETHEUS"
