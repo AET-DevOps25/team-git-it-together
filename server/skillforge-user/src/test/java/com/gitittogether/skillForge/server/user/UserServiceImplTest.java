@@ -549,4 +549,451 @@ class UserServiceImplTest {
                 .isInstanceOf(ResourceNotFoundException.class)
                 .hasMessage("User not found");
     }
+
+
+    @Test
+    @DisplayName("Should complete course successfully")
+    void shouldCompleteCourseSuccessfully() {
+        // Given
+        User userWithEnrollment = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(new ArrayList<>(List.of("course456")))
+                .skillsInProgress(new ArrayList<>(List.of("skill1", "skill2")))
+                .skills(new ArrayList<>())
+                .completedCourseIds(new ArrayList<>())
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithEnrollment));
+        when(userRepository.save(any(User.class))).thenReturn(userWithEnrollment);
+
+        // When
+        userService.completeCourse("user123", "course456", List.of("skill1", "skill2"));
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle course completion when already completed")
+    void shouldHandleCourseCompletionWhenAlreadyCompleted() {
+        // Given
+        User userWithCompletedCourse = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .completedCourseIds(List.of("course456"))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithCompletedCourse));
+
+        // When
+        userService.completeCourse("user123", "course456", List.of("skill1"));
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should get user skills successfully")
+    void shouldGetUserSkillsSuccessfully() {
+        // Given
+        User userWithSkills = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .skills(List.of("Java", "Spring", "React"))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithSkills));
+
+        // When
+        List<String> skills = userService.getUserSkills("user123");
+
+        // Then
+        assertThat(skills).containsExactly("Java", "Spring", "React");
+        verify(userRepository).findById("user123");
+    }
+
+    @Test
+    @DisplayName("Should return empty list when user has no skills")
+    void shouldReturnEmptyListWhenUserHasNoSkills() {
+        // Given
+        User userWithoutSkills = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .skills(null)
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithoutSkills));
+
+        // When
+        List<String> skills = userService.getUserSkills("user123");
+
+        // Then
+        assertThat(skills).isEmpty();
+        verify(userRepository).findById("user123");
+    }
+
+    @Test
+    @DisplayName("Should get user skills in progress successfully")
+    void shouldGetUserSkillsInProgressSuccessfully() {
+        // Given
+        User userWithSkillsInProgress = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .skillsInProgress(List.of("Python", "Django"))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithSkillsInProgress));
+
+        // When
+        List<String> skillsInProgress = userService.getUserSkillsInProgress("user123");
+
+        // Then
+        assertThat(skillsInProgress).containsExactly("Python", "Django");
+        verify(userRepository).findById("user123");
+    }
+
+    @Test
+    @DisplayName("Should get user enrolled course IDs successfully")
+    void shouldGetUserEnrolledCourseIdsSuccessfully() {
+        // Given
+        User userWithEnrollments = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(List.of("course1", "course2", "course3"))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithEnrollments));
+
+        // When
+        List<String> enrolledCourses = userService.getUserEnrolledCourseIds("user123");
+
+        // Then
+        assertThat(enrolledCourses).containsExactly("course1", "course2", "course3");
+        verify(userRepository).findById("user123");
+    }
+
+    @Test
+    @DisplayName("Should get user completed course IDs successfully")
+    void shouldGetUserCompletedCourseIdsSuccessfully() {
+        // Given
+        User userWithCompletedCourses = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .completedCourseIds(List.of("course1", "course2"))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithCompletedCourses));
+
+        // When
+        List<String> completedCourses = userService.getUserCompletedCourseIds("user123");
+
+        // Then
+        assertThat(completedCourses).containsExactly("course1", "course2");
+        verify(userRepository).findById("user123");
+    }
+
+    @Test
+    @DisplayName("Should search users by username successfully")
+    void shouldSearchUsersByUsernameSuccessfully() {
+        // Given
+        List<User> users = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("john_doe").email("john@example.com").passwordHash("hash").build(),
+                User.builder().id("user456").firstName("John").lastName("Smith").username("john_smith").email("smith@example.com").passwordHash("hash").build()
+        );
+        when(userRepository.findUserByUsernameContainingIgnoreCase("john")).thenReturn(users);
+
+        // When
+        List<UserProfileResponse> results = userService.searchUsersByUsername("john");
+
+        // Then
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getUsername()).isEqualTo("john_doe");
+        assertThat(results.get(1).getUsername()).isEqualTo("john_smith");
+        verify(userRepository).findUserByUsernameContainingIgnoreCase("john");
+    }
+
+    @Test
+    @DisplayName("Should return empty list when searching with blank username")
+    void shouldReturnEmptyListWhenSearchingWithBlankUsername() {
+        // When
+        List<UserProfileResponse> results = userService.searchUsersByUsername("   ");
+
+        // Then
+        assertThat(results).isEmpty();
+        verify(userRepository, never()).findUserByUsernameContainingIgnoreCase(anyString());
+    }
+
+    @Test
+    @DisplayName("Should return empty list when searching with null username")
+    void shouldReturnEmptyListWhenSearchingWithNullUsername() {
+        // When
+        List<UserProfileResponse> results = userService.searchUsersByUsername(null);
+
+        // Then
+        assertThat(results).isEmpty();
+        verify(userRepository, never()).findUserByUsernameContainingIgnoreCase(anyString());
+    }
+
+    @Test
+    @DisplayName("Should search users by email successfully")
+    void shouldSearchUsersByEmailSuccessfully() {
+        // Given
+        List<User> users = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").build()
+        );
+        when(userRepository.findUserByEmailContainingIgnoreCase("example")).thenReturn(users);
+
+        // When
+        List<UserProfileResponse> results = userService.searchUsersByEmail("example");
+
+        // Then
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0).getEmail()).isEqualTo("john@example.com");
+        assertThat(results.get(1).getEmail()).isEqualTo("jane@example.com");
+        verify(userRepository).findUserByEmailContainingIgnoreCase("example");
+    }
+
+    @Test
+    @DisplayName("Should get users with specific skill")
+    void shouldGetUsersWithSpecificSkill() {
+        // Given
+        List<User> usersWithSkill = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").skills(List.of("Java")).build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").skills(List.of("Java", "Spring")).build()
+        );
+        when(userRepository.findBySkills("Java")).thenReturn(usersWithSkill);
+
+        // When
+        List<UserProfileResponse> results = userService.getUsersWithSkill("Java");
+
+        // Then
+        assertThat(results).hasSize(2);
+        verify(userRepository).findBySkills("Java");
+    }
+
+    @Test
+    @DisplayName("Should get users with skill in progress")
+    void shouldGetUsersWithSkillInProgress() {
+        // Given
+        List<User> usersWithSkillInProgress = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").skillsInProgress(List.of("Python")).build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").skillsInProgress(List.of("Python", "Django")).build()
+        );
+        when(userRepository.findBySkillsInProgress("Python")).thenReturn(usersWithSkillInProgress);
+
+        // When
+        List<UserProfileResponse> results = userService.getUsersWithSkillInProgress("Python");
+
+        // Then
+        assertThat(results).hasSize(2);
+        verify(userRepository).findBySkillsInProgress("Python");
+    }
+
+    @Test
+    @DisplayName("Should get users enrolled in course")
+    void shouldGetUsersEnrolledInCourse() {
+        // Given
+        List<User> usersEnrolled = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").enrolledCourseIds(List.of("course123")).build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").enrolledCourseIds(List.of("course123", "course456")).build()
+        );
+        when(userRepository.findByEnrolledCourseIdsContaining("course123")).thenReturn(usersEnrolled);
+
+        // When
+        List<UserProfileResponse> results = userService.getUsersEnrolledInCourse("course123");
+
+        // Then
+        assertThat(results).hasSize(2);
+        verify(userRepository).findByEnrolledCourseIdsContaining("course123");
+    }
+
+    @Test
+    @DisplayName("Should get users who completed course")
+    void shouldGetUsersWhoCompletedCourse() {
+        // Given
+        List<User> usersCompleted = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").completedCourseIds(List.of("course123")).build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").completedCourseIds(List.of("course123", "course456")).build()
+        );
+        when(userRepository.findByCompletedCourseIdsContaining("course123")).thenReturn(usersCompleted);
+
+        // When
+        List<UserProfileResponse> results = userService.getUsersCompletedCourse("course123");
+
+        // Then
+        assertThat(results).hasSize(2);
+        verify(userRepository).findByCompletedCourseIdsContaining("course123");
+    }
+
+    @Test
+    @DisplayName("Should get users who bookmarked course")
+    void shouldGetUsersWhoBookmarkedCourse() {
+        // Given
+        List<User> usersBookmarked = List.of(
+                User.builder().id("user123").firstName("John").lastName("Doe").username("johndoe").email("john@example.com").passwordHash("hash").bookmarkedCourseIds(List.of("course123")).build(),
+                User.builder().id("user456").firstName("Jane").lastName("Doe").username("janedoe").email("jane@example.com").passwordHash("hash").bookmarkedCourseIds(List.of("course123", "course456")).build()
+        );
+        when(userRepository.findByBookmarkedCourseIdsContaining("course123")).thenReturn(usersBookmarked);
+
+        // When
+        List<UserProfileResponse> results = userService.getUsersBookmarkedCourse("course123");
+
+        // Then
+        assertThat(results).hasSize(2);
+        verify(userRepository).findByBookmarkedCourseIdsContaining("course123");
+    }
+
+    @Test
+    @DisplayName("Should handle enrollment with null skills")
+    void shouldHandleEnrollmentWithNullSkills() {
+        // Given
+        User userWithoutEnrollments = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(new ArrayList<>())
+                .skillsInProgress(new ArrayList<>())
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithoutEnrollments));
+        when(userRepository.save(any(User.class))).thenReturn(userWithoutEnrollments);
+
+        // When
+        userService.enrollUserInCourse("user123", "course456", null);
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle enrollment with empty skills")
+    void shouldHandleEnrollmentWithEmptySkills() {
+        // Given
+        User userWithoutEnrollments = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(new ArrayList<>())
+                .skillsInProgress(new ArrayList<>())
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithoutEnrollments));
+        when(userRepository.save(any(User.class))).thenReturn(userWithoutEnrollments);
+
+        // When
+        userService.enrollUserInCourse("user123", "course456", List.of());
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle unenrollment with null skills")
+    void shouldHandleUnenrollmentWithNullSkills() {
+        // Given
+        User userWithEnrollment = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(new ArrayList<>(List.of("course456")))
+                .skillsInProgress(new ArrayList<>(List.of("skill1", "skill2")))
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithEnrollment));
+        when(userRepository.save(any(User.class))).thenReturn(userWithEnrollment);
+
+        // When
+        userService.unenrollUserFromCourse("user123", "course456", null);
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle course completion with null skills")
+    void shouldHandleCourseCompletionWithNullSkills() {
+        // Given
+        User userWithEnrollment = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(List.of("course456"))
+                .skillsInProgress(new ArrayList<>())
+                .skills(new ArrayList<>())
+                .completedCourseIds(new ArrayList<>())
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithEnrollment));
+        when(userRepository.save(any(User.class))).thenReturn(userWithEnrollment);
+
+        // When
+        userService.completeCourse("user123", "course456", null);
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("Should handle course completion with empty skills")
+    void shouldHandleCourseCompletionWithEmptySkills() {
+        // Given
+        User userWithEnrollment = User.builder()
+                .id("user123")
+                .firstName("John")
+                .lastName("Doe")
+                .username("johndoe")
+                .email("john.doe@example.com")
+                .passwordHash("encodedPassword123")
+                .enrolledCourseIds(List.of("course456"))
+                .skillsInProgress(new ArrayList<>())
+                .skills(new ArrayList<>())
+                .completedCourseIds(new ArrayList<>())
+                .build();
+        when(userRepository.findById("user123")).thenReturn(Optional.of(userWithEnrollment));
+        when(userRepository.save(any(User.class))).thenReturn(userWithEnrollment);
+
+        // When
+        userService.completeCourse("user123", "course456", List.of());
+
+        // Then
+        verify(userRepository).findById("user123");
+        verify(userRepository).save(any(User.class));
+    }
 } 
