@@ -68,10 +68,13 @@ async def lifespan(app: FastAPI):
 
 # --- App Initialization ---
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
-from prometheus_client import Counter
+from prometheus_client import Counter, Gauge
 
 # Custom metrics
 GENAI_TOKENS_USED_TOTAL = Counter("genai_tokens_used_total", "Total tokens used by GenAI")
+# Gauge that exposes the running application version
+APP_VERSION_INFO = Gauge("app_version_info", "Application version info (constant 1)", ["version"])
+APP_VERSION_INFO.labels(version=APP_VERSION).set(1)
 # Register counter for exceptions
 FASTAPI_EXCEPTIONS_TOTAL = Counter("fastapi_exceptions_total", "Total count of exceptions in the GenAI service")
 app = FastAPI(
