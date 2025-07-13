@@ -69,30 +69,24 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Run unit tests with coverage
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          JWT_SECRET: test-jwt-secret-key-for-testing-only
-          JWT_EXPIRATION_MS: 3600000
-        run: ./gradlew clean test jacocoTestReport --no-daemon --info
-      - name: Display coverage summary
-        run: |
-          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
-          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
-          echo "- HTML Report: Available in build artifacts" >> $GITHUB_STEP_SUMMARY
-          echo "- XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-reports
-          path: ${{ github.workspace }}/server/skillforge-user/build/reports/jacoco/test/
-          retention-days: 30
       - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
           JWT_SECRET: test-jwt-secret-key-for-testing-only
           JWT_EXPIRATION_MS: 3600000
         run: ./gradlew build -x test --no-daemon
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: ${{ github.workspace }}/server/skillforge-user/build/reports/jacoco/test/
+          retention-days: 30
       - name: Post workflow summary
         if: always()
         run: |
@@ -100,16 +94,15 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
   test-course-service:
     name: Build & Test Course Service
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-course
@@ -122,13 +115,27 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+
+      - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
-          MONGO_URL: mongodb://localhost:27017/test
-          SERVER_HOST_GENAI: localhost
-          SERVER_PORT_GENAI: 8888
-        run: ./gradlew build --no-daemon --scan
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: ${{ github.workspace }}/server/skillforge-course/build/reports/jacoco/test/
+          retention-days: 30
       - name: Post workflow summary
         if: always()
         run: |
@@ -136,4 +143,9 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Coverage reports generated successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report**: [Download from Artifacts (coverage-reports)](./)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
