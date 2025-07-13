@@ -73,6 +73,47 @@
   "rows": [
     {
       "collapse": false,
+      "height": "120px",
+      "panels": [
+        {
+          "datasource": {"type": "prometheus", "uid": "DS_PROMETHEUS"},
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "mappings": [],
+              "thresholds": {"mode": "absolute", "steps": [{"color": "green"}]},
+              "decimals": 0
+            },
+            "overrides": []
+          },
+          "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0},
+          "id": 2001,
+          "options": {
+            "showHeader": true,
+            "sortBy": [{"desc": false, "displayName": "service"}]
+          },
+          "pluginVersion": "8.0.0",
+          "targets": [
+            {
+              "expr": "app_version",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "{{service}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Deployed Service Versions",
+          "type": "table"
+        }
+      ],
+      "repeat": null,
+      "repeatIteration": null,
+      "repeatRowId": null,
+      "showTitle": true,
+      "title": "Service Versions"
+    },
+    {
+      "collapse": false,
       "height": "100px",
       "panels": [
         {
