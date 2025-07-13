@@ -1,0 +1,9 @@
+apiVersion: 1
+annotations:
+  list:
+    - name: Deployments
+      datasource: -- Grafana --
+      enable: true
+      iconColor: 'rgba(0, 211, 255, 1)'
+      tags: ['deployment']
+      builtIn: 1
