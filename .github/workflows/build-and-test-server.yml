@@ -55,11 +55,14 @@ jobs:
       - name: Extract coverage metrics
         if: always()
         run: |
-          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
-            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+
+            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
+            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
@@ -119,11 +122,14 @@ jobs:
       - name: Extract coverage metrics
         if: always()
         run: |
-          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
-            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+
+            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
+            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
@@ -185,11 +191,14 @@ jobs:
       - name: Extract coverage metrics
         if: always()
         run: |
-          if [ -f "build/reports/jacoco/test/jacocoTestReport.xml" ]; then
-            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' build/reports/jacoco/test/jacocoTestReport.xml | head -1 | cut -d'"' -f2)
-            LINE_PERCENT=$(echo "scale=1; $COVERAGE_LINE * 100" | bc -l)
-            BRANCH_PERCENT=$(echo "scale=1; $COVERAGE_BRANCH * 100" | bc -l)
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            COVERAGE_LINE=$(grep -o 'lineRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+            COVERAGE_BRANCH=$(grep -o 'branchRate="[^"]*"' "$COVERAGE_XML" | head -1 | cut -d'"' -f2)
+
+            LINE_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_LINE * 100" | bc -l))
+            BRANCH_PERCENT=$(printf "%.1f" $(echo "$COVERAGE_BRANCH * 100" | bc -l))
+
             echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
             echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
           else
