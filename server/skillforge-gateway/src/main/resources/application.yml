@@ -5,6 +5,7 @@ server:
 spring:
   application:
     name: SkillForge-gateway
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
   profiles:
     active: ${SPRING_PROFILE_ACTIVES:dev}
   cloud:
