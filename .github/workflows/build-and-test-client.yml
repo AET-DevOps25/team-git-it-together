@@ -43,10 +43,12 @@ jobs:
         run: npm ci
 
       - name: Lint code
+        id: lint
         run: npm run lint
         continue-on-error: true
 
       - name: Run tests if test files exist (.test.* or in __tests__ directories)
+        id: run-tests
         run: |
           # Only look in directories that exist to avoid find errors
           paths=""
@@ -58,12 +60,18 @@ jobs:
             if [ -n "$test_files" ]; then
               echo "Test files found:"
               echo "$test_files"
-              npm run test
+              echo "tests_found=true" >> $GITHUB_OUTPUT
+              # Run tests and capture output
+              npm run test 2>&1 | tee test-output.txt
+              TEST_EXIT_CODE=${PIPESTATUS[0]}
+              echo "test_exit_code=$TEST_EXIT_CODE" >> $GITHUB_OUTPUT
             else
               echo "No test files found (no *.test.* or __tests__/*). Skipping tests."
+              echo "tests_found=false" >> $GITHUB_OUTPUT
             fi
           else
             echo "No test or src directories found, skipping tests."
+            echo "tests_found=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Build client
@@ -87,4 +95,70 @@ jobs:
             echo "No build output found - Build and Test Client workflow failed."
             exit 1
           fi
+      - name: Post workflow summary
+        if: always()
+        run: |
+          echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Node Version: $(node -v)" >> $GITHUB_STEP_SUMMARY
 
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Results" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ steps.run-tests.outputs.tests_found }}" = "true" ]; then
+            if [ "${{ steps.run-tests.outputs.test_exit_code }}" = "0" ]; then
+              echo "✅ **Tests Passed**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Tests Failed**" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            # Strip ANSI escape codes from test-output.txt
+            if [ -f test-output.txt ]; then
+              sed -r "s/\x1B\[[0-9;]*[mK]//g" test-output.txt > test-clean.txt
+
+              # Extract test statistics
+              TEST_STATS=$(grep -E "Test Files|Tests" test-clean.txt | tail -2)
+              if [ -n "$TEST_STATS" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Test Statistics:**" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                echo "$TEST_STATS" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+              fi
+
+              # Extract and filter coverage summary from cleaned output
+              COVERAGE_INFO=$(awk '/Coverage report from v8/,0' test-clean.txt | grep -E '^All files|^ src/services|^  src/services' | head -n 20)
+              if [ -n "$COVERAGE_INFO" ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "**Coverage Summary (src/services only):**" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+                echo "$COVERAGE_INFO" >> $GITHUB_STEP_SUMMARY
+                echo '```' >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+          else
+            echo "⚠️ **No tests found** - Skipped test execution" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Build Results" >> $GITHUB_STEP_SUMMARY
+
+          if [ -d dist ]; then
+            echo "✅ **Build successful** - Output found in dist/" >> $GITHUB_STEP_SUMMARY
+            BUILD_SIZE=$(du -sh dist 2>/dev/null | cut -f1)
+            if [ -n "$BUILD_SIZE" ]; then
+              echo "- Build size: $BUILD_SIZE" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Build failed** - No dist/ directory found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Code Quality" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.lint.outcome }}" = "success" ]; then
+            echo "✅ **Linting passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Linting failed** (continued on error)" >> $GITHUB_STEP_SUMMARY
+          fi
