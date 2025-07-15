@@ -11,6 +11,8 @@ import com.gitittogether.skillForge.server.user.exception.ResourceNotFoundExcept
 import com.gitittogether.skillForge.server.user.exception.WrongPasswordException;
 import com.gitittogether.skillForge.server.user.mapper.user.UserMapper;
 import com.gitittogether.skillForge.server.user.model.user.User;
+import io.micrometer.core.instrument.Counter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import com.gitittogether.skillForge.server.user.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
+
+    // Metrics
+    @Qualifier("userSignupCounter")
+    private final Counter userSignupCounter;
+    @Qualifier("userAuthFailureCounter")
+    private final Counter userAuthFailureCounter;
 
     @Override
     @Transactional
@@ -52,6 +60,10 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+        // Increment custom signup metric
+        if (userSignupCounter != null) {
+            userSignupCounter.increment();
+        }
         log.info("Registered user with ID: {}", savedUser.getId());
 
         return UserMapper.toUserRegisterResponse(savedUser);
@@ -65,6 +77,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            // increment auth failure metric
+            if (userAuthFailureCounter != null) {
+                userAuthFailureCounter.increment();
+            }
             throw new WrongPasswordException("Invalid password");
         }
 
