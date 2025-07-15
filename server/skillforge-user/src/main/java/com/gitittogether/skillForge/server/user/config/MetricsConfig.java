@@ -1,5 +1,6 @@
 package com.gitittogether.skillForge.server.user.config;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,4 +26,31 @@ public class MetricsConfig {
                 .tag("service", "user-service")
                 .register(meterRegistry);
     }
+    
+    /**
+     * User signup counter - tracks the number of new user registrations
+     * This domain-specific metric helps understand user growth and onboarding
+     */
+    @Bean
+    public Counter userSignupCounter(MeterRegistry meterRegistry) {
+        return Counter
+                .builder("user_signup_total")
+                .description("Number of user signups")
+                .tag("service", "user-service")
+                .register(meterRegistry);
+    }
+    
+    /**
+     * Authentication failure counter - tracks failed login attempts
+     * This is important for security monitoring and detecting potential brute force attacks
+     */
+    @Bean
+    public Counter userAuthFailureCounter(MeterRegistry meterRegistry) {
+        return Counter
+                .builder("user_auth_failure_total")
+                .description("Number of authentication failures")
+                .tag("service", "user-service")
+                .register(meterRegistry);
+    }
+    
 }
