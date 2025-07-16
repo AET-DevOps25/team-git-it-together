@@ -4,7 +4,7 @@ datasources:
   - name: Loki
     type: loki
     access: proxy
-    url: http://loki:${LOKI_INTERNAL_PORT:-3100}
+    url: http://loki:3100
     jsonData:
       maxLines: 1000
       derivedFields:
