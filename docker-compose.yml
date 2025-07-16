@@ -320,7 +320,7 @@ services:
       - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
       - prometheus-data:/prometheus
     ports:
-      - "${PROMETHEUS_EXPOSED_PORT:-9090}:9090"
+      - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
       - skillforge-network
     healthcheck:
@@ -333,9 +333,9 @@ services:
     image: prom/alertmanager
     container_name: skillforge-alertmanager
     volumes:
-            - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     ports:
-      - "${ALERTMANAGER_EXPOSED_PORT:-9093}:9093"
+      - "${ALERTMANAGER_PORT:-9093}:9093"
     networks:
       - skillforge-network
     healthcheck:
@@ -376,7 +376,7 @@ services:
     environment:
       - MONGODB_URI=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
     ports:
-      - "${MONGO_EXPORTER_EXPOSED_PORT:-9216}:9216"
+      - "${MONGO_EXPORTER_PORT:-9216}:9216"
     networks:
       - skillforge-network
     healthcheck:
@@ -393,7 +393,7 @@ services:
     image: grafana/loki:latest
     container_name: skillforge-loki
     ports:
-      - "${LOKI_EXPOSED_PORT:-3100}:3100"
+      - "${LOKI_PORT:-3100}:3100"
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
       - loki-data:/loki
