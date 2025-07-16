@@ -1,11 +1,11 @@
 server:
-    http_listen_port: ${PROMTAIL_LISTEN_PORT:-9080}
+  http_listen_port: 9080
 
 positions:
   filename: /tmp/positions.yaml
 
 clients:
-    - url: http://loki:${LOKI_INTERNAL_PORT:-3100}/loki/api/v1/push
+  - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
   # Method 1: Direct file access to Docker logs
