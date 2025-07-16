@@ -4,9 +4,9 @@ This repo includes a minimal **Prometheus + Alertmanager + Grafana** stack with 
 
 | Component   | Container     | Host Port(s)        | Purpose                                               |
 |-------------|--------------|---------------------|-------------------------------------------------------|
-| Prometheus  | `prometheus` | **9090**            | Scrapes metrics and evaluates rules (`alert.rules.yml`). |
-| Alertmanager| `alertmanager`| **9093**           | Routes fired alerts via MailHog (`alertmanager.yml`). |
-| Grafana     | `grafana`    | **3001**            | Dashboards + unified alert panel.                     |
+| Prometheus  | `prometheus` | **${PROMETHEUS_PORT:-9090}**            | Scrapes metrics and evaluates rules (`alert.rules.yml`). |
+| Alertmanager| `alertmanager`| **${ALERTMANAGER_PORT:-9093}**           | Routes fired alerts via MailHog (`alertmanager.yml`). |
+| Grafana     | `grafana`    | **${GRAFANA_EXPOSED_PORT:-3001}**            | Dashboards + unified alert panel.                     |
 | MailHog     | `mailhog`    | **8025 (UI)`/`1025 SMTP | Captures alert e-mails for inspection.            |
 
 ---
@@ -14,9 +14,9 @@ This repo includes a minimal **Prometheus + Alertmanager + Grafana** stack with 
 ## Viewing Alerts Live
 
 1. **Prometheus** – raw alert state  
-   [http://localhost:9090/alerts](http://localhost:9090/alerts)
+   [http://localhost:${PROMETHEUS_PORT:-9090}/alerts](http://localhost:${PROMETHEUS_PORT:-9090}/alerts)
 2. **Grafana** – visual alert panel  
-   [http://localhost:3001/dashboards](http://localhost:3001/dashboards) → open *Logs* or any dashboard with **Active Alerts**
+   [http://localhost:${GRAFANA_EXPOSED_PORT:-3001}/dashboards](http://localhost:${GRAFANA_EXPOSED_PORT:-3001}/dashboards) → open *Logs* or any dashboard with **Active Alerts**
 3. **MailHog** – captured alert e-mails  
    [http://localhost:8025/](http://localhost:8025/)
 
