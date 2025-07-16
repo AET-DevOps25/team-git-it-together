@@ -6,12 +6,12 @@ Concise reference for the local Prometheus + Grafana stack that monitors SkillFo
 
 | Layer | Container | Host Port(s) | Purpose |
 | --- | --- | --- | --- |
-| Prometheus | `prometheus` | **9090** | Scrapes metrics & evaluates rules (`prometheus.yml`) |
-| Alertmanager | `alertmanager` | **9093** | Sends alerts → MailHog (`alertmanager.yml`) |
-| Grafana | `grafana` | **3001** | Dashboards & system-wide alert list |
-| Loki | `loki` | **3100** | Central log store |
+| Prometheus | `prometheus` | **${PROMETHEUS_PORT:-9090}** | Scrapes metrics & evaluates rules (`prometheus.yml`) |
+| Alertmanager | `alertmanager` | **${ALERTMANAGER_PORT:-9093}** | Sends alerts → MailHog (`alertmanager.yml`) |
+| Grafana | `grafana` | **${GRAFANA_EXPOSED_PORT:-3001}** | Dashboards & system-wide alert list |
+| Loki | `loki` | **${LOKI_PORT:-3100}** | Central log store |
 | Promtail | `promtail` | – | Ships container logs → Loki |
-| Mongo Exporter | `mongo-exporter` | **9216** | MongoDB metrics |
+| Mongo Exporter | `mongo-exporter` | **${MONGO_EXPORTER_PORT:-9216}** | MongoDB metrics |
 | MailHog | `mailhog` | **8025 UI** / 1025 SMTP | Captures alert e-mails |
 | Traefik | `reverse-proxy` | 80 / **8085** | Public entry & metrics |
 
@@ -56,7 +56,7 @@ See `grafana/README.md` for full details.
 | --- | --- | --- |
 | Spring Boot | `/actuator/prometheus` | `spring-boot` |
 | GenAI | `/metrics` | `genai` |
-| Traefik | `:8085/metrics` | `traefik` |
+| Traefik | `:${TRAEFIK_DASHBOARD_PORT:-8085}/metrics` | `traefik` |
 | Mongo Exporter | `:9216/metrics` | `mongo_exporter` |
 
 Happy monitoring! Extend dashboards, adjust alert thresholds, or plug in more exporters as needed.
