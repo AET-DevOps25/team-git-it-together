@@ -25,6 +25,10 @@ from .services.rag import course_generator
 from .utils.error_schema import ErrorResponse
 from .utils.handle_httpx_exception import handle_httpx_exception
 
+from .services.scheduler.schemas import SchedulerStatus, SchedulerControl
+from .services.scheduler import start_scheduler, stop_scheduler, get_scheduler_status
+
+
 
 # --- Configuration ---
 load_dotenv()
@@ -44,6 +48,7 @@ TAGS_METADATA = [
     {"name": "Crawler", "description": "Crawl and clean website content."},
     {"name": "Embedder", "description": "Chunk and embed text to vector DB."},
     {"name": "LLM", "description": "Language Model completions and chat."},
+    {"name": "Scheduler", "description": "Scheduled background jobs and automation."},
 ]
 
 # -------------------------------
@@ -51,20 +56,29 @@ TAGS_METADATA = [
 # -------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Service starting up...")
-    try:
-        # Example: Create client connections here
-        client = get_weaviate_client()
-        logger.info("Testing Weaviate connection...")
-        test_weaviate_connection()
-        logger.info("Ensuring Weaviate schema exists...")
-        ensure_schema_exists(client)
-        logger.info("Everything is set up successfully and ready to go!")
-    except Exception as e:
-        logger.error(f"Error during startup: {e}", exc_info=True)
-        raise RuntimeError("Failed during application startup.") from e
-    yield
-    logger.info("Service shutting down...")
+   logger.info("Service starting up...")
+   try:
+       # Example: Create client connections here
+       client = get_weaviate_client()
+       logger.info("Testing Weaviate connection...")
+       test_weaviate_connection()
+       logger.info("Ensuring Weaviate schema exists...")
+       ensure_schema_exists(client)
+       logger.info("Everything is set up successfully and ready to go!")
+      
+       # Start the blog embedder scheduler
+       logger.info("Starting blog embedder scheduler...")
+       start_scheduler()
+      
+   except Exception as e:
+       logger.error(f"Error during startup: {e}", exc_info=True)
+       raise RuntimeError("Failed during application startup.") from e
+   yield
+   logger.info("Service shutting down...")
+  
+   # Stop the scheduler on shutdown
+   logger.info("Stopping blog embedder scheduler...")
+   stop_scheduler()
 
 # --- App Initialization ---
 from prometheus_fastapi_instrumentator import Instrumentator, metrics
@@ -153,7 +167,7 @@ async def health():
             content={"status": "error", "message": "Dependency failure. See logs for details."}
         )
 
-@app.get(f"{API_PREFIX}/ping", tags=["System"])
+@app.get("/ping", tags=["System"])
 async def ping():
     """
     Lightweight liveness check. Confirms the API process is running, but does not check dependencies.
@@ -285,7 +299,7 @@ async def generate_completion(request: GenerateRequest):
 # ──────────────────────────────────────────────────────────────────────────
 # RAG endpoint
 # ──────────────────────────────────────────────────────────────────────────
-@app.post("/api/v1/rag/generate-course", response_model=Course, tags=["rag"])
+@app.post(f"{API_PREFIX}/rag/generate-course", response_model=Course, tags=["rag"])
 async def generate_course(req: CourseGenerationRequest):
     """
     • POST because generation is a side-effectful operation (non-idempotent).
@@ -295,6 +309,53 @@ async def generate_course(req: CourseGenerationRequest):
         return course_generator.generate_course(req)
     except Exception as e:
         raise HTTPException(500, str(e)) from e
+
+# -------------------------------
+# --- Scheduler Endpoints -------
+# -------------------------------
+@app.get(f"{API_PREFIX}/scheduler/status", response_model=SchedulerStatus, tags=["Scheduler"])
+async def get_scheduler_status_endpoint():
+   """Get the current status of the blog embedder scheduler"""
+   return SchedulerStatus(**get_scheduler_status())
+
+
+@app.post(f"{API_PREFIX}/scheduler/control", tags=["Scheduler"])
+async def control_scheduler(request: SchedulerControl):
+   """Control the blog embedder scheduler (start/stop)"""
+   if request.action == "start":
+       start_scheduler()
+       return {"message": "Scheduler started successfully"}
+   elif request.action == "stop":
+       stop_scheduler()
+       return {"message": "Scheduler stopped successfully"}
+   else:
+       raise HTTPException(status_code=400, detail="Invalid action. Use 'start' or 'stop'")
+
+
+@app.post(f"{API_PREFIX}/scheduler/run-now", tags=["Scheduler"])
+async def run_scheduler_now():
+   """Manually trigger the blog embedder job immediately"""
+   try:
+       # Import here to avoid circular imports
+       from .services.scheduler.scheduler_service import _scheduler
+      
+       # Run the job in a separate thread to avoid blocking
+       import threading
+       def run_job():
+           import asyncio
+           async def async_job():
+               urls = await _scheduler.fetch_freecodecamp_articles()
+               await _scheduler.embed_articles(urls)
+           asyncio.run(async_job())
+      
+       thread = threading.Thread(target=run_job, daemon=True)
+       thread.start()
+      
+       return {"message": "Blog embedder job triggered successfully"}
+   except Exception as e:
+       logger.error(f"Error triggering scheduler job: {e}")
+       raise HTTPException(status_code=500, detail=f"Failed to trigger job: {str(e)}")
+
 
 
 # -------------------------------

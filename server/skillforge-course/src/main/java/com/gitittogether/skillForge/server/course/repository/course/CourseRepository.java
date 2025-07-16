@@ -39,6 +39,8 @@ public interface CourseRepository extends MongoRepository<Course, String> {
      */
     List<Course> findByIsPublicFalseAndPublishedFalse();
 
+    List<Course> findByIsPublicTrueAndPublishedFalse();
+
     /**
      * Find courses by instructor.
      *

@@ -1,63 +1,26 @@
-# Optimized test configuration for faster execution
 spring:
   config:
     activate:
       on-profile: test
-  
-  # Disable unnecessary features for faster startup
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
-      - org.springframework.cloud.gateway.config.GatewayAutoConfiguration
-      - org.springframework.cloud.gateway.config.GatewayMetricsAutoConfiguration
-
-  # Disable Redis for tests (will be mocked if needed)
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password: ""
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 1
-          max-idle: 1
-          min-idle: 0
-          max-wait: -1ms
-  
-  # Disable security for faster tests
+  main:
+    allow-bean-definition-overriding: true
   security:
     enabled: false
 
-# JWT configuration for tests
 jwt:
   secret: test-jwt-secret-key-for-testing-only
   expirationMs: 3600000
 
-# Service URIs for tests
-user:
-  service:
-    uri: http://localhost:8082
-course:
-  service:
-    uri: http://localhost:8083
-gateway:
-  health:
-    uri: http://localhost:8081
-
-# Disable logging for faster execution
 logging:
   level:
     root: WARN
     com.gitittogether.skillforge.server.gateway: WARN
-    org.springframework: WARN
-    org.springframework.data.redis: WARN
 
-# Disable metrics
 management:
   endpoints:
-    access:
-      default: none
+    web:
+      exposure:
+        include: health
   endpoint:
     health:
-      access: none
+      show-details: always

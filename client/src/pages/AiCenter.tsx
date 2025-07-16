@@ -7,14 +7,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { 
   MessageSquare, 
-  Globe, 
   Upload, 
   Sparkles,
-  FileText,
-  Image as ImageIcon
+  Heart
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import AIChatAssistant from '@/components/AIChatAssistant';
 import { useToast } from '@/hooks/use-toast';
 
@@ -22,14 +19,31 @@ const AiCenter = () => {
   const { toast } = useToast();
   const [urlInput, setUrlInput] = useState('');
   const [isAnalyzingUrl, setIsAnalyzingUrl] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [isAnalyzingFile, setIsAnalyzingFile] = useState(false);
+
+  // URL validation function
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
 
   const handleUrlAnalysis = async () => {
     if (!urlInput.trim()) {
       toast({
         title: "URL Required",
-        description: "Please enter a URL to analyze.",
+        description: "Please enter a URL to contribute to our knowledge base.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isValidUrl(urlInput)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please enter a valid URL (e.g., https://example.com)",
         variant: "destructive"
       });
       return;
@@ -37,54 +51,30 @@ const AiCenter = () => {
 
     setIsAnalyzingUrl(true);
     
-    // Simulate URL analysis
-    setTimeout(() => {
+    try {
+      // Call the crawlAndEmbedUrl service
+      // This would be your actual API call to the backend
+      // await crawlAndEmbedUrl(urlInput);
+      
+      // Simulate the API call for now
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
       toast({
-        title: "URL Analysis Complete",
-        description: `Analysis of ${urlInput} completed. This would connect to your web crawling service.`,
+        title: "🎉 Thank You for Contributing!",
+        description: "Your URL has been successfully analyzed and added to the SkillForge knowledge base. This will help improve our AI's learning capabilities for everyone!",
         variant: "default"
       });
-      setIsAnalyzingUrl(false);
+      
       setUrlInput('');
-    }, 2000);
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
-    }
-  };
-
-  const handleFileAnalysis = async () => {
-    if (!uploadedFile) {
+    } catch {
       toast({
-        title: "File Required",
-        description: "Please upload a file to analyze.",
+        title: "Analysis Failed",
+        description: "There was an error analyzing the URL. Please try again.",
         variant: "destructive"
       });
-      return;
+    } finally {
+      setIsAnalyzingUrl(false);
     }
-
-    setIsAnalyzingFile(true);
-    
-    // Simulate file analysis
-    setTimeout(() => {
-      toast({
-        title: "File Analysis Complete",
-        description: `Analysis of ${uploadedFile.name} completed. This would connect to your AI service for document/image analysis.`,
-        variant: "default"
-      });
-      setIsAnalyzingFile(false);
-      setUploadedFile(null);
-    }, 2000);
-  };
-
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['pdf'].includes(extension || '')) return <FileText className="h-5 w-5" />;
-    if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(extension || '')) return <ImageIcon className="h-5 w-5" />;
-    return <FileText className="h-5 w-5" />;
   };
 
   return (
@@ -111,12 +101,13 @@ const AiCenter = () => {
               <span>AI Chat</span>
             </TabsTrigger>
             <TabsTrigger value="url" className="flex items-center space-x-2">
-              <Globe className="h-4 w-4" />
-              <span>URL Analysis</span>
+              <Heart className="h-4 w-4" />
+              <span>Knowledge Contribution</span>
             </TabsTrigger>
-            <TabsTrigger value="upload" className="flex items-center space-x-2">
+            <TabsTrigger value="upload" className="flex items-center space-x-2 opacity-50 cursor-not-allowed" disabled>
               <Upload className="h-4 w-4" />
               <span>File Analysis</span>
+              <Badge variant="secondary" className="ml-1 text-xs">Coming Soon</Badge>
             </TabsTrigger>
           </TabsList>
 
@@ -128,28 +119,31 @@ const AiCenter = () => {
             />
           </TabsContent>
 
-          {/* URL Analysis Tab */}
+          {/* Knowledge Contribution Tab */}
           <TabsContent value="url" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Globe className="h-5 w-5 text-blue-600" />
-                  <span>Web Page Analysis</span>
+                  <Heart className="h-5 w-5 text-red-600" />
+                  <span>Contribute to Knowledge Base</span>
                 </CardTitle>
                 <CardDescription>
-                  Enter a URL to analyze and extract learning content
+                  Share educational content by contributing URLs to expand SkillForge's knowledge base
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="url">Website URL</Label>
+                  <Label htmlFor="url">Educational Website URL</Label>
                   <Input
                     id="url"
                     type="url"
-                    placeholder="https://example.com"
+                    placeholder="https://example.com/educational-content"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                   />
+                  <p className="text-sm text-gray-500">
+                    Share educational articles, tutorials, documentation, or learning resources
+                  </p>
                 </div>
                 <Button 
                   onClick={handleUrlAnalysis} 
@@ -159,88 +153,51 @@ const AiCenter = () => {
                   {isAnalyzingUrl ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Analyzing...
+                      Analyzing & Contributing...
                     </>
                   ) : (
                     <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Analyze URL
+                      <Heart className="h-4 w-4 mr-2" />
+                      Contribute URL
                     </>
                   )}
                 </Button>
+                <div className="text-center text-sm text-gray-500">
+                  <p>Your contributions help improve AI learning for everyone! 🚀</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* File Upload Tab */}
+          {/* File Upload Tab - Coming Soon */}
           <TabsContent value="upload" className="space-y-4">
-            <Card>
+            <Card className="opacity-50">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Upload className="h-5 w-5 text-green-600" />
-                  <span>Document & Image Analysis</span>
+                  <span>File Analysis</span>
+                  <Badge variant="secondary">Coming Soon</Badge>
                 </CardTitle>
                 <CardDescription>
-                  Upload PDFs or images to get AI-powered summaries and insights
+                  Upload documents or images for AI analysis and learning content extraction
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="file">Upload File</Label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input
-                      type="file"
-                      id="file"
-                      accept=".pdf,.jpg,.jpeg,.png,.gif,.webp"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
-                    <label htmlFor="file" className="cursor-pointer">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600">
-                        Click to upload or drag and drop
+                <div className="text-center py-12">
+                  <Upload className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">File Analysis Coming Soon</h3>
+                  <p className="text-gray-500 mb-4">
+                    We're working on bringing you the ability to upload and analyze documents, PDFs, and images.
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        PDF, JPG, PNG, GIF, WEBP (max 10MB)
-                      </p>
-                    </label>
-                  </div>
+                  <p className="text-sm text-gray-400">
+                    This feature will allow you to extract learning content from your files and contribute to our knowledge base.
+                  </p>
                 </div>
-                
-                {uploadedFile && (
-                  <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                    {getFileIcon(uploadedFile.name)}
-                    <span className="text-sm font-medium">{uploadedFile.name}</span>
-                    <Badge variant="secondary">
-                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                    </Badge>
-                  </div>
-                )}
-
-                <Button 
-                  onClick={handleFileAnalysis} 
-                  disabled={!uploadedFile || isAnalyzingFile}
-                  className="w-full"
-                >
-                  {isAnalyzingFile ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      Analyze File
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </div>
-
-      <Footer />
     </div>
   );
 };

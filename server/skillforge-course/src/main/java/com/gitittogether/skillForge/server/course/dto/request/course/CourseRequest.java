@@ -2,13 +2,13 @@ package com.gitittogether.skillForge.server.course.dto.request.course;
 
 import com.gitittogether.skillForge.server.course.model.utils.Language;
 import com.gitittogether.skillForge.server.course.model.utils.Level;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.Valid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,10 +51,10 @@ public class CourseRequest {
     private String thumbnailUrl;
 
     @Builder.Default
-    private boolean published = true;
+    private Boolean published = true;
 
     @Builder.Default
-    private boolean isPublic = true;
+    private Boolean isPublic = true;
 
     @NotNull
     @Builder.Default
@@ -62,4 +62,5 @@ public class CourseRequest {
 
     @Builder.Default
     private double rating = 0.0;
+
 }

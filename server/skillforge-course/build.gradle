@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.0'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'
 }
 
 group = 'com.gitittogether.skillforge.server'
@@ -79,6 +80,8 @@ test {
     // Exclude slow tests if any
     exclude '**/*IntegrationTest*'
     exclude '**/*E2ETest*'
+
+    finalizedBy jacocoTestReport
 }
 
 bootJar {
@@ -93,3 +96,68 @@ gradle.projectsEvaluated {
         }
     }
 }
+
+// JaCoCo configuration
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/dto/**',
+                    '**/model/**',
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/mapper/**',
+                    '**/utils/**',
+                    '**/repository/**',
+                    '**/SkillForgeUserService.class'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0
+            }
+        }
+        rule {
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0
+            }
+        }
+    }
+
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                    '**/dto/**',
+                    '**/model/**',
+                    '**/config/**',
+                    '**/exception/**',
+                    '**/mapper/**',
+                    '**/utils/**',
+                    '**/repository/**',
+                    '**/SkillForgeCourseService.class'
+            ])
+        }))
+    }
+}
+
+// Make coverage verification run after test report
+jacocoTestReport.finalizedBy jacocoTestCoverageVerification

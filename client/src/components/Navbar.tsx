@@ -10,9 +10,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BookOpen, LogOut, Menu, X, User, Settings, Shield, FileText, Cookie } from 'lucide-react';
-import { APP_NAME } from '@/constants/app.ts';
+import { APP_NAME } from '@/constants/app';
 import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast.ts';
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -69,7 +69,7 @@ const Navbar = () => {
             )}
             {user && (
               <Link to="/ai-center" className="text-gray-700 transition-colors hover:text-blue-600">
-                AI Studio
+                AI Center
               </Link>
             )}
             <Link to="/about" className="text-gray-700 transition-colors hover:text-blue-600">

@@ -18,7 +18,7 @@
 </table>
 
 
-# [APP NAME TBD]  
+# SkillForge.ai
 
 **Team**: git-it-together
 
@@ -179,7 +179,7 @@ Before you get started, make sure you have the following installed on your devel
 * **In the root project directory, run:**
 
   ```bash
-  docker-compose up --build
+  docker compose up --build
   ```
 
   * This will build and start all services defined in `docker-compose.yml`.
@@ -187,25 +187,113 @@ Before you get started, make sure you have the following installed on your devel
 * **To run in detached mode (in the background):**
 
   ```bash
-  docker-compose up --build -d
+  docker compose up --build -d
   ```
 
-### **4. Managing the Application**
+### **4. (Optional) Seed the Database**
+
+* **Seed the database with some data:**
+
+  ```bash
+  cd seed
+  python seed_all.py
+  ```
+  This will will create a user with the following credentials:
+  ```
+  username: max123
+  password: password
+  ```
+  and will seed the database with some courses.
+
+
+### **5. Access the Application**
+
+* **Access the application in your browser:**
+
+  ```bash
+  http://localhost:3000
+  ```
+  or
+
+  ```bash
+  http://client.localhost
+  ```
+  __Note:__ The client is accessible at `http://client.localhost` because of the `client.localhost` entry in the `/etc/hosts` file that you can add manually.
+  To add it, you can run the following command:
+  ```bash
+  echo "127.0.0.1 client.localhost" | sudo tee -a /etc/hosts
+  ```
+
+* **Access the API using the API:**
+
+  ```bash
+  http://localhost:8081/api/v1/health
+  ```
+  or
+
+  ```bash
+  http://server.localhost
+  ```
+  __Note:__ The server is accessible at `http://server.localhost` because of the `server.localhost` entry in the `/etc/hosts` file that you can add manually.
+  To add it, you can run the following command:
+  ```bash
+  echo "127.0.0.1 server.localhost" | sudo tee -a /etc/hosts
+  ```
+  
+* **Access the GenAI service using the API:**
+
+  ```bash
+  http://localhost:8888/api/v1/health
+  ```
+  or
+  ```bash
+  http://genai.localhost
+  ```
+  __Note:__ The GenAI service is accessible at `http://genai.localhost` because of the `genai.localhost` entry in the `/etc/hosts` file that you can add manually.
+  To add it, you can run the following command:
+  ```bash
+  echo "127.0.0.1 genai.localhost" | sudo tee -a /etc/hosts
+  ```
+
+> You can save the `client.localhost`, `server.localhost`, and `genai.localhost` entries in the `/etc/hosts` file to access the application, API, and GenAI service from your browser by doing the following:
+> ```bash
+> echo "127.0.0.1 client.localhost server.localhost genai.localhost" | sudo tee -a /etc/hosts
+> ```
+
+### **6. Login and Explore the Application**
+
+* **Login with the following credentials:**
+
+  ```
+  username: max123
+  password: password
+  ```
+  * **Explore the application:**
+    * **Dashboard**
+    * **Courses**
+    * **Profile**
+    * **Settings**
+    * **Achievements**
+    * **AI Center**
+    * **AI Chat**
+    * **Logout**
+
+### **7. Managing the Application**
 
 * **To stop all running containers:**
 
   ```bash
-  docker-compose down
+  docker compose down
   ```
 
 * **To stop and remove all containers, networks, and named volumes created by `up`, including orphans:**
 
   ```bash
-  docker-compose down --remove-orphans --volumes
+  docker compose down --remove-orphans --volumes
   ```
   **Note:** This will perform a hard reset, removing all data in volumes. Perform this only if you want to reset your local environment.
 
-### **5. Troubleshooting & Tips**
+### **8. Troubleshooting & Tips**
 
 * **Check logs for any service:**
 

@@ -10,3 +10,4 @@ langchain-openai
 langchain_community
 tiktoken
 prometheus-fastapi-instrumentator
+pydantic

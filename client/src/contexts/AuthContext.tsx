@@ -48,7 +48,9 @@ export const AuthContext = createContext<AuthContextType>({
   register: async () => {
     throw new Error('Register function not implemented. Make sure to wrap your app in AuthProvider.');
   },
-  logout: () => {},
+  logout: () => {
+    throw new Error('Logout function not implemented. Make sure to wrap your app in AuthProvider.');
+  },
   updateUserBookmarks: () => {
     throw new Error('updateUserBookmarks function not implemented. Make sure to wrap your app in AuthProvider.');
   },

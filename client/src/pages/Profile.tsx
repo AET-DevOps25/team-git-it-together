@@ -21,14 +21,14 @@ import {
   UserProfileResponse,
   UpdatePayload,
 } from '@/types';
-import { useAuth } from '@/hooks/useAuth.ts';
+import { useAuth } from '@/hooks/useAuth';
 import _ from 'lodash';
-import * as userService from '@/services/user.service.ts';
-import { validatePassword } from '@/utils/passwordValidation.ts';
-import { Switch } from '@/components/ui/switch.tsx';
+import * as userService from '@/services/user.service';
+import { validatePassword } from '@/utils/passwordValidation';
+import { Switch } from '@/components/ui/switch';
 import { PasswordStrengthBar } from '@/components/ui';
 
-import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog.tsx';
+import { ConfirmDeletionDialog } from '@/components/ConfirmDeletionDialog';
 
 const Profile = () => {
   const { user: authUser } = useAuth(); // get current user and their id
@@ -156,7 +156,7 @@ const Profile = () => {
       });
       return;
     }
-    console.log('Updating user profile with data:', update);
+    
     // 3) Update the user profile
     userService
       .updateUserProfile(authUser.id, update)

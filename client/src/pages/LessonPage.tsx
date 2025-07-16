@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,18 +15,20 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CourseCompletionCelebration from '@/components/CourseCompletionCelebration';
-import { AuthContext } from '@/contexts/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import * as courseService from '@/services/course.service';
 import type { CourseResponse } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { LessonContentType } from '@/types/utils/LessonContentType';
 import type { LessonContent } from '@/types/utils/LessonContent';
+import MarkdownCodeBlock from '@/components/MarkdownCodeBlock';
 
 const LessonPage = () => {
   const { courseId, lessonId } = useParams<{ courseId: string; lessonId: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useContext(AuthContext);
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   
   const [course, setCourse] = useState<CourseResponse | null>(null);
@@ -118,17 +120,7 @@ const LessonPage = () => {
     return userCurrentLesson === lessonIndex;
   };
 
-  // Debug logging
-  console.log('Enrollment Debug:', {
-    userEnrollment,
-    userCurrentLesson,
-    totalNumberOfLessons,
-    completedLessons,
-    isCourseCompleted,
-    currentLessonOrder: currentLesson?.order,
-    isCurrentLessonCompleted: isCurrentLessonCompleted(),
-    isNextLessonToComplete: isNextLessonToComplete()
-  });
+
 
   const handleCompleteLesson = async () => {
     if (!courseId || !lessonId || !user?.id || !course) return;
@@ -150,6 +142,7 @@ const LessonPage = () => {
         variant: 'success',
       });
     } catch (err: any) {
+      console.error('Error completing lesson:', err);
       toast({
         title: 'Failed to Complete Lesson',
         description: err.message || 'Could not complete lesson.',
@@ -246,6 +239,22 @@ const LessonPage = () => {
 
   const navigateToLesson = (lessonOrder: number) => {
     navigate(`/courses/${courseId}/lessons/${lessonOrder}`);
+  };
+
+  const truncateText = (text: string, maxLength: number = 30) => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  };
+
+  // Utility function to process markdown content
+  const processMarkdownContent = (content: string): string => {
+    return content
+      .replace(/\\n/g, '\n') // Replace literal \n with actual line breaks
+      .replace(/\\t/g, '\t') // Replace literal \t with actual tabs
+      .replace(/\\"/g, '"') // Replace literal \" with actual quotes
+      .replace(/\\'/g, "'") // Replace literal \' with actual single quotes
+      .replace(/\\r/g, '\r') // Replace literal \r with actual carriage returns
+      .trim(); // Remove leading/trailing whitespace
   };
 
   // Show loading state
@@ -364,12 +373,53 @@ const LessonPage = () => {
                 {(() => {
                   const { type, content } = currentLesson.content;
                   switch (type) {
-                    case LessonContentType.TEXT:
+                    case LessonContentType.TEXT: {
+                      // Process markdown content to fix escaped characters
+                      const processedContent = processMarkdownContent(content);
+                      
                       return (
-                        <div className="prose max-w-none">
-                          <ReactMarkdown>{content}</ReactMarkdown>
+                        <div className="prose max-w-none
+                          prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
+                          prose-h1:text-3xl prose-h1:font-bold
+                          prose-h2:text-2xl prose-h2:font-semibold
+                          prose-h3:text-xl prose-h3:font-semibold
+                          prose-p:text-slate-700 prose-p:leading-7 prose-p:mb-6
+                          prose-strong:text-slate-900 prose-strong:font-semibold
+                          prose-em:text-slate-700 prose-em:italic
+                          prose-ul:text-slate-700 prose-ul:my-6 prose-ul:space-y-2
+                          prose-ol:text-slate-700 prose-ol:my-6 prose-ol:space-y-2
+                          prose-li:text-slate-700 prose-li:marker:text-slate-400
+                          prose-code:bg-slate-100 prose-code:text-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-sm prose-code:font-medium
+                          prose-pre:bg-transparent prose-pre:text-slate-100 prose-pre:rounded-xl prose-pre:p-0 prose-pre:overflow-x-auto prose-pre:shadow-none prose-pre:border-0 prose-pre-code:bg-transparent prose-pre-code:text-slate-100
+                          prose-blockquote:border-l-slate-200 prose-blockquote:bg-slate-50 prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:rounded-r-lg prose-blockquote:italic prose-blockquote:text-slate-600
+                          prose-table:border prose-table:border-slate-200 prose-table:rounded-lg prose-table:overflow-hidden prose-th:border prose-th:border-slate-200 prose-th:bg-slate-50 prose-th:p-3 prose-th:font-semibold prose-td:border prose-td:border-slate-200 prose-td:p-3
+                          prose-hr:border-slate-200 prose-hr:my-8
+                          prose-a:text-blue-600 prose-a:font-medium prose-a:no-underline hover:prose-a:text-blue-700 hover:prose-a:underline">
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code: ({ className, children, ...props }: any) => {
+                                const isInline = !className || !className.includes('language-');
+                                if (isInline) {
+                                  return (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                }
+                                return (
+                                  <MarkdownCodeBlock className={className}>
+                                    {children}
+                                  </MarkdownCodeBlock>
+                                );
+                              }
+                            }}
+                          >
+                            {processedContent}
+                          </ReactMarkdown>
                         </div>
                       );
+                    }
                     case LessonContentType.HTML:
                       return (
                         <div 
@@ -530,8 +580,8 @@ const LessonPage = () => {
                       className="w-full justify-start"
                       onClick={() => navigateToLesson(prevLesson.lesson.order)}
                     >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Previous: {prevLesson.lesson.title}
+                      <ArrowLeft className="mr-2 h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">Previous: {truncateText(prevLesson.lesson.title)}</span>
                     </Button>
                   )}
                   
@@ -541,8 +591,8 @@ const LessonPage = () => {
                       className="w-full justify-start"
                       onClick={() => navigateToLesson(nextLesson.lesson.order)}
                     >
-                      Next: {nextLesson.lesson.title}
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <span className="truncate">Next: {truncateText(nextLesson.lesson.title)}</span>
+                      <ArrowRight className="ml-2 h-4 w-4 flex-shrink-0" />
                     </Button>
                   )}
                   

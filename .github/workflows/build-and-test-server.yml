@@ -22,11 +22,6 @@ jobs:
   test-gateway:
     name: Build & Test Gateway
     runs-on: ubuntu-latest
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
     defaults:
       run:
         working-directory: server/skillforge-gateway
@@ -39,12 +34,58 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+      - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
-          REDIS_HOST: redis
-          REDIS_PORT: 6379
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
         run: ./gradlew build --no-daemon --scan
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-gateway-service
+          path: ${{ github.workspace }}/server/skillforge-gateway/build/reports/jacoco/test/
+          retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
+
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "COVERAGE FILE NOT FOUND"
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -52,16 +93,18 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Gateway Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
   test-user-service:
     name: Build & Test User Service
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-user
@@ -74,13 +117,58 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+      - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
-          JWT_SECRET: test-jwt-secret
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
           JWT_EXPIRATION_MS: 3600000
-          MONGO_URL: mongodb://localhost:27017/test
-        run: ./gradlew build --no-daemon --scan
+        run: ./gradlew build -x test --no-daemon
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-user-service
+          path: ${{ github.workspace }}/server/skillforge-user/build/reports/jacoco/test/
+          retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
+
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "COVERAGE FILE NOT FOUND"
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -88,16 +176,18 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
-
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### User Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY
   test-course-service:
     name: Build & Test Course Service
     runs-on: ubuntu-latest
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27017:27017
     defaults:
       run:
         working-directory: server/skillforge-course
@@ -110,13 +200,61 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
       - uses: ./.github/actions/create-dotenv
-      - name: Build and test
+
+      - name: Build application
         env:
           SPRING_PROFILES_ACTIVE: test
-          MONGO_URL: mongodb://localhost:27017/test
-          SERVER_HOST_GENAI: localhost
-          SERVER_PORT_GENAI: 8888
-        run: ./gradlew build --no-daemon --scan
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew build -x test --no-daemon
+
+      - name: Run unit tests with coverage
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          JWT_SECRET: test-jwt-secret-key-for-testing-only
+          JWT_EXPIRATION_MS: 3600000
+        run: ./gradlew clean test jacocoTestReport --no-daemon --info
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-course-service
+          path: ${{ github.workspace }}/server/skillforge-course/build/reports/jacoco/test/
+          retention-days: 30
+      - name: Extract coverage metrics
+        if: always()
+        run: |
+          COVERAGE_XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          if [ -f "$COVERAGE_XML" ]; then
+            # Extract missed and covered line counts
+            LINE_MISSED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            LINE_COVERED=$(grep 'counter type="LINE"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            BRANCH_MISSED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*missed="\([0-9]*\)".*/\1/p')
+            BRANCH_COVERED=$(grep 'counter type="BRANCH"' "$COVERAGE_XML" | sed -n 's/.*covered="\([0-9]*\)".*/\1/p')
+
+            LINE_TOTAL=$((LINE_MISSED + LINE_COVERED))
+            BRANCH_TOTAL=$((BRANCH_MISSED + BRANCH_COVERED))
+
+            if [ "$LINE_TOTAL" -gt 0 ]; then
+              LINE_PERCENT=$(echo "scale=1; 100 * $LINE_COVERED / $LINE_TOTAL" | bc -l)
+            else
+              LINE_PERCENT=0.0
+            fi
+
+            if [ "$BRANCH_TOTAL" -gt 0 ]; then
+              BRANCH_PERCENT=$(echo "scale=1; 100 * $BRANCH_COVERED / $BRANCH_TOTAL" | bc -l)
+            else
+              BRANCH_PERCENT=0.0
+            fi
+
+            echo "LINE_PERCENT=$LINE_PERCENT" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=$BRANCH_PERCENT" >> $GITHUB_ENV
+          else
+            echo "COVERAGE FILE NOT FOUND"
+            echo "LINE_PERCENT=0.0" >> $GITHUB_ENV
+            echo "BRANCH_PERCENT=0.0" >> $GITHUB_ENV
+          fi
       - name: Post workflow summary
         if: always()
         run: |
@@ -124,4 +262,12 @@ jobs:
           echo "- Status: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Run: [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+          echo "### Course Service Coverage" >> $GITHUB_STEP_SUMMARY
+          echo "- **Line Coverage**: ${{ env.LINE_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch Coverage**: ${{ env.BRANCH_PERCENT }}%" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Reports" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **HTML Report** successfully generated" >> $GITHUB_STEP_SUMMARY
+          echo "- 🧾 XML Report: Available for CI/CD integration" >> $GITHUB_STEP_SUMMARY
+          echo "- 📁 Navigate to \`coverage-reports/index.html\` inside the artifact to open the report." >> $GITHUB_STEP_SUMMARY

@@ -5,6 +5,9 @@ import com.gitittogether.skillForge.server.course.dto.request.course.LearningPat
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
+import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
+import com.gitittogether.skillForge.server.course.model.utils.Language;
+import com.gitittogether.skillForge.server.course.model.utils.Level;
 
 import java.util.List;
 
@@ -45,7 +48,7 @@ public interface CourseService {
      *
      * @return List of public and published course responses.
      */
-    List<CourseResponse> getPublicPublishedCourses();
+    List<CourseSummaryResponse> getPublishedCourses();
 
     /**
      * Updates an existing course.
@@ -171,17 +174,54 @@ public interface CourseService {
     /**
      * Flexible search for courses by any combination of criteria. All parameters are optional.
      *
-     * @param instructor The instructor ID or name (optional).
-     * @param level The course level (optional).
-     * @param language The course language (optional).
-     * @param skill The skill substring (optional).
-     * @param category The category substring (optional).
-     * @param title The title substring (optional).
+     * @param instructor  The instructor ID or name (optional).
+     * @param level       The course level (optional).
+     * @param language    The course language (optional).
+     * @param skill       The skill substring (optional).
+     * @param category    The category substring (optional).
+     * @param title       The title substring (optional).
+     * @param isPublished Whether to filter by published status (optional).
+     * @param isPublic    Whether to filter by public status (optional).
      * @return List of matching course responses.
      */
-    List<CourseResponse> advancedSearch(String instructor, com.gitittogether.skillForge.server.course.model.utils.Level level, com.gitittogether.skillForge.server.course.model.utils.Language language, String skill, String category, String title);
+    List<CourseResponse> advancedSearch(String instructor, Level level, Language language, String skill, String category, String title, Boolean isPublished, Boolean isPublic);
 
-    /** Delegates to GenAI, then saves & enrolls user before returning */
-    CourseResponse generateFromGenAi(LearningPathRequest request);
 
-} 
+    /**
+     * Generates a course from a Learning Path request using Generative AI.
+     *
+     * @param request The Learning Path request containing the necessary information to generate a course.
+     * @return CourseRequest containing the generated course details to be stored in the database.
+     */
+    CourseRequest generateCourseFromGenAi(LearningPathRequest request, String userId, String authHeader);
+
+    /**
+     * Confirms the generation of a course from a Learning Path request.
+     * <p>
+     * This method is called after the course has been generated and the user has reviewed it.
+     * It retrieves the last generated course details, create the course in the database, enroll the user and return the course response.
+     *
+     * @return CourseResponse containing the confirmed course details.
+     */
+    CourseResponse confirmCourseGeneration(String userId);
+
+    /**
+     * Generates a response to a given Prompt.
+     * This is delegated to the GenaAi Service
+     *
+     * @param prompt The prompt to generate a response for.
+     * @return The generated response as a String.
+     */
+    //This methode can be moved to a separate service //TODO: refactor
+    String generateResponseFromGenAi(String prompt);
+
+    /**
+     * Crawls the web for course content based on a given URL.
+     *
+     * @param url The URL to crawl for course content.
+     * @return boolean indicating whether the crawling was successful.
+     */
+    //This methode can be moved to a separate service //TODO: refactor
+    EmbedResult crawlWebForCourseContent(String url);
+
+}
