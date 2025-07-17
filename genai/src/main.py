@@ -81,6 +81,16 @@ async def lifespan(app: FastAPI):
    stop_scheduler()
 
 # --- App Initialization ---
+from prometheus_fastapi_instrumentator import Instrumentator, metrics
+from prometheus_client import Counter, Gauge
+
+# Custom metrics
+GENAI_TOKENS_USED_TOTAL = Counter("genai_tokens_used_total", "Total tokens used by GenAI")
+# Gauge that exposes the running application version
+APP_VERSION_INFO = Gauge("app_version_info", "Application version info (constant 1)", ["version"])
+APP_VERSION_INFO.labels(version=APP_VERSION).set(1)
+# Register counter for exceptions
+FASTAPI_EXCEPTIONS_TOTAL = Counter("fastapi_exceptions_total", "Total count of exceptions in the GenAI service")
 app = FastAPI(
     title=APP_TITLE,
     version=APP_VERSION,
@@ -100,6 +110,15 @@ app = FastAPI(
     root_path=os.getenv("API_ROOT_PATH", ""),
 )
 
+# Expose default and custom metrics with exception tracking
+instrumentator = Instrumentator()
+
+# Use the correct instrumentator setup that will track all metrics including errors
+instrumentator.instrument(app)
+
+# Expose metrics endpoint
+instrumentator.expose(app)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("CORS_ALLOW_ORIGINS", "*").split(","),
@@ -112,6 +131,9 @@ app.add_middleware(
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.error(f"HTTPException: {exc.detail}")
+    # Increment the exception counter for HTTP exceptions
+    if exc.status_code >= 500:  # Only count server errors as exceptions
+        FASTAPI_EXCEPTIONS_TOTAL.inc()
     return JSONResponse(
         status_code=exc.status_code,
         content={"error": "HTTPException", "detail": exc.detail}
@@ -120,6 +142,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception):
     logger.exception("Unhandled exception occurred")
+    # Increment the exception counter for Prometheus metrics
+    FASTAPI_EXCEPTIONS_TOTAL.inc()
     return JSONResponse(
         status_code=500,
         content={"error": "InternalServerError", "detail": str(exc)}
@@ -244,6 +268,15 @@ async def query_vector_db(request: QueryRequest):
     docs_data = result["data"]["Get"][DOCUMENT_CLASS_NAME]
     docs = [DocumentResult(**doc) for doc in docs_data]
     return QueryResponse(query=request.query_text, results=docs)
+
+# -------------------------------
+# --- Debug / Testing Endpoints --
+# -------------------------------
+@app.get(f"{API_PREFIX}/debug/error", tags=["System"])
+async def debug_error():
+    """Deliberately raises a 500 error so monitoring dashboards can be tested."""
+    # The exception handler will automatically increment the counter
+    raise RuntimeError("Forced debug error for monitoring test")
 
 # -------------------------------
 # --- LLM Endpoints -------------

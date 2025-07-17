@@ -13,6 +13,8 @@ services:
       - "--entrypoints.traefik.address=:8085"
       - "--api=true"
       - "--api.insecure=true"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addrouterslabels=true"
     ports:
       - "80:80"
       - "8085:8085"
@@ -241,6 +243,7 @@ services:
     ports:
       - "8088:8080"
       - "50051:50051"
+      - "2112:2112"
     environment:
       QUERY_DEFAULTS_LIMIT: 25
       AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
@@ -248,6 +251,7 @@ services:
       BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
       ENABLE_API_BASED_MODULES: 'true'
       CLUSTER_HOSTNAME: 'node1'
+      PROMETHEUS_MONITORING_ENABLED: 'true'
     volumes:
       - weaviate-genai-data:/var/lib/weaviate
     healthcheck:
@@ -309,10 +313,131 @@ services:
       - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigin=${CORS_ALLOW_ORIGINS:-*}"
       - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9090/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  alertmanager:
+    image: prom/alertmanager
+    container_name: skillforge-alertmanager
+    volumes:
+      - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "${ALERTMANAGER_PORT:-9093}:9093"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9093/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "${GRAFANA_EXPOSED_PORT:-3001}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PWD:-admin}
+      - GF_DATE_FORMATS_DEFAULT_TIMEZONE=browser
+    volumes:
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - grafana-data:/var/lib/grafana
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+
+  mongo-exporter:
+    image: percona/mongodb_exporter:0.30
+    command:
+      - --mongodb.uri=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
+      - --collector.dbstats
+      - --collector.topmetrics
+      - --discovering-mode
+      - --compatible-mode
+      - --web.listen-address=:9216
+    environment:
+      - MONGODB_URI=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
+    ports:
+      - "${MONGO_EXPORTER_PORT:-9216}:9216"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9216/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ─── Loki for Centralized Logging ────────────────────────────────────────────────
+  loki:
+    image: grafana/loki:latest
+    container_name: skillforge-loki
+    ports:
+      - "${LOKI_PORT:-3100}:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ─── Promtail for Log Collection ────────────────────────────────────────────────
+  promtail:
+    image: grafana/promtail:latest
+    container_name: skillforge-promtail
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/loki/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - skillforge-network
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  # ─── MailHog (SMTP Test Server) ────────────────────────────────────────────────
+  mailhog:
+    image: mailhog/mailhog
+    container_name: skillforge-mailhog
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - skillforge-network
+
 volumes:
   mongo-data:
   redis-data:
   weaviate-genai-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
 
 networks:
   skillforge-network:

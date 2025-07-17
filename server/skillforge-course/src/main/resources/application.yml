@@ -5,6 +5,7 @@ server:
 spring:
   application:
     name: SkillForge-course-service
+    version: ${APP_VERSION:0.0.1-SNAPSHOT}
   profiles:
     active: ${SPRING_PROFILE_ACTIVES:dev}
   web:
@@ -20,10 +21,13 @@ springdoc:
     path: /docs
 
 management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,openapi,swagger-ui
+        include: health,info,metrics,prometheus,openapi,swagger-ui
 
 jwt:
   secret: ${JWT_SECRET:dev-insecure-key-change-me}
