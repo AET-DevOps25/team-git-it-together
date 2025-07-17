@@ -34,39 +34,39 @@ jobs:
     strategy:
       matrix:
         include:
-          - id: client
+          - id: skillforge-client
             path: client
             image: client
-            name: Build and Push Client
+            name: Build and Push SkillForge Client
             build-args: |
               VITE_APP_NAME=SkillForge.ai
-              VITE_APP_VERSION=1.0-alpha
+              VITE_APP_VERSION=1.0.0-beta
               VITE_API_BASE_URL=/api/
               VITE_API_VERSION=v1
               VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api
-              VITE_API_INTERNAL_HOST=server-gateway
+              VITE_API_INTERNAL_HOST=skillforge-gateway
               VITE_API_INTERNAL_PORT=8081
               BUILD_MODE=production
               VITE_PORT=3000
-          - id: server-gateway
+          - id: skillforge-gateway
             path: server/skillforge-gateway
             image: server-gateway
-            name: Build and Push Server Gateway
-          - id: user-service
+            name: Build and Push SkillForge Gateway
+          - id: skillforge-user-service
             path: server/skillforge-user
             image: user-service
-            name: Build and Push User Service
-          - id: course-service
+            name: Build and Push SkillForge User Service
+          - id: skillforge-course-service
             path: server/skillforge-course
             image: course-service
-            name: Build and Push Course Service
-          - id: genai
+            name: Build and Push SkillForge Course Service
+          - id: skillforge-genai
             path: genai
             image: genai
-            name: Build and Push GenAI
+            name: Build and Push SkillForge GenAI
             build-args: |
               GENAI_APP_NAME=SkillForge GenAI
-              GENAI_APP_VERSION=1.0-alpha
+              GENAI_APP_VERSION=1.0.0-beta
               GENAI_PORT=8888
               UVICORN_WORKERS=2
               CORS_ALLOW_ORIGINS=*
@@ -100,7 +100,7 @@ jobs:
         id: extract_version
         run: |
           git fetch --tags
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0-alpha")
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0-beta")
           echo "Last tag: $LAST_TAG"
           echo "version=${LAST_TAG}" >> $GITHUB_ENV
 
