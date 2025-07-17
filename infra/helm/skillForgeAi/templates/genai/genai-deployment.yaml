@@ -66,6 +66,9 @@ spec:
                 name: genai-secret
                 key: openaiModel
         resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }} 

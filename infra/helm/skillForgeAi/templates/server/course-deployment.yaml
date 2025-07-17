@@ -59,6 +59,9 @@ spec:
           - name: JWT_EXPIRATION_MS
             value: "86400000"
         resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }}

@@ -1,0 +1,29 @@
+{{- if and .Values.hpa.enabled .Values.hpa.genai.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-genai-hpa
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: genai
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "skillForgeAi.fullname" . }}-genai-service
+  minReplicas: {{ .Values.hpa.genai.minReplicas }}
+  maxReplicas: {{ .Values.hpa.genai.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.genai.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.genai.targetMemoryUtilizationPercentage }}
+{{- end }} 

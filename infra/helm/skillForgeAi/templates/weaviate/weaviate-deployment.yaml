@@ -6,7 +6,9 @@ metadata:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
     component: weaviate
 spec:
-  replicas: {{ .Values.replicaCount.weaviate }}
+  replicas: {{ .Values.weaviate.replicas }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
