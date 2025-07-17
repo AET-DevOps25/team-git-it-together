@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-genai-service
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: genai-service
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "skillForgeAi.selectorLabels" . | nindent 4 }}
+    component: genai-service
+  ports:
+    - protocol: TCP
+      port: {{ .Values.ports.genai }}
+      targetPort: genai-port

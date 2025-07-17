@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-mongodb-pvc
+  labels:
+    app: {{ include "skillForgeAi.name" . }}
+    component: mongodb
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mongodb.storage.size }}
+  {{- if .Values.mongodb.storage.storageClassName }}
+  storageClassName: {{ .Values.mongodb.storage.storageClassName }}
+  {{- end }} 

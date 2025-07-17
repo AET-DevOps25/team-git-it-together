@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-client
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: client
+spec:
+  replicas: {{ .Values.replicaCount.client }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: client
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: client
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.client }}
+        image: "{{ .Values.image.repository }}/client:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.ports.client }}
+            name: client-port
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+        env:
+          - name: VITE_PORT
+            value: "{{ .Values.ports.client }}"
+          - name: BUILD_MODE
+            value: "production"
+          - name: VITE_APP_NAME
+            value: "SkillForge.ai"
+          - name: VITE_APP_VERSION
+            value: "{{ .Values.appVersion }}"
+          - name: VITE_API_BASE_URL
+            value: "/api"
+          - name: VITE_API_VERSION
+            value: "v1"
+          - name: VITE_API_INTERNAL_HOST
+            value: "{{ .Values.services.server.gateway }}"
+          - name: VITE_API_INTERNAL_PORT
+            value: "{{ .Values.ports.server.gateway }}"
+          - name: VITE_PUBLIC_API_URL
+            value: "{{ .Values.publicApiUrl }}"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/nginx/html/config.json
+          subPath: config.json
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ include "skillForgeAi.fullname" . }}-client-config

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-course-service
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: course-service
+spec:
+  replicas: {{ .Values.replicaCount.server.course }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: course-service
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: course-service
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.server.course }}
+        image: "{{ .Values.image.repository }}/course-service:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.ports.server.course }}
+            name: course-port
+        env:
+          - name: APP_VERSION
+            value: "{{ .Values.appVersion }}"
+          - name: SPRING_PROFILES_ACTIVE
+            value: "prod"
+          - name: SERVER_PORT_COURSE
+            value: "{{ .Values.ports.server.course }}" 
+          - name: SERVER_HOST_USER
+            value: "{{ .Values.services.server.user }}"
+          - name: SERVER_PORT_USER
+            value: "{{ .Values.ports.server.user }}"
+          - name: SERVER_HOST_GENAI
+            value: "{{ .Values.services.genai }}"
+          - name: SERVER_PORT_GENAI
+            value: "{{ .Values.ports.genai }}"
+          - name: MONGO_URL
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: mongodbUrl
+          - name: MONGODB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: mongodbDatabase
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: jwtSecret
+          - name: JWT_EXPIRATION_MS
+            value: "86400000"
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}

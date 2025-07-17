@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-redis-pvc
+  labels:
+    app: {{ include "skillForgeAi.name" . }}
+    component: redis
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.redis.storage.size }}
+  {{- if .Values.redis.storage.storageClassName }}
+  storageClassName: {{ .Values.redis.storage.storageClassName }}
+  {{- end }} 

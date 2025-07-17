@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-weaviate
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: weaviate
+spec:
+  replicas: {{ .Values.replicaCount.weaviate }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: weaviate
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: weaviate
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.weaviate }}
+        image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: {{ .Values.ports.weaviate.http }}
+            name: weav-http
+          - containerPort: {{ .Values.ports.weaviate.grpc }}
+            name: weav-grpc
+          - containerPort: {{ .Values.ports.weaviate.prometheus }}
+            name: weav-prometheus
+        env:
+          - name: QUERY_DEFAULTS_LIMIT
+            value: "25"
+          - name: AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED
+            value: 'true'
+          - name: PERSISTENCE_DATA_PATH
+            value: '/var/lib/weaviate'
+          - name: BACKUP_FILESYSTEM_PATH
+            value: '/var/lib/weaviate/backups'
+          - name: ENABLE_API_BASED_MODULES
+            value: 'true'
+          - name: CLUSTER_HOSTNAME
+            value: 'node1'
+          - name: PROMETHEUS_MONITORING_ENABLED
+            value: 'true'
+        volumeMounts:
+          - name: weaviate-data
+            mountPath: /var/lib/weaviate
+        resources:
+          limits:
+            cpu: {{ .Values.weaviate.resources.limits.cpu }}
+            memory: {{ .Values.weaviate.resources.limits.memory }}
+      volumes:
+        - name: weaviate-data
+          persistentVolumeClaim:
+            claimName: {{ include "skillForgeAi.fullname" . }}-weaviate-pvc

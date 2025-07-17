@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-genai-service
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: genai-service
+spec:
+  replicas: {{ .Values.replicaCount.genai }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: genai-service
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: genai-service
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.genai }}
+        image: "{{ .Values.image.repository }}/genai:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.ports.genai }}
+            name: genai-port
+        env:
+          - name: GENAI_APP_NAME
+            value: "SkillForge GenAI"
+          - name: GENAI_APP_VERSION
+            value: "{{ .Values.appVersion }}"
+          - name: GENAI_PORT
+            value: "{{ .Values.ports.genai }}"
+          - name: UVICORN_WORKERS
+            value: "2"
+          - name: CORS_ALLOW_ORIGINS
+            value: "*"
+          - name: WEAVIATE_HOST
+            value: "{{ .Values.services.weaviate }}"
+          - name: WEAVIATE_HTTP_PORT
+            value: "8080"
+          - name: WEAVIATE_GRPC_PORT
+            value: "50051"
+          - name: IS_DEV_MODE
+            value: "0"
+          - name: LLM_PROVIDER
+            valueFrom:
+              secretKeyRef:
+                name: genai-secret
+                key: llmProvider
+          - name: OPENAI_API_BASE
+            valueFrom:
+              secretKeyRef:
+                name: genai-secret
+                key: openaiApiBase
+          - name: OPENAI_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: genai-secret
+                key: openaiApiKey
+          - name: OPENAI_MODEL
+            valueFrom:
+              secretKeyRef:
+                name: genai-secret
+                key: openaiModel
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }} 

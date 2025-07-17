@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-gateway
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: gateway
+spec:
+  replicas: {{ .Values.replicaCount.server.gateway }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: gateway
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: gateway
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.server.gateway }}
+        image: "{{ .Values.image.repository }}/server-gateway:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.ports.server.gateway }}
+            name: gateway-port
+        env:
+          - name: APP_VERSION
+            value: "{{ .Values.appVersion }}"
+          - name: SPRING_PROFILES_ACTIVE
+            value: "prod"
+          - name: SERVER_PORT_GATEWAY
+            value: "{{ .Values.ports.server.gateway }}"
+          - name: SERVER_HOST_USER
+            value: "{{ .Values.services.server.user }}"
+          - name: SERVER_PORT_USER
+            value: "{{ .Values.ports.server.user }}"
+          - name: SERVER_HOST_COURSE
+            value: "{{ .Values.services.server.course }}"
+          - name: SERVER_PORT_COURSE
+            value: "{{ .Values.ports.server.course }}"
+          - name: REDIS_HOST
+            value: "{{ .Values.services.redis }}"
+          - name: REDIS_PORT
+            value: "{{ .Values.ports.redis }}"
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: jwtSecret
+          - name: JWT_EXPIRATION_MS
+            value: "86400000"
+          - name: RATE_LIMIT_REQUESTS_PER_MINUTE
+            value: "60"
+          - name: RATE_LIMIT_REQUESTS_PER_SECOND
+            value: "10"
+          - name: RATE_LIMIT_BURST
+            value: "20"
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
