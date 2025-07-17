@@ -524,7 +524,9 @@
   "refresh": "5s",
   "schemaVersion": 41,
   "tags": [
-    "mongodb"
+    "mongodb",
+    "monitoring",
+    "metrics"
   ],
   "templating": {
     "list": [

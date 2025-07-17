@@ -826,7 +826,10 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": [],
+  "tags": [
+    "server",
+    "metrics"
+  ],
   "templating": {
     "list": [
       {
