@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: local-mail
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+
+receivers:
+  - name: local-mail
+    email_configs:
+      - to: oncall@skillforge.ai
+        from: alertmanager@skillforge.local
+        smarthost: mailhog:1025
+        require_tls: false
+        send_resolved: true

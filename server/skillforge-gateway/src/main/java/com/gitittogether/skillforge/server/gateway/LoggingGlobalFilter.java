@@ -2,13 +2,11 @@ package com.gitittogether.skillforge.server.gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@Profile("dev")
 @Slf4j
 @Component
 public class LoggingGlobalFilter implements GlobalFilter, Ordered {

@@ -1,0 +1,29 @@
+groups:
+  - name: basic-alerts
+    rules:
+      - alert: MongoExporterDown
+        expr: absent(up{job="mongo_exporter"} == 1) or up{job="mongo_exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB exporter is down"
+
+      - alert: UserAuthFailuresHigh
+        expr: increase(user_auth_failure_total[2m]) > 50
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High user authentication failure count"
+          description: "More than 100 failed logins in the past minute."
+
+      - alert: GenAIServiceDown
+        expr: absent(up{job="genai"} == 1) or up{job="genai"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GenAI service is down"
+          description: "GenAI FastAPI service is unreachable or not exposing /metrics endpoint (instance: {{ $labels.instance }})."
+
