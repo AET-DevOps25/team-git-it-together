@@ -177,7 +177,7 @@ services:
       start_period: 20s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.gateway-api.rule=Host(`$${SERVER_HOST:-server.localhost}`)"
+      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST:-server.localhost}`)"
       - "traefik.http.routers.gateway-api.entrypoints=web"
       - "traefik.http.services.gateway.loadbalancer.server.port=8081"
     networks:
@@ -216,7 +216,7 @@ services:
       VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL:-http://server.localhost:8081/api}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.client.rule=Host(`$${CLIENT_HOST:-client.localhost}`)"
+      - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST:-client.localhost}`)"
       - "traefik.http.routers.client.entrypoints=web"
       - "traefik.http.services.client.loadbalancer.server.port=3000"
     depends_on:
@@ -310,10 +310,10 @@ services:
       - skillforge-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.genai.rule=Host(`$${GENAI_HOST:-genai.localhost}`)"
+      - "traefik.http.routers.genai.rule=Host(`${GENAI_HOST:-genai.localhost}`)"
       - "traefik.http.routers.genai.entrypoints=web"
       - "traefik.http.services.genai.loadbalancer.server.port=8888"
-      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigins=$${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigins=${CORS_ALLOW_ORIGINS:-*}"
       - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
   prometheus:
@@ -338,7 +338,7 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.prometheus.rule=Host(`$${PROMETHEUS_HOST:-prometheus.localhost}`)"
+      - "traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_HOST:-prometheus.localhost}`)"
       - "traefik.http.routers.prometheus.entrypoints=web"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
@@ -365,7 +365,7 @@ services:
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.alertmanager.rule=Host(`$${ALERTMANAGER_HOST:-alertmanager.localhost}`)"
+      - "traefik.http.routers.alertmanager.rule=Host(`${ALERTMANAGER_HOST:-alertmanager.localhost}`)"
       - "traefik.http.routers.alertmanager.entrypoints=web"
       - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
 
@@ -402,10 +402,9 @@ services:
         condition: service_started
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grafana.rule=Host(`$${GRAFANA_HOST:-grafana.localhost}`)"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST:-grafana.localhost}`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
-
 
   mongo-exporter:
     platform: linux/amd64
@@ -469,7 +468,7 @@ services:
       - "${PROMTAIL_PORT:-9080}:9080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.promtail.rule=Host(`$${PROMTAIL_HOST:-promtail.localhost}`)"
+      - "traefik.http.routers.promtail.rule=Host(`${PROMTAIL_HOST:-promtail.localhost}`)"
       - "traefik.http.routers.promtail.entrypoints=web"
       - "traefik.http.services.promtail.loadbalancer.server.port=9080"
     depends_on:
@@ -492,7 +491,7 @@ services:
       - skillforge-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.mailhog.rule=Host(`$${MAILHOG_HOST:-mail.localhost}`)"
+      - "traefik.http.routers.mailhog.rule=Host(`${MAILHOG_HOST:-mail.localhost}`)"
       - "traefik.http.routers.mailhog.entrypoints=web"
       - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
 
