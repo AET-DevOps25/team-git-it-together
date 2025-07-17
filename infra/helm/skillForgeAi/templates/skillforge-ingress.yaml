@@ -11,8 +11,10 @@ spec:
   tls:
     - hosts:
         - {{ .Values.host }}
+        - api.{{ .Values.host }}
       secretName: skillforge-tls
   rules:
+    # Frontend client
     - host: {{ .Values.host }}
       http:
         paths:
@@ -20,6 +22,17 @@ spec:
             path: /
             backend:
               service:
-                name: skillforge-client
+                name: {{ include "skillForgeAi.fullname" . }}-client
                 port:
                   number: 80
+    # API backend
+    - host: api.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-gateway
+                port:
+                  number: {{ .Values.ports.server.gateway }}
