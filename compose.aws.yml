@@ -430,7 +430,7 @@ services:
     env_file:
       - .env
     environment:
-      - MAILHOG_PORT=${MAILHOG_PORT:-1025}
+      - MAILHOG_PORT=${MAILHOG_PORT:-8025}
     networks:
       - skillforge-network
     healthcheck:
