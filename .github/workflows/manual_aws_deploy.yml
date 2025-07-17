@@ -1,6 +1,6 @@
 # This workflow performs a manual deployment of Docker images to an AWS EC2 instance
-# via SSH/SCP. It is intended for legacy/manual operations. For full automation,
-# see the automated deployment workflow (.github/workflows/auto_docker_deploy_to_aws.yml).
+# via SSH/SCP. It is intended for manual operations. For full automation,
+# see the automated deployment workflow (.github/workflows/deploy_to_aws.yml, which is run once provisioning (provision_configure_deploy_aws.yml) is done.
 
 
 name: Manual Deploy to AWS
@@ -59,41 +59,41 @@ jobs:
           host: ${{ vars.EC2_PUBLIC_IP }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
-          # TODO: Add echo "MONGODB_DATABASE=\"vars.MONGODB_DATABASE \"" >> .env
-          #      echo "MONGODB_USERNAME=\"$secrets.MONGODB_USERNAME\"" >> .env
-          # Once updated
           script: |
-            set -e
-            cd /home/${{ vars.AWS_EC2_USER }}
-            rm -f .env
-            echo "Creating .env file..."
-
-            echo "MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }}" >> .env
-
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            echo "JWT_EXPIRATION_MS=${{ vars.JWT_EXPIRATION_MS }}" >> .env
-
-            echo "VITE_APP_NAME=SkillForge.ai" >> .env
-            echo "VITE_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
-
-            echo "GENAI_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
-            echo "UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}" >> .env
-            echo "LLM_PROVIDER=${{ vars.LLM_PROVIDER }}" >> .env
-            echo "OPENAI_API_BASE=${{ vars.OPENAI_API_BASE }}" >> .env
-            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-            echo "OPENAI_MODEL=${{ vars.OPENAI_MODEL }}" >> .env
-
-            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "GENAI_HOST=genai.api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env
-            echo "VITE_API_INTERNAL_HOST=server-gateway" >> .env
-            echo "VITE_API_INTERNAL_PORT=8081" >> .env
-            echo "SERVER_HOST_GENAI=skillforge-genai" >> .env
-            echo "SERVER_PORT_GENAI=8888" >> .env
-
-            chmod 600 .env
-            echo ".env file created ✅"
+              set -e
+              cd /home/${{ vars.AWS_EC2_USER }}
+              rm -f .env
+              echo "Creating .env file..."
+              
+              echo "APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
+              echo "VITE_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
+              echo "GENAI_APP_VERSION=${{ steps.get_tag.outputs.tag }}" >> .env
+  
+              echo "SPRING_PROFILES_ACTIVE=prod" >> .env
+              
+              echo "MONGO_URL=${{ secrets.MONGODB_URL }}" >> .env
+              echo "MONGODB_DATABASE=SkillForge" >> .env
+              
+              echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+              
+              echo "OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}" >> .env
+              echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+              echo "OPENAI_MODEL=gpt-4o" >> .env
+              echo "UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}" >> .env
+              
+              echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env
+              echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "GENAI_HOST=api.genai.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "MAILHOG_HOST=mail.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "PROMETHEUS_HOST=prometheus.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "LOKI_HOST=loki.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "PROMTAIL_HOST=promtail.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "ALERTMANAGER_HOST=alertmanager.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+              echo "GRAFANA_HOST=grafana.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+  
+              chmod 600 .env
+              echo ".env file created ✅"
       - name: SSH to the EC2 Instance and Start Docker Compose
         uses: appleboy/ssh-action@v1.0.3
         timeout-minutes: 10
@@ -120,7 +120,13 @@ jobs:
           echo "Deployment complete! Access your services at:"
           echo "Client: https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
           echo "API: https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "GenAI: https://genai.api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "GenAI: https://api.genai.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Mailhog: https://mail.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Prometheus: https://prometheus.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Loki: https://loki.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Promtail: https://promtail.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Alertmanager: https://alertmanager.${{ vars.EC2_PUBLIC_IP }}.nip.io"
+          echo "Grafana: https://grafana.${{ vars.EC2_PUBLIC_IP }}.nip.io"
           echo "Check the status of your services with:"
           echo "docker compose -f docker-compose.prod.yml ps"
           echo "View logs with:"
