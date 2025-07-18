@@ -1,4 +1,3 @@
-{{- if and .Values.monitoring.enabled .Values.monitoring.alertmanager.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -11,4 +10,3 @@ data:
 {{ .Files.Get "monitoring/prometheus/alertmanager.yml" | indent 4 }}
   alert.rules.yml: |
 {{ .Files.Get "monitoring/prometheus/alert.rules.yml" | indent 4 }}
-{{- end }} 
