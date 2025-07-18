@@ -26,6 +26,22 @@ spec:
         ports:
           - containerPort: {{ .Values.ports.server.course }}
             name: course-port
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: course-port
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: course-port
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         env:
           - name: APP_VERSION
             value: "{{ .Values.appVersion }}"

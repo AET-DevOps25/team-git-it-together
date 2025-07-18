@@ -26,6 +26,26 @@ spec:
           ports:
             - containerPort: {{ .Values.mongodb.port }}
               name: mongodb-port
+          livenessProbe:
+            exec:
+              command:
+              - mongosh
+              - --eval
+              - "db.adminCommand('ping')"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+              - mongosh
+              - --eval
+              - "db.adminCommand('ping')"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
               value: "root"

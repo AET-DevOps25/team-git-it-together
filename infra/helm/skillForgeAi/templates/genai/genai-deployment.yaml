@@ -26,6 +26,22 @@ spec:
         ports:
           - containerPort: {{ .Values.ports.genai }}
             name: genai-port
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: genai-port
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: genai-port
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         env:
           - name: GENAI_APP_NAME
             value: "SkillForge GenAI"
