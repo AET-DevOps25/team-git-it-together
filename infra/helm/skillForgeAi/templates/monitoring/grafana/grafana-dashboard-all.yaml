@@ -8,12 +8,12 @@ metadata:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
 data:
   genai.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/genai.json" | indent 4 }}
+{{- .Files.Get "monitoring/grafana/dashboards/genai.json" | nindent 4 }}
   server.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/server.json" | indent 4 }}
+{{- .Files.Get "monitoring/grafana/dashboards/server.json" | nindent 4 }}
   mongodb.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/mongodb.json" | indent 4 }}
+{{- .Files.Get "monitoring/grafana/dashboards/mongodb.json" | nindent 4 }}
   logs.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/logs.json" | indent 4 }}
+{{- .Files.Get "monitoring/grafana/dashboards/logs.json" | nindent 4 }}
   user-custom-metrics.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/user-custom-metrics.json" | indent 4 }}
+{{- .Files.Get "monitoring/grafana/dashboards/user-custom-metrics.json" | nindent 4 }}
