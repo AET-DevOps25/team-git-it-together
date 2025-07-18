@@ -10,7 +10,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "skillForgeAi.fullname" . }}-genai-service
+    name: {{ include "skillForgeAi.fullname" . }}-genai
   minReplicas: {{ .Values.hpa.genai.minReplicas }}
   maxReplicas: {{ .Values.hpa.genai.maxReplicas }}
   metrics:
