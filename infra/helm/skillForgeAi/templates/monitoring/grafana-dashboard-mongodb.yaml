@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-mongodb
+  labels:
+    app.kubernetes.io/component: grafana
+    dashboard: mongodb
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+data:
+  mongodb.json: |
+{{ .Files.Get "monitoring/grafana/dashboards/mongodb.json" | indent 4 }} 

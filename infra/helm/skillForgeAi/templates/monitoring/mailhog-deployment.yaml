@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-mailhog
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mailhog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mailhog
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mailhog
+    spec:
+      containers:
+      - name: mailhog
+        image: {{ .Values.monitoring.mailhog.image.repository }}:{{ .Values.monitoring.mailhog.image.tag }}
+        ports:
+        - containerPort: {{ .Values.monitoring.mailhog.webPort }}
+          name: web
+        - containerPort: {{ .Values.monitoring.mailhog.smtpPort }}
+          name: smtp
+        resources:
+          {{- toYaml .Values.monitoring.mailhog.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: web
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: web
+          initialDelaySeconds: 5
+          periodSeconds: 5 

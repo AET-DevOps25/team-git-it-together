@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.alertmanager.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-alertmanager-config
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alertmanager
+data:
+  alertmanager.yml: |
+    global:
+      resolve_timeout: 5m
+
+    route:
+      receiver: 'null'
+
+    receivers:
+      - name: 'null'
+{{- end }} 

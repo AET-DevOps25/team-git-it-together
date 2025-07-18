@@ -1,0 +1,90 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-grafana
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: grafana
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        supplementalGroups:
+          - 0
+      containers:
+        - name: grafana
+          image: "{{ .Values.monitoring.grafana.image.repository }}:{{ .Values.monitoring.grafana.image.tag }}"
+          imagePullPolicy: {{ .Values.monitoring.grafana.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.monitoring.grafana.port }}
+              name: grafana-port
+          env:
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "{{ .Values.monitoring.grafana.adminPassword }}"
+            - name: GF_SERVER_HTTP_PORT
+              value: "{{ .Values.monitoring.grafana.port }}"
+            - name: GF_INSTALL_PLUGINS
+              value: "grafana-piechart-panel,grafana-worldmap-panel"
+            - name: GF_PATHS_DATA
+              value: /var/lib/grafana
+            - name: GF_PATHS_LOGS
+              value: /var/log/grafana
+            - name: GF_PATHS_PLUGINS
+              value: /var/lib/grafana/plugins
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 472
+          volumeMounts:
+            - name: grafana-data
+              mountPath: /var/lib/grafana
+            - name: grafana-config
+              mountPath: /etc/grafana/provisioning
+            - name: dashboards
+              mountPath: /var/lib/grafana/dashboards
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: grafana-port
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: grafana-port
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: {{ .Values.monitoring.grafana.resources.requests.cpu }}
+              memory: {{ .Values.monitoring.grafana.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.monitoring.grafana.resources.limits.cpu }}
+              memory: {{ .Values.monitoring.grafana.resources.limits.memory }}
+      volumes:
+        - name: grafana-data
+          persistentVolumeClaim:
+            claimName: {{ include "skillForgeAi.fullname" . }}-grafana-pvc
+        - name: grafana-config
+          configMap:
+            name: {{ include "skillForgeAi.fullname" . }}-grafana-config
+        - name: dashboards
+          configMap:
+            name: grafana-dashboards-all
+{{- end }} 

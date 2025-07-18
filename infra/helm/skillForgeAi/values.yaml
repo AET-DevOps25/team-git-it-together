@@ -17,12 +17,12 @@ host: skillforge.student.k8s.aet.cit.tum.de
 # Replica count for each service
 replicaCount:
   client: 2
-  genai: 1
+  genai: 2
   server:
     redis: 1
-    gateway: 1
-    user: 1
-    course: 1
+    gateway: 2
+    user: 2
+    course: 2
   weaviate: 1
   mongo: 1
 
@@ -38,24 +38,24 @@ hpa:
   gateway:
     enabled: true
     minReplicas: 2
-    maxReplicas: 10
+    maxReplicas: 5
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
   user:
     enabled: true
     minReplicas: 2
-    maxReplicas: 8
+    maxReplicas: 5
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
   course:
     enabled: true
     minReplicas: 2
-    maxReplicas: 8
+    maxReplicas: 5
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
   genai:
     enabled: true
-    minReplicas: 1
+    minReplicas: 2
     maxReplicas: 5
     targetCPUUtilizationPercentage: 70
     targetMemoryUtilizationPercentage: 80
@@ -117,6 +117,132 @@ mongodb:
     storageClassName: ""
   # apiKey is set in CI pipeline
 
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    image:
+      repository: prom/prometheus
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9090
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 10Gi
+      storageClassName: ""
+  grafana:
+    enabled: true
+    image:
+      repository: grafana/grafana
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 3000
+    adminPassword: "admin"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 5Gi
+      storageClassName: ""
+  loki:
+    enabled: true
+    image:
+      repository: grafana/loki
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 3100
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 5Gi
+      storageClass: ""
+  promtail:
+    enabled: true
+    image:
+      repository: grafana/promtail
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9080
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  alertmanager:
+    enabled: true
+    image:
+      repository: prom/alertmanager
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9093
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    storage:
+      enabled: true
+      size: 1Gi
+      storageClassName: ""
+    slack:
+      webhookUrl: ""
+      channel: "#alerts"
+      title: "SkillForge Alert"
+      text: "{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}"
+    webhook:
+      url: "http://127.0.0.1:5001/"
+  mongoExporter:
+    enabled: true
+    image:
+      repository: percona/mongodb_exporter
+      tag: "0.44.0"
+      pullPolicy: IfNotPresent
+    port: 9216
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  mailhog:
+    enabled: true
+    image:
+      repository: mailhog/mailhog
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    webPort: 8025
+    smtpPort: 1025
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
 
 # Resources for each service
 resources:

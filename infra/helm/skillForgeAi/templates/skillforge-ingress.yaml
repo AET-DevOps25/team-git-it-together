@@ -12,6 +12,12 @@ spec:
     - hosts:
         - {{ .Values.host }}
         - api.{{ .Values.host }}
+        - prometheus.{{ .Values.host }}
+        - grafana.{{ .Values.host }}
+        - alertmanager.{{ .Values.host }}
+        - loki.{{ .Values.host }}
+        - promtail.{{ .Values.host }}
+        - mailhog.{{ .Values.host }}
       secretName: skillforge-tls
   rules:
     # Frontend client
@@ -36,3 +42,69 @@ spec:
                 name: {{ include "skillForgeAi.fullname" . }}-gateway
                 port:
                   number: {{ .Values.ports.server.gateway }}
+    # Prometheus monitoring
+    - host: prometheus.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-prometheus
+                port:
+                  number: {{ .Values.monitoring.prometheus.port }}
+    # Grafana monitoring
+    - host: grafana.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-grafana
+                port:
+                  number: {{ .Values.monitoring.grafana.port }}
+    # Alertmanager monitoring
+    - host: alertmanager.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-alertmanager
+                port:
+                  number: {{ .Values.monitoring.alertmanager.port }}
+    # Loki monitoring
+    - host: loki.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-loki
+                port:
+                  number: {{ .Values.monitoring.loki.port }}
+    # Promtail monitoring
+    - host: promtail.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-promtail
+                port:
+                  number: {{ .Values.monitoring.promtail.port }}
+    # MailHog email testing
+    - host: mailhog.{{ .Values.host }}
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-mailhog
+                port:
+                  number: {{ .Values.monitoring.mailhog.webPort }}
