@@ -1,0 +1,16 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-prometheus-config
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: prometheus
+data:
+  prometheus.yml: |
+{{ .Files.Get "monitoring/prometheus/prometheus.yml" | indent 4 }}
+  alert.rules.yml: |
+{{ .Files.Get "monitoring/prometheus/alert.rules.yml" | indent 4 }}
+  alertmanager.yml: |
+{{ .Files.Get "monitoring/prometheus/alertmanager.yml" | indent 4 }}
+{{- end }}

@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.mongoExporter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-exporter
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mongo-exporter
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.monitoring.mongoExporter.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    {{- include "skillForgeAi.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: mongo-exporter
+{{- end }} 

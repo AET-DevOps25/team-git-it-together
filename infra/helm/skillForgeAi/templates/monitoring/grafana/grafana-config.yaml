@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-grafana-config
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: grafana
+data:
+  dashboards.yml: |
+{{- .Files.Get "monitoring/grafana/provisioning/dashboards/dashboards.yml" | nindent 4 }}
+  prometheus.yml: |
+{{- .Files.Get "monitoring/grafana/provisioning/datasources/prometheus.yml" | nindent 4 }}
+  loki.yml: |
+{{- .Files.Get "monitoring/grafana/provisioning/datasources/loki.yml" | nindent 4 }}

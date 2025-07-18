@@ -1,0 +1,14 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.alertmanager.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-alertmanager-config
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alertmanager
+data:
+  alertmanager.yml: |
+{{ .Files.Get "monitoring/prometheus/alertmanager.yml" | indent 4 }}
+  alert.rules.yml: |
+{{ .Files.Get "monitoring/prometheus/alert.rules.yml" | indent 4 }}
+{{- end }} 

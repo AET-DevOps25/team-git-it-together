@@ -274,7 +274,7 @@ ports:
 
 services:
   client: skillforge-client
-  genai: skillforge-genai-service
+  genai: skillforge-genai
   redis: skillforge-redis
   mongo: skillforge-mongo
   server:

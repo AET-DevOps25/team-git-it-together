@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "skillForgeAi.fullname" . }}-genai-service
+  name: {{ include "skillForgeAi.fullname" . }}-genai
   labels:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
-    component: genai-service
+    component: genai
 spec:
   replicas: {{ .Values.replicaCount.genai }}
   selector:
     matchLabels:
       {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
-      component: genai-service
+      component: genai
   template:
     metadata:
       labels:
         {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
-        component: genai-service
+        component: genai
       annotations:
         checksum/redeploy: "{{ randAlphaNum 8 }}"
     spec:

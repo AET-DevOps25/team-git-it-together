@@ -5,9 +5,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
+  ingressClassName: nginx
   tls:
     - hosts:
         - {{ .Values.host }}
@@ -15,8 +15,6 @@ spec:
         - prometheus.{{ .Values.host }}
         - grafana.{{ .Values.host }}
         - alertmanager.{{ .Values.host }}
-        - loki.{{ .Values.host }}
-        - promtail.{{ .Values.host }}
         - mailhog.{{ .Values.host }}
       secretName: skillforge-tls
   rules:
@@ -75,28 +73,6 @@ spec:
                 name: {{ include "skillForgeAi.fullname" . }}-alertmanager
                 port:
                   number: {{ .Values.monitoring.alertmanager.port }}
-    # Loki monitoring
-    - host: loki.{{ .Values.host }}
-      http:
-        paths:
-          - pathType: Prefix
-            path: /
-            backend:
-              service:
-                name: {{ include "skillForgeAi.fullname" . }}-loki
-                port:
-                  number: {{ .Values.monitoring.loki.port }}
-    # Promtail monitoring
-    - host: promtail.{{ .Values.host }}
-      http:
-        paths:
-          - pathType: Prefix
-            path: /
-            backend:
-              service:
-                name: {{ include "skillForgeAi.fullname" . }}-promtail
-                port:
-                  number: {{ .Values.monitoring.promtail.port }}
     # MailHog email testing
     - host: mailhog.{{ .Values.host }}
       http:

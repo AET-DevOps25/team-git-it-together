@@ -1,0 +1,12 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.promtail.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-promtail-config
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: promtail
+data:
+  promtail-config.yml: |
+{{ .Files.Get "monitoring/loki/promtail-config.yml" | indent 4 }}
+{{- end }}

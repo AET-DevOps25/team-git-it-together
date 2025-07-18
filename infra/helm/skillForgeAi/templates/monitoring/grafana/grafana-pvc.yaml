@@ -1,0 +1,18 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-grafana-pvc
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: grafana
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.monitoring.grafana.storage.size }}
+  {{- if .Values.monitoring.grafana.storage.storageClassName }}
+  storageClassName: {{ .Values.monitoring.grafana.storage.storageClassName }}
+  {{- end }}
+{{- end }} 
