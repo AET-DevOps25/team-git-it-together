@@ -5,29 +5,29 @@ metadata:
   labels:
     grafana_datasource: "1"
 data:
-    prometheus.yml: |
-        apiVersion: 1
-        datasources:
-          - name: Prometheus
-            type: prometheus
-            access: proxy
-            url: http://prometheus:9090
-            uid: DS_PROMETHEUS
-            isDefault: true
-    loki.yml: |
-        apiVersion: 1
-        datasources:
-            - name: Loki
-                type: loki
-                access: proxy
-                url: http://loki:3100
-                jsonData:
-                maxLines: 1000
-                derivedFields:
-                    - datasourceUid: prometheus
-                    matcherRegex: "traceID=(\\w+)"
-                    name: TraceID
-                    url: "${__value.raw}"
-                isDefault: false
-                version: 1
-                editable: false
+  prometheus.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        uid: DS_PROMETHEUS
+        isDefault: true
+  loki.yml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        jsonData:
+          maxLines: 1000
+          derivedFields:
+            - datasourceUid: prometheus
+              matcherRegex: "traceID=(\\w+)"
+              name: TraceID
+              url: "${__value.raw}"
+        isDefault: false
+        version: 1
+        editable: false
