@@ -1,5 +1,56 @@
 # SkillForge Helm Deployment Guide
 
+## What is being deployed?
+
+This Helm chart deploys a complete **SkillForge AI learning platform** with the following components:
+
+### 🏗️ **Architecture Overview**
+- **Frontend**: React-based client application
+- **Backend**: Spring Boot microservices (Gateway, User, Course services)
+- **AI Services**: Python-based GenAI service with Weaviate vector database
+- **Databases**: MongoDB (user data) and Redis (caching/sessions)
+- **Infrastructure**: Kubernetes-native deployment with auto-scaling
+
+### 📦 **Deployed Components**
+
+#### **Frontend Layer**
+- **Client Service**: React SPA served via Nginx
+- **Ingress**: Nginx ingress controller with SSL/TLS termination
+- **Domains**: 
+  - Frontend: `https://skillforge.student.k8s.aet.cit.tum.de`
+  - API: `https://api.skillforge.student.k8s.aet.cit.tum.de`
+
+#### **Backend Services**
+- **API Gateway**: Spring Boot gateway with rate limiting and routing
+- **User Service**: Authentication, user management, JWT handling
+- **Course Service**: Course management and progress tracking
+- **GenAI Service**: AI-powered course generation and chat assistance
+
+#### **Data Layer**
+- **MongoDB**: Primary database for user data and courses
+- **Redis**: Session storage and caching layer
+- **Weaviate**: Vector database for AI embeddings and semantic search
+
+#### **Kubernetes Resources**
+- **Deployments**: All services deployed as Kubernetes Deployments
+- **Services**: ClusterIP services for internal communication
+- **Persistent Volume Claims**: Data persistence for databases
+- **Horizontal Pod Autoscalers (HPA)**: Auto-scaling based on CPU/Memory usage
+- **Ingress**: External access with SSL/TLS
+- **Secrets**: Secure storage for sensitive configuration
+
+#### **High Availability Features**
+- **Auto-scaling**: HPA configured for all backend services
+- **Health checks**: Liveness and readiness probes
+- **Rollout strategy**: Recreate strategy for stateful services
+- **Resource limits**: CPU and memory constraints for stability
+
+#### **Security & Networking**
+- **VPC/ClusterIP**: All services use internal networking
+- **Secrets management**: Kubernetes secrets for sensitive data
+- **TLS termination**: SSL certificates via cert-manager
+- **Rate limiting**: API gateway protection
+
 ## Prerequisites
 
 - **Kubernetes cluster** (v1.22+)
@@ -68,6 +119,7 @@ helm upgrade --install skillforge-ai ./infra/helm/skillForgeAi \
 kubectl get pods -n <namespace>
 kubectl get svc -n <namespace>
 kubectl get ingress -n <namespace>
+kubectl get hpa -n <namespace>
 ```
 
 You can also access the Client UI at:
