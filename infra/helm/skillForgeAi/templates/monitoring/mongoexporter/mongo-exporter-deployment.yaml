@@ -2,10 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mongo-exporter
+  name: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
   labels:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
-    app.kubernetes.io/component: mongo-exporter
+    app.kubernetes.io/component: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
 spec:
   strategy:
     type: Recreate
@@ -13,15 +13,15 @@ spec:
   selector:
     matchLabels:
       {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: mongo-exporter
+      app.kubernetes.io/component: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
   template:
     metadata:
       labels:
         {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: mongo-exporter
+        app.kubernetes.io/component: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
     spec:
       containers:
-      - name: mongo-exporter
+      - name: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
         image: {{ .Values.monitoring.mongoExporter.image.repository }}:{{ .Values.monitoring.mongoExporter.image.tag }}
         ports:
         - containerPort: {{ .Values.monitoring.mongoExporter.port }}
