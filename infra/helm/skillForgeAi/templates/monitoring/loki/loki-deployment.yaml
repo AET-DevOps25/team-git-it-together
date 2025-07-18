@@ -35,7 +35,7 @@ spec:
             runAsNonRoot: true
             runAsUser: 65534
           args:
-            - -config.file=/etc/loki/local-config.yaml
+            - -config.file=/etc/loki/loki-config.yml
           volumeMounts:
             - name: loki-config
               mountPath: /etc/loki
