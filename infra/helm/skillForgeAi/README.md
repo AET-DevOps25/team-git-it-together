@@ -133,7 +133,7 @@ kubectl patch serviceaccount default -n <namespace> -p '{"imagePullSecrets": [{"
 
 ---
 
-## 1.5. Copy Monitoring Config Files
+## 1.1. Copy Monitoring Config Files
 
 Before deploying, copy the monitoring configuration files into the Helm chart directory so Helm can access them:
 
@@ -148,6 +148,23 @@ rm -rf infra/helm/skillForgeAi/monitoring/grafana/README.md
 ```
 
 This ensures Prometheus, Alertmanager, Loki, and Promtail configs are available for Helm templating.
+
+---
+## 1.2 Ensure you are in the right kubernetes context
+
+```sh
+kubectl config get-contexts
+```
+
+If you are not in the right context, you can switch to the right context with the following command:
+
+```sh
+kubectl config use-context <context-name>
+```
+
+> Note: in this project we are using a context called `student` which the config file get downloaded from the cluster and then copied to the `~/.kube/config` file.
+> DO NOT FOGET TO CREATE A BACKUP OF THE `~/.kube/config` FILE BEFORE RUNNING THE COMMANDS BELOW.
+
 
 ---
 
