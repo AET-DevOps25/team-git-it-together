@@ -5,7 +5,7 @@ metadata:
   name: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
   labels:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
-    app.kubernetes.io/component: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
+    app.kubernetes.io/component: mongo-exporter
 spec:
   strategy:
     type: Recreate
@@ -13,7 +13,7 @@ spec:
   selector:
     matchLabels:
       {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: {{ include "skillForgeAi.fullname" . }}-mongo-exporter
+      app.kubernetes.io/component: mongo-exporter
   template:
     metadata:
       labels:
@@ -30,7 +30,7 @@ spec:
         - name: MONGODB_URI
           valueFrom:
             secretKeyRef:
-              name: mongo-secret
+              name: {{ include "skillForgeAi.fullname" . }}-mongo-secret
               key: mongodbUri
         args:
         - --mongodb.uri=$(MONGODB_URI)
