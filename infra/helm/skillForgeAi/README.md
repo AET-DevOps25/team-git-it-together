@@ -51,6 +51,53 @@ This Helm chart deploys a complete **SkillForge AI learning platform** with the 
 - **TLS termination**: SSL certificates via cert-manager
 - **Rate limiting**: API gateway protection
 
+#### Monitoring Stack
+
+This chart also deploys a full monitoring stack for SkillForge:
+
+- **Prometheus**: Metrics collection and alerting
+- **Alertmanager**: Handles alerts from Prometheus
+- **Grafana**: Dashboards and visualization
+- **Loki**: Log aggregation
+- **Promtail**: Log shipping to Loki
+- **Mailhog**: For Alert mails Testing
+
+## Accessing Monitoring Tools
+
+- **Grafana**: [https://grafana.skillforge.student.k8s.aet.cit.tum.de](https://grafana.skillforge.student.k8s.aet.cit.tum.de)
+  - Default login: `admin` / password from `values.yaml` (`GF_SECURITY_ADMIN_PASSWORD`)
+  - All dashboards are auto-provisioned from `/monitoring/grafana/dashboards` and `/monitoring/grafana-dashboards`.
+- **Prometheus**: [https://prometheus.skillforge.student.k8s.aet.cit.tum.de](https://prometheus.skillforge.student.k8s.aet.cit.tum.de)
+- **Alertmanager**: [https://alertmanager.skillforge.student.k8s.aet.cit.tum.de](https://alertmanager.skillforge.student.k8s.aet.cit.tum.de)
+- **Mailhog**: [https://mailhog.skillforge.student.k8s.aet.cit.tum.de](https://mailhog.skillforge.student.k8s.aet.cit.tum.de) (web UI for captured emails)
+
+## Dashboards & Provisioning
+
+- All dashboards are loaded from a single ConfigMap and mounted at `/var/lib/grafana/dashboards`.
+- The provisioning config (`dashboards.yaml`) points to this folder.
+- To add a new dashboard:
+  1. Place your dashboard JSON in `monitoring/grafana/dashboards` or `monitoring/grafana-dashboards`.
+  2. Re-run `helm upgrade` to sync it to the cluster.
+
+## Prometheus Targets
+
+- Prometheus scrapes all core services using their Kubernetes service names (e.g., `skillforge-gateway:8081`).
+- If you add a new service, update the Prometheus config in the Helm chart to include its service name and port.
+
+## Logs
+
+- Promtail collects logs from all pods and ships them to Loki.
+- You can explore logs in Grafana using the pre-built logs dashboard.
+
+## Alerts
+
+- Alerts are defined in `monitoring/alert.rules.yml` and loaded into Prometheus.
+- Alertmanager is configured with a minimal/no-op receiver by default. To enable real alerting, update the Alertmanager config in the Helm chart.
+
+---
+
+For more details, see the `/monitoring` directory and the `values.yaml` for configuration options.
+
 ## Prerequisites
 
 - **Kubernetes cluster** (v1.22+)
@@ -86,12 +133,53 @@ kubectl patch serviceaccount default -n <namespace> -p '{"imagePullSecrets": [{"
 
 ---
 
+## 1.5. Copy Monitoring Config Files
+
+Before deploying, copy the monitoring configuration files into the Helm chart directory so Helm can access them:
+
+```sh
+cd skillForgeAi
+mkdir -p infra/helm/skillForgeAi/monitoring
+cp -r monitoring/prometheus monitoring/loki monitoring/grafana infra/helm/skillForgeAi/monitoring/
+# Optional: Remove the img folder from the grafana directory
+rm -rf infra/helm/skillForgeAi/monitoring/grafana/img
+# Optional: Remove the README.md file from the grafana directory
+rm -rf infra/helm/skillForgeAi/monitoring/grafana/README.md
+```
+
+This ensures Prometheus, Alertmanager, Loki, and Promtail configs are available for Helm templating.
+
+---
+
 ## 2. Deploy the Chart
 
 Add the namespace if needed (It is already created in the cluster):
 
 ```sh
 kubectl create namespace <namespace>
+```
+Validate the chart:
+
+```sh
+helm lint ./infra/helm/skillForgeAi
+```
+
+Dry-run the deployment to check for errors:
+
+```sh
+helm install --dry-run --debug skillforge-ai ./infra/helm/skillForgeAi \
+  --namespace <namespace> \
+  --set image.tag=<image-tag> \
+  --set host=<your-domain> \
+  --set secrets.mongoDbUrl="<your-mongo-db-url>" \
+  --set secrets.mongodbDatabase="<your-mongodb-database>" \
+  --set secrets.jwtSecret="<your-jwt-secret>" \
+  --set secrets.llmProvider="<your-llm-provider>" \
+  --set secrets.openaiApiBase="<your-openai-base-url>" \
+  --set secrets.openaiApiKey="<your-openai-api-key>" \
+  --set secrets.openaiModel="<your-openai-model>" \
+  --set monitoring.enabled=true \
+  --set hpa.enabled=true
 ```
 
 Install or upgrade the chart:
@@ -108,8 +196,18 @@ helm upgrade --install skillforge-ai ./infra/helm/skillForgeAi \
   --set secrets.openaiApiBase="<your-openai-base-url>" \
   --set secrets.openaiApiKey="<your-openai-api-key>" \
   --set secrets.openaiModel="<your-openai-model>"
-
+  --set monitoring.enabled=true
+  --set hpa.enabled=true
 ```
+
+if you want to disable monitoring or hpa, you can set the following flags to false:
+
+```sh
+  --set monitoring.enabled=false
+  --set hpa.enabled=false
+```
+
+> Note: Monitoring and HPA are enabled by default.
 
 ---
 
