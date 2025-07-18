@@ -11,7 +11,7 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus:9090
+        url: http://skillforge-prometheus:9090
         uid: DS_PROMETHEUS
         isDefault: true
   loki.yml: |
@@ -20,7 +20,7 @@ data:
       - name: Loki
         type: loki
         access: proxy
-        url: http://loki:3100
+        url: http://skillforge-loki:3100
         jsonData:
           maxLines: 1000
           derivedFields:
