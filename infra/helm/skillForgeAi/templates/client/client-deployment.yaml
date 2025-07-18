@@ -26,7 +26,26 @@ spec:
         ports:
           - containerPort: {{ .Values.ports.client }}
             name: client-port
+        livenessProbe:
+          httpGet:
+            path: /
+            port: client-port
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: client-port
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
           limits:
             cpu: {{ .Values.resources.limits.cpu }}
             memory: {{ .Values.resources.limits.memory }}
