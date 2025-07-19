@@ -75,19 +75,21 @@ jobs:
             --set secrets.mongodbDatabase="${{ secrets.MONGODB_DATABASE }}" \
             --set secrets.jwtSecret="${{ secrets.JWT_SECRET }}" \
             --set secrets.llmProvider="${{ inputs.LLM_PROVIDER }}" \
-            --set secrets.openaiBaseUrl="${{ secrets.OPENAI_BASE_URL }}" \
+            --set secrets.openaiApiBase="${{ secrets.OPENAI_BASE_URL }}" \
             --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}" \
             --set secrets.openaiModel="${{ inputs.OPENAI_MODEL }}" \
+            --set secrets.grafanaAdminUser="${{ secrets.GRAFANA_ADMIN_USER }}" \
+            --set secrets.grafanaAdminPassword="${{ secrets.GRAFANA_ADMIN_PASSWORD }}" \
             --set monitoring.enabled=true \
             --set hpa.enabled=true
 
       - name: Wait for deployment to be ready
         run: |
-          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-client -n skillforge-ai
-          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-gateway -n skillforge-ai
-          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-user-service -n skillforge-ai
-          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-course-service -n skillforge-ai
-          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-genai -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=1000s deployment/skillforge-client -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=1000s deployment/skillforge-gateway -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=1000s deployment/skillforge-user-service -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=1000s deployment/skillforge-course-service -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=1000s deployment/skillforge-genai -n skillforge-ai
 
       - name: Show deployment status
         run: |
