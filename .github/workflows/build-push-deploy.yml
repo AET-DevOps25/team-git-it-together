@@ -36,12 +36,15 @@ jobs:
   build-and-test-client:
     name: Build and Test SkillForge.ai Client
     uses: ./.github/workflows/build-and-test-client.yml
+    
   build-and-test-server:
     name: Build and Test SkillForge.ai Server
     uses: ./.github/workflows/build-and-test-server.yml
+    
   build-and-test-genai:
     name: Build and Test SkillForge.ai GenAI
     uses: ./.github/workflows/build-and-test-genai.yml
+    
   build-and-push-images:
     name: Build and Push Docker Images
     needs: [build-and-test-client, build-and-test-server, build-and-test-genai]
@@ -51,7 +54,7 @@ jobs:
     
   deploy-to-kubernetes:
     name: Deploy to Kubernetes Cluster (Rancher Cluster)
-    needs: [build-and-push-images, build-and-test-client, build-and-test-server, build-and-test-genai]
+    needs: [build-and-push-images]
     uses: ./.github/workflows/deploy-to-kubernetes.yml
     secrets:
       KUBECONFIG: ${{ secrets.KUBECONFIG }}
@@ -63,3 +66,21 @@ jobs:
     with:
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
       LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
+      
+  notify-deployment:
+    name: Notify Deployment Status
+    needs: [deploy-to-kubernetes]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ needs.deploy-to-kubernetes.result }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+            echo "🌐 Main Application: https://skillforge.student.k8s.aet.cit.tum.de"
+            echo "🔌 API Gateway: https://api.skillforge.student.k8s.aet.cit.tum.de"
+            echo "📊 Grafana: https://grafana.skillforge.student.k8s.aet.cit.tum.de"
+          else
+            echo "❌ Deployment failed!"
+            echo "Check the deployment logs for more details."
+          fi

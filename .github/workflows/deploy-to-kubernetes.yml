@@ -29,7 +29,7 @@ jobs:
   deploy:
     name: Deploy Helm Chart to Kubernetes
     runs-on: ubuntu-latest
-    environment: production
+    environment: K8S
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -64,6 +64,7 @@ jobs:
           echo "Latest tag is: $TAG"
 
       - name: Helm upgrade/install
+        id: helm_deploy
         run: |
           helm upgrade --install skillforge-ai ./infra/helm/skillForgeAi \
             --namespace skillforge-ai \
@@ -78,13 +79,32 @@ jobs:
             --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}" \
             --set secrets.openaiModel="${{ inputs.OPENAI_MODEL }}" \
             --set monitoring.enabled=true \
-            --set hpa.enabled=true
+            --set hpa.enabled=true \
+            --wait \
+            --timeout=10m \
+            --atomic
 
-      - name: Show status
+      - name: Wait for deployment to be ready
         run: |
-          kubectl get pods -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-client -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-gateway -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-user-service -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-course-service -n skillforge-ai
+          kubectl wait --for=condition=available --timeout=300s deployment/skillforge-genai -n skillforge-ai
+
+      - name: Show deployment status
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -n skillforge-ai -o wide
+          echo ""
+          echo "=== Service Status ==="
           kubectl get svc -n skillforge-ai
-          kubectl get ingress -n skillforge-ai 
+          echo ""
+          echo "=== Ingress Status ==="
+          kubectl get ingress -n skillforge-ai
+          echo ""
+          echo "=== HPA Status ==="
+          kubectl get hpa -n skillforge-ai 
      
       - name: Print URLs in Workflow Output
         run: |
