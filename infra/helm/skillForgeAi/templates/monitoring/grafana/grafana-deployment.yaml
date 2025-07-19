@@ -17,6 +17,10 @@ spec:
       labels:
         {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
         component: grafana
+      annotations:
+        checksum/config: "{{ randAlphaNum 8 }}"
+        checksum/datasources: "{{ randAlphaNum 8 }}"
+        checksum/dashboards: "{{ randAlphaNum 8 }}"
     spec:
       securityContext:
         fsGroup: 472
@@ -50,6 +54,16 @@ spec:
               value: "true"
             - name: GF_ALERTING_ENABLED
               value: "false"
+            - name: GF_USERS_ALLOW_SIGN_UP
+              value: "false"
+            - name: GF_SERVER_DOMAIN
+              value: "grafana.student.k8s.aet.cit.tum.de"
+            - name: GF_SERVER_ENFORCE_DOMAIN
+              value: "true"
+            - name: GF_LOG_LEVEL
+              value: "info"
+            - name: GF_INSTALL_PLUGINS
+              value: "grafana-clock-panel,grafana-simple-json-datasource"
           securityContext:
             runAsNonRoot: true
             runAsUser: 472
