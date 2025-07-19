@@ -63,6 +63,8 @@ jobs:
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GRAFANA_ADMIN_USER: ${{ secrets.GRAFANA_ADMIN_USER }}
+      GRAFANA_ADMIN_PASSWORD: ${{ secrets.GRAFANA_ADMIN_PASSWORD }}
     with:
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
       LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}
