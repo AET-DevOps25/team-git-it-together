@@ -71,10 +71,30 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLoginResponse authenticateUser(UserLoginRequest request) {
-        log.info("Authenticating user: {}", request.getUsername());
+        log.info("Authenticating user with username: {} or email: {}", request.getUsername(), request.getEmail());
 
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = null;
+        
+        // Try to find user by username first, then by email if username is empty
+        if (request.getUsername() != null && !request.getUsername().trim().isEmpty()) {
+            user = userRepository.findByUsername(request.getUsername())
+                    .orElse(null);
+        }
+        
+        // If user not found by username and email is provided, try by email
+        if (user == null && request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            user = userRepository.findByEmail(request.getEmail())
+                    .orElse(null);
+        }
+        
+        // If still no user found, throw exception
+        if (user == null) {
+            // increment auth failure metric
+            if (userAuthFailureCounter != null) {
+                userAuthFailureCounter.increment();
+            }
+            throw new ResourceNotFoundException("User not found");
+        }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             // increment auth failure metric

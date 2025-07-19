@@ -173,7 +173,7 @@ class SimpleGatewayTester:
             else:
                 self.log_warning(f"User registration failed (status: {register_response['status_code']})")
             
-            # Login to get JWT token
+            # Login to get JWT token (test with username)
             login_data = {
                 "username": self.test_username,
                 "password": self.test_password
@@ -204,6 +204,42 @@ class SimpleGatewayTester:
                     return False
             else:
                 self.log_error(f"Login failed (status: {login_response['status_code']}): {login_response['data']}")
+                return False
+            
+            # Test login with email (should work with our fix)
+            email_login_data = {
+                "email": self.test_email,
+                "password": self.test_password
+            }
+            
+            email_login_response = self.make_request(
+                f"{self.gateway_url}/api/v1/users/login",
+                method="POST",
+                data=email_login_data
+            )
+            
+            if email_login_response["status_code"] == 200:
+                try:
+                    response_data = json.loads(email_login_response["data"])
+                    email_jwt_token = response_data.get("jwtToken") or response_data.get("token")
+                    email_user_id = response_data.get("id")
+                    
+                    if email_jwt_token and email_user_id:
+                        self.log_success("Email login successful - JWT token and user ID obtained")
+                        # Verify it's the same user
+                        if email_user_id == self.user_id:
+                            self.log_success("Email login returned same user ID as username login")
+                        else:
+                            self.log_warning("Email login returned different user ID than username login")
+                        return True
+                    else:
+                        self.log_error("JWT token or user ID not found in email login response")
+                        return False
+                except json.JSONDecodeError:
+                    self.log_error("Invalid JSON response from email login")
+                    return False
+            else:
+                self.log_error(f"Email login failed (status: {email_login_response['status_code']}): {email_login_response['data']}")
                 return False
                 
         except Exception as e:

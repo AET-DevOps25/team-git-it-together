@@ -247,6 +247,84 @@ class UserServiceImplTest {
     }
 
     @Test
+    @DisplayName("Should authenticate user successfully with email")
+    void shouldAuthenticateUserSuccessfullyWithEmail() {
+        // Given
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("password123", "encodedPassword123")).thenReturn(true);
+        when(jwtUtils.generateToken("user123", "johndoe")).thenReturn("jwt-token-123");
+
+        UserLoginRequest emailLoginRequest = UserLoginRequest.builder()
+                .email("john.doe@example.com")
+                .password("password123")
+                .build();
+
+        // When
+        UserLoginResponse response = userService.authenticateUser(emailLoginRequest);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo("user123");
+        assertThat(response.getUsername()).isEqualTo("johndoe");
+        assertThat(response.getJwtToken()).isEqualTo("jwt-token-123");
+
+        verify(userRepository).findByEmail("john.doe@example.com");
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(passwordEncoder).matches("password123", "encodedPassword123");
+        verify(jwtUtils).generateToken("user123", "johndoe");
+    }
+
+    @Test
+    @DisplayName("Should authenticate user with email when username is empty")
+    void shouldAuthenticateUserWithEmailWhenUsernameIsEmpty() {
+        // Given
+        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches("password123", "encodedPassword123")).thenReturn(true);
+        when(jwtUtils.generateToken("user123", "johndoe")).thenReturn("jwt-token-123");
+
+        UserLoginRequest emailLoginRequest = UserLoginRequest.builder()
+                .username("")
+                .email("john.doe@example.com")
+                .password("password123")
+                .build();
+
+        // When
+        UserLoginResponse response = userService.authenticateUser(emailLoginRequest);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.getId()).isEqualTo("user123");
+        assertThat(response.getUsername()).isEqualTo("johndoe");
+        assertThat(response.getJwtToken()).isEqualTo("jwt-token-123");
+
+        verify(userRepository).findByEmail("john.doe@example.com");
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(passwordEncoder).matches("password123", "encodedPassword123");
+        verify(jwtUtils).generateToken("user123", "johndoe");
+    }
+
+    @Test
+    @DisplayName("Should throw ResourceNotFoundException when user not found by email")
+    void shouldThrowResourceNotFoundExceptionWhenUserNotFoundByEmail() {
+        // Given
+        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+
+        UserLoginRequest nonExistentEmailRequest = UserLoginRequest.builder()
+                .email("nonexistent@example.com")
+                .password("password123")
+                .build();
+
+        // When & Then
+        assertThatThrownBy(() -> userService.authenticateUser(nonExistentEmailRequest))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found");
+
+        verify(userRepository).findByEmail("nonexistent@example.com");
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
+    }
+
+    @Test
     @DisplayName("Should update user successfully")
     void shouldUpdateUserSuccessfully() {
         // Given
