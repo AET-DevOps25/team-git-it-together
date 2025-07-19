@@ -1,15 +1,12 @@
 name: Build, Lint & Test the GenAI Service
 
 on:
-  push:
-    branches: [main, test, dev]
-    paths:
-      - 'genai/**'
   pull_request:
     branches: [main, test, dev]
     paths:
       - 'genai/**'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

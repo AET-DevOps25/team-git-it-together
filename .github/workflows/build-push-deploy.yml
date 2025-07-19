@@ -1,11 +1,16 @@
 name: Build, Push and Deploy to Kubernetes
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-# Currently we deploy only on manual trigger. 
-  #push:
-   # branches:
-    #  - main
+    inputs:
+      OPENAI_MODEL:
+        description: "OpenAI model to use for deployment"
+        required: false
+        type: string
+        default: "gpt-4"
       
 jobs:
   build-and-test-client:
@@ -14,25 +19,25 @@ jobs:
   build-and-test-server:
     name: Build and Test SkillForge.ai Server
     uses: ./.github/workflows/build-and-test-server.yml
-  build-and-test-sgenai:
+  build-and-test-genai:
     name: Build and Test SkillForge.ai GenAI
     uses: ./.github/workflows/build-and-test-genai.yml
   build-and-push-images:
     name: Build and Push Docker Images
+    needs: [build-and-test-client, build-and-test-server, build-and-test-genai]
     uses: ./.github/workflows/docker-build-push.yml
-  # For demo purposes, we will deploy only on manual trigger (run provision_configure-deploy workflow)  
-  #provision-configure-deploy:
-   # name: Provision, Configure and Deploy to AWS
-   # uses: ./.github/workflows/provision_configure_deploy.yml
-   # with:
-    #  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-    # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-    # AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-    # TF_TOKEN: ${{ secrets.TF_TOKEN }}
-    # AWS_REGION: ${{ secrets.AWS_REGION }}
+    
   deploy-to-kubernetes:
     name: Deploy to Kubernetes Cluster (Rancher Cluster)
     needs: [build-and-push-images]
     uses: ./.github/workflows/deploy-to-kubernetes.yml
     secrets:
       KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      MONGO_DB_URL: ${{ secrets.MONGO_DB_URL }}
+      MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    with:
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
