@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
@@ -195,6 +196,110 @@ public class CourseServiceImpl implements CourseService {
         if (request.getRating() != 0.0) existingCourse.setRating(request.getRating());
         Course savedCourse = courseRepository.save(existingCourse);
         log.info("Updated course with ID: {}", savedCourse.getId());
+        return CourseMapper.toCourseResponse(savedCourse);
+    }
+
+    @Override
+    @Transactional
+    public CourseResponse updateCoursePartial(String courseId, CourseUpdateRequest request) {
+        log.info("Updating course partially: {}", courseId);
+
+        Course existingCourse = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found with ID: " + courseId));
+
+        // Only update fields that are provided (not null)
+        if (request.getTitle() != null && !request.getTitle().isBlank())
+            existingCourse.setTitle(request.getTitle());
+        if (request.getDescription() != null && !request.getDescription().isBlank())
+            existingCourse.setDescription(request.getDescription());
+        if (request.getInstructor() != null && !request.getInstructor().isBlank())
+            existingCourse.setInstructor(request.getInstructor());
+
+        // Merge skills
+        if (request.getSkills() != null && !request.getSkills().isEmpty()) {
+            Set<String> mergedSkills = new HashSet<>(existingCourse.getSkills());
+            mergedSkills.addAll(request.getSkills());
+            existingCourse.setSkills(new ArrayList<>(mergedSkills));
+        }
+
+        // Merge categories
+        if (request.getCategories() != null && !request.getCategories().isEmpty()) {
+            Set<String> mergedCategories = new HashSet<>(existingCourse.getCategories());
+            mergedCategories.addAll(request.getCategories());
+            existingCourse.setCategories(new ArrayList<>(mergedCategories));
+        }
+
+        // Merge modules by title (add new modules only)
+        if (request.getModules() != null && !request.getModules().isEmpty()) {
+            List<Module> existingModules = existingCourse.getModules();
+            Set<String> existingTitles = existingModules.stream().map(Module::getTitle).collect(Collectors.toSet());
+            List<Module> newModules = request.getModules().stream()
+                    .map(ModuleMapper::requestToModule)
+                    .filter(m -> !existingTitles.contains(m.getTitle()))
+                    .toList();
+            existingModules.addAll(newModules);
+            existingCourse.setModules(existingModules);
+        }
+
+        // Ensure correct module and lesson order
+        if (existingCourse.getModules() != null) {
+            orderModulesAndLessons(existingCourse.getModules());
+        }
+
+        // Calculate total number of lessons for the course
+        assert existingCourse.getModules() != null;
+        int totalLessons = existingCourse.getModules().stream()
+                .mapToInt(Module::getNumberOfLessons)
+                .sum();
+
+        // Handle enrolledUsers (add new users and update existing users)
+        if (request.getEnrolledUsers() != null && !request.getEnrolledUsers().isEmpty()) {
+            List<EnrolledUserInfo> existingUsers = existingCourse.getEnrolledUsers();
+            Map<String, EnrolledUserInfo> existingUsersMap = existingUsers.stream()
+                    .collect(Collectors.toMap(EnrolledUserInfo::getUserId, u -> u));
+
+            for (EnrolledUserInfoRequest requestUser : request.getEnrolledUsers()) {
+                EnrolledUserInfo existingUser = existingUsersMap.get(requestUser.getUserId());
+
+                if (existingUser != null) {
+                    // Update existing user's currentLesson
+                    existingUser.setCurrentLesson(requestUser.getCurrentLesson());
+                    log.info("Updated user {} currentLesson to {}", requestUser.getUserId(), requestUser.getCurrentLesson());
+                } else {
+                    // Add new user
+                    EnrolledUserInfo newUser = EnrolledUserInfoMapper.requestToEnrolledUserInfo(requestUser);
+                    newUser.setTotalNumberOfLessons(totalLessons);
+                    existingUsers.add(newUser);
+                    log.info("Added new user {} to course", requestUser.getUserId());
+                }
+            }
+
+            existingCourse.setEnrolledUsers(existingUsers);
+        }
+
+        // Update totalNumberOfLessons for existing users who might have 0
+        existingCourse.getEnrolledUsers().stream()
+                .filter(u -> u.getTotalNumberOfLessons() == 0)
+                .forEach(u -> u.setTotalNumberOfLessons(totalLessons));
+
+        // Calculate and update progress for all enrolled users based on currentLesson
+        updateProgressForAllEnrolledUsers(existingCourse);
+
+        if (request.getNumberOfEnrolledUsers() != null)
+            existingCourse.setNumberOfEnrolledUsers(request.getNumberOfEnrolledUsers());
+        if (request.getLevel() != null) existingCourse.setLevel(request.getLevel());
+        if (request.getThumbnailUrl() != null) existingCourse.setThumbnailUrl(request.getThumbnailUrl());
+        if (request.getLanguage() != null) existingCourse.setLanguage(request.getLanguage());
+
+        // Handle booleans conditionally - only update if explicitly provided
+        if (request.getPublished() != null) existingCourse.setPublished(request.getPublished());
+        if (request.getIsPublic() != null) existingCourse.setIsPublic(request.getIsPublic());
+
+        // Rating is optional, so only update if provided
+        if (request.getRating() != 0.0) existingCourse.setRating(request.getRating());
+        
+        Course savedCourse = courseRepository.save(existingCourse);
+        log.info("Updated course partially with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
     }
 

@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.course.service.courses;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -58,6 +59,15 @@ public interface CourseService {
      * @return The updated course response.
      */
     CourseResponse updateCourse(String courseId, CourseRequest request);
+
+    /**
+     * Updates an existing course partially (without requiring all mandatory fields).
+     *
+     * @param courseId The ID of the course to update.
+     * @param request  The partial course update request.
+     * @return The updated course response.
+     */
+    CourseResponse updateCoursePartial(String courseId, CourseUpdateRequest request);
 
     /**
      * Deletes a course.

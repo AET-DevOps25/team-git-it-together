@@ -1,6 +1,7 @@
 package com.gitittogether.skillForge.server.course.controller.courses;
 
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -67,6 +68,13 @@ public class CourseController {
     public ResponseEntity<CourseResponse> updateCourse(@PathVariable String courseId, @Valid @RequestBody CourseRequest request) {
         log.info("Updating course: {}", courseId);
         CourseResponse response = courseService.updateCourse(courseId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{courseId}")
+    public ResponseEntity<CourseResponse> updateCoursePartial(@PathVariable String courseId, @Valid @RequestBody CourseUpdateRequest request) {
+        log.info("Updating course partially: {}", courseId);
+        CourseResponse response = courseService.updateCoursePartial(courseId, request);
         return ResponseEntity.ok(response);
     }
 
