@@ -26,6 +26,11 @@ on:
         required: false
         type: string
         default: "gpt-4"
+      LLM_PROVIDER:
+        description: "LLM provider to use for deployment"
+        required: false
+        type: string
+        default: "openai"
       
 jobs:
   build-and-test-client:
@@ -53,8 +58,8 @@ jobs:
       MONGO_DB_URL: ${{ secrets.MONGO_DB_URL }}
       MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
       OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     with:
       OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+      LLM_PROVIDER: ${{ vars.LLM_PROVIDER }}

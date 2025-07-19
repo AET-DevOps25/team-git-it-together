@@ -8,6 +8,10 @@ on:
         required: false
         type: string
         default: "gpt-4o"
+      LLM_PROVIDER:
+        required: false
+        type: string
+        default: "openai"
     secrets:
       KUBECONFIG:
         required: true
@@ -16,8 +20,6 @@ on:
       MONGODB_DATABASE:
         required: true
       JWT_SECRET:
-        required: true
-      LLM_PROVIDER:
         required: true
       OPENAI_BASE_URL:
         required: true
@@ -71,7 +73,7 @@ jobs:
             --set secrets.mongo-db-url="${{ secrets.MONGO_DB_URL }}" \
             --set secrets.mongodb-database="${{ secrets.MONGODB_DATABASE }}" \
             --set secrets.jwt-secret="${{ secrets.JWT_SECRET }}" \
-            --set secrets.llm-provider="${{ secrets.LLM_PROVIDER }}" \
+            --set secrets.llm-provider="${{ inputs.LLM_PROVIDER }}" \
             --set secrets.openai-base-url="${{ secrets.OPENAI_BASE_URL }}" \
             --set secrets.openai-api-key="${{ secrets.OPENAI_API_KEY }}" \
             --set secrets.openai-model="${{ inputs.OPENAI_MODEL }}" \
