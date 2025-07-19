@@ -25,6 +25,10 @@ on:
         required: true
       OPENAI_API_KEY:
         required: true
+      GRAFANA_ADMIN_USER:
+        required: true
+      GRAFANA_ADMIN_PASSWORD:
+        required: true
 jobs:
   deploy:
     name: Deploy Helm Chart to Kubernetes
