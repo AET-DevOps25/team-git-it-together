@@ -150,7 +150,6 @@ monitoring:
       tag: "latest"
       pullPolicy: IfNotPresent
     port: 3000
-    adminPassword: "admin"
     resources:
       requests:
         cpu: 100m

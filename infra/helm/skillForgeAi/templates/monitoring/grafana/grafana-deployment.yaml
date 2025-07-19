@@ -21,6 +21,7 @@ spec:
         checksum/config: "{{ randAlphaNum 8 }}"
         checksum/datasources: "{{ randAlphaNum 8 }}"
         checksum/dashboards: "{{ randAlphaNum 8 }}"
+        checksum/secret: "{{ randAlphaNum 8 }}"
     spec:
       securityContext:
         fsGroup: 472
@@ -41,12 +42,12 @@ spec:
             - name: GF_SECURITY_ADMIN_USER
               valueFrom:
                 secretKeyRef:
-                  name: grafana-secret
+                  name: {{ include "skillForgeAi.fullname" . }}-grafana-secret
                   key: adminUser
             - name: GF_SECURITY_ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: grafana-secret
+                  name: {{ include "skillForgeAi.fullname" . }}-grafana-secret
                   key: adminPassword
             - name: GF_FEATURE_TOGGLES_ENABLE
               value: "publicDashboards"
