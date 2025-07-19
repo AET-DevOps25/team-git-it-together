@@ -86,9 +86,9 @@ jobs:
      
       - name: Print URLs in Workflow Output
         run: |
-          echo "🌐 Main Application (skillforge-client): https://skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
-          echo "🔌 API Gateway (skillforge-gateway): https://api.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
-          echo "📈 Prometheus Metrics (skillforge-prometheus): https://prometheus.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
-          echo "📊 Grafana Dashboard (skillforge-grafana): https://grafana.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
-          echo "🚨 Alert Manager (skillforge-alertmanager): https://alertmanager.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
-          echo "📧 MailHog (skillforge-mailhog): https://mailhog.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "main_app=https://skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "api_gateway=https://api.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "prometheus=https://prometheus.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "grafana=https://grafana.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "alertmanager=https://alertmanager.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "mailhog=https://mailhog.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
