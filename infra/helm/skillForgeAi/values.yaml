@@ -104,6 +104,11 @@ mongodb:
     tag: "7"
     pullPolicy: IfNotPresent
   port: 27017
+  # Logging configuration
+  logging:
+    enabled: true  # Set to false to disable logs
+    level: "warn"  # Options: error, warn, info, debug
+    quiet: false     # Enable quiet mode
   resources:
     requests:
       cpu: 100m
@@ -289,3 +294,6 @@ secrets:
   openaiApiBase: "set in CI pipeline"
   openaiApiKey: "set in CI pipeline"
   openaiModel: "set in CI pipeline"
+  # Grafana secrets - override in CI pipeline
+  grafanaAdminUser: "admin"
+  grafanaAdminPassword: "admin"

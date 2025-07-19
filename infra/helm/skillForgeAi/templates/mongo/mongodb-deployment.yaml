@@ -55,6 +55,15 @@ spec:
               value: "skillForge"
             - name: MONGO_INITDB_AUTH_SOURCE
               value: "admin"
+            - name: MONGODB_LOG_LEVEL
+              value: {{ .Values.mongodb.logging.level | quote }}
+          {{- if not .Values.mongodb.logging.enabled }}
+          command:
+            - "mongod"
+            - "--quiet"
+            - "--logpath"
+            - "/dev/null"
+          {{- end }}
           resources:
             requests:
               cpu: {{ .Values.mongodb.resources.requests.cpu }}
