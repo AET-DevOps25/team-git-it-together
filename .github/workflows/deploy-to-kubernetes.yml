@@ -70,13 +70,13 @@ jobs:
             --create-namespace \
             --set image.tag=${{ steps.image_tag.outputs.tag }} \
             --set host=skillforge.student.k8s.aet.cit.tum.de \
-            --set secrets.mongo-db-url="${{ secrets.MONGO_DB_URL }}" \
-            --set secrets.mongodb-database="${{ secrets.MONGODB_DATABASE }}" \
-            --set secrets.jwt-secret="${{ secrets.JWT_SECRET }}" \
-            --set secrets.llm-provider="${{ inputs.LLM_PROVIDER }}" \
-            --set secrets.openai-base-url="${{ secrets.OPENAI_BASE_URL }}" \
-            --set secrets.openai-api-key="${{ secrets.OPENAI_API_KEY }}" \
-            --set secrets.openai-model="${{ inputs.OPENAI_MODEL }}" \
+            --set secrets.mongoDbUrl="${{ secrets.MONGO_DB_URL }}" \
+            --set secrets.mongodbDatabase="${{ secrets.MONGODB_DATABASE }}" \
+            --set secrets.jwtSecret="${{ secrets.JWT_SECRET }}" \
+            --set secrets.llmProvider="${{ inputs.LLM_PROVIDER }}" \
+            --set secrets.openaiBaseUrl="${{ secrets.OPENAI_BASE_URL }}" \
+            --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}" \
+            --set secrets.openaiModel="${{ inputs.OPENAI_MODEL }}" \
             --set monitoring.enabled=true \
             --set hpa.enabled=true
 
