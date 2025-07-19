@@ -142,7 +142,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         // Calculate total number of lessons for the course
-        assert existingCourse.getModules() != null;
+        Objects.requireNonNull(existingCourse.getModules(), "Modules in the course must not be null");
         int totalLessons = existingCourse.getModules().stream()
                 .mapToInt(Module::getNumberOfLessons)
                 .sum();
@@ -247,7 +247,7 @@ public class CourseServiceImpl implements CourseService {
         }
 
         // Calculate total number of lessons for the course
-        assert existingCourse.getModules() != null;
+        Objects.requireNonNull(existingCourse.getModules(), "Modules in the course must not be null");
         int totalLessons = existingCourse.getModules().stream()
                 .mapToInt(Module::getNumberOfLessons)
                 .sum();
@@ -297,7 +297,7 @@ public class CourseServiceImpl implements CourseService {
 
         // Rating is optional, so only update if provided
         if (request.getRating() != 0.0) existingCourse.setRating(request.getRating());
-        
+
         Course savedCourse = courseRepository.save(existingCourse);
         log.info("Updated course partially with ID: {}", savedCourse.getId());
         return CourseMapper.toCourseResponse(savedCourse);
