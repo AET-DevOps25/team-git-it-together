@@ -247,7 +247,7 @@ export async function completeLesson(courseId: string, lessonId: string, userId:
   });
 
   const resp = await fetch(`${BASE_URL}/${courseId}`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${authToken}`,
@@ -304,7 +304,7 @@ export async function completeCourse(courseId: string, userId: string, currentCo
   };
 
   const updateResp = await fetch(`${BASE_URL}/${courseId}`, {
-    method: 'PUT',
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${authToken}`,

@@ -3,6 +3,7 @@ package com.gitittogether.skillForge.server.course;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.controller.courses.CourseController;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -230,6 +231,155 @@ class CourseControllerTest {
                     .andExpect(jsonPath("$.title").value("Updated Java Programming"));
 
             verify(courseService).updateCourse(eq("course123"), any(CourseRequest.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /api/v1/courses/{courseId} - Partial Update Course")
+    class PartialUpdateCourseTests {
+
+        @Test
+        @DisplayName("PATCH /api/v1/courses/{courseId} - update progress successfully")
+        void shouldUpdateCourseProgressSuccessfully() throws Exception {
+            // Given
+            CourseUpdateRequest request = CourseUpdateRequest.builder()
+                    .enrolledUsers(Arrays.asList(
+                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                                    .userId("user123")
+                                    .currentLesson(5)
+                                    .build()
+                    ))
+                    .build();
+
+            CourseResponse response = CourseResponse.builder()
+                    .id("course123")
+                    .title("Java Programming")
+                    .build();
+
+            when(courseService.updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class))).thenReturn(response);
+
+            // When & Then
+            mockMvc.perform(patch("/api/v1/courses/course123")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value("course123"));
+
+            verify(courseService).updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class));
+        }
+
+        @Test
+        @DisplayName("PATCH /api/v1/courses/{courseId} - update status successfully")
+        void shouldUpdateCourseStatusSuccessfully() throws Exception {
+            // Given
+            CourseUpdateRequest request = CourseUpdateRequest.builder()
+                    .published(false)
+                    .isPublic(false)
+                    .build();
+
+            CourseResponse response = CourseResponse.builder()
+                    .id("course123")
+                    .title("Java Programming")
+                    .published(false)
+                    .isPublic(false)
+                    .build();
+
+            when(courseService.updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class))).thenReturn(response);
+
+            // When & Then
+            mockMvc.perform(patch("/api/v1/courses/course123")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.published").value(false))
+                    .andExpect(jsonPath("$.isPublic").value(false));
+
+            verify(courseService).updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class));
+        }
+
+        @Test
+        @DisplayName("PATCH /api/v1/courses/{courseId} - update metadata successfully")
+        void shouldUpdateCourseMetadataSuccessfully() throws Exception {
+            // Given
+            CourseUpdateRequest request = CourseUpdateRequest.builder()
+                    .title("Updated Java Programming")
+                    .description("Updated description")
+                    .instructor("jane.doe")
+                    .level(Level.INTERMEDIATE)
+                    .language(Language.DE)
+                    .rating(4.8)
+                    .build();
+
+            CourseResponse response = CourseResponse.builder()
+                    .id("course123")
+                    .title("Updated Java Programming")
+                    .description("Updated description")
+                    .instructor("jane.doe")
+                    .level(Level.INTERMEDIATE)
+                    .language(Language.DE)
+                    .rating(4.8)
+                    .build();
+
+            when(courseService.updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class))).thenReturn(response);
+
+            // When & Then
+            mockMvc.perform(patch("/api/v1/courses/course123")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.title").value("Updated Java Programming"))
+                    .andExpect(jsonPath("$.instructor").value("jane.doe"))
+                    .andExpect(jsonPath("$.rating").value(4.8));
+
+            verify(courseService).updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class));
+        }
+
+        @Test
+        @DisplayName("PATCH /api/v1/courses/{courseId} - empty request handled gracefully")
+        void shouldHandleEmptyRequestGracefully() throws Exception {
+            // Given
+            CourseUpdateRequest request = CourseUpdateRequest.builder().build();
+
+            CourseResponse response = CourseResponse.builder()
+                    .id("course123")
+                    .title("Java Programming")
+                    .build();
+
+            when(courseService.updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class))).thenReturn(response);
+
+            // When & Then
+            mockMvc.perform(patch("/api/v1/courses/course123")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value("course123"));
+
+            verify(courseService).updateCoursePartial(eq("course123"), any(CourseUpdateRequest.class));
+        }
+
+        @Test
+        @DisplayName("PATCH /api/v1/courses/{courseId} - course not found")
+        void shouldReturnErrorWhenCourseNotFound() throws Exception {
+            // Given
+            CourseUpdateRequest request = CourseUpdateRequest.builder()
+                    .enrolledUsers(Arrays.asList(
+                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                                    .userId("user123")
+                                    .currentLesson(1)
+                                    .build()
+                    ))
+                    .build();
+
+            when(courseService.updateCoursePartial(eq("nonexistent"), any(CourseUpdateRequest.class)))
+                    .thenThrow(new RuntimeException("Course not found"));
+
+            // When & Then
+            mockMvc.perform(patch("/api/v1/courses/nonexistent")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isInternalServerError());
+
+            verify(courseService).updateCoursePartial(eq("nonexistent"), any(CourseUpdateRequest.class));
         }
     }
 
