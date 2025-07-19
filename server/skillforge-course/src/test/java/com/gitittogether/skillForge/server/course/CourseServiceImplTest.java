@@ -2,10 +2,10 @@ package com.gitittogether.skillForge.server.course;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
-import com.gitittogether.skillForge.server.course.dto.response.course.EnrolledUserInfoResponse;
 import com.gitittogether.skillForge.server.course.dto.response.utils.EmbedResult;
 import com.gitittogether.skillForge.server.course.dto.response.utils.PromptResponse;
 import com.gitittogether.skillForge.server.course.model.course.Course;
@@ -21,12 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -96,7 +94,7 @@ class CourseServiceImplTest {
         // Set external service URLs using reflection
         ReflectionTestUtils.setField(courseService, "userServiceUri", "http://localhost:8082");
         ReflectionTestUtils.setField(courseService, "genaiServiceUri", "http://localhost:8888");
-        
+
         // Mock the RestTemplate that's created directly in the service
         ReflectionTestUtils.setField(courseService, "restTemplate", restTemplate);
         ReflectionTestUtils.setField(courseService, "mongoTemplate", mongoTemplate);
@@ -698,22 +696,22 @@ class CourseServiceImplTest {
         void shouldGenerateCourseFromGenAISuccessfully() throws Exception {
             // Given
             LearningPathRequest request = new LearningPathRequest(
-                "Learn Java Programming - A comprehensive Java course",
-                Arrays.asList("Programming", "OOP")
+                    "Learn Java Programming - A comprehensive Java course",
+                    Arrays.asList("Programming", "OOP")
             );
             String mockProfileJson = "{\"skills\":[\"Java\",\"OOP\"]}";
             CourseRequest mockCourseRequest = CourseRequest.builder()
-                .title("Learn Java Programming")
-                .description("A comprehensive Java course")
-                .instructor("AI")
-                .level(Level.BEGINNER)
-                .language(Language.EN)
-                .build();
+                    .title("Learn Java Programming")
+                    .description("A comprehensive Java course")
+                    .instructor("AI")
+                    .level(Level.BEGINNER)
+                    .language(Language.EN)
+                    .build();
             String mockCourseJson = new ObjectMapper().writeValueAsString(mockCourseRequest);
             when(restTemplate.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockProfileJson, HttpStatus.OK));
+                    .thenReturn(new ResponseEntity<>(mockProfileJson, HttpStatus.OK));
             when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(mockCourseJson, HttpStatus.OK));
+                    .thenReturn(new ResponseEntity<>(mockCourseJson, HttpStatus.OK));
             // When
             CourseRequest result = courseService.generateCourseFromGenAi(request, "user123", "Bearer token");
             // Then
@@ -731,7 +729,7 @@ class CourseServiceImplTest {
             String prompt = "Explain Java programming";
             PromptResponse mockPromptResponse = PromptResponse.builder().generated_text("Java is a programming language...").build();
             when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(PromptResponse.class)))
-                .thenReturn(new ResponseEntity<>(mockPromptResponse, HttpStatus.OK));
+                    .thenReturn(new ResponseEntity<>(mockPromptResponse, HttpStatus.OK));
             // When
             String result = courseService.generateResponseFromGenAi(prompt);
             // Then
@@ -747,7 +745,7 @@ class CourseServiceImplTest {
             String url = "https://example.com";
             String jsonBody = "{\"message\":\"Crawling completed successfully\",\"chunks_embedded\":2}";
             when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-                .thenReturn(new ResponseEntity<>(jsonBody, HttpStatus.OK));
+                    .thenReturn(new ResponseEntity<>(jsonBody, HttpStatus.OK));
             // When
             EmbedResult result = courseService.crawlWebForCourseContent(url);
             // Then
@@ -755,6 +753,223 @@ class CourseServiceImplTest {
             assertThat(result.isSuccess()).isTrue();
             assertThat(result.getMessage()).isEqualTo("Crawling completed successfully");
             verify(restTemplate).postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("updateCoursePartial")
+    class UpdateCoursePartialTests {
+
+        @Test
+        @DisplayName("Should update course progress successfully")
+        void shouldUpdateCourseProgressSuccessfully() {
+            // Given
+            String courseId = "course123";
+            String userId = "user456";
+
+            // Create enrolled user for the course
+            EnrolledUserInfo enrolledUser = EnrolledUserInfo.builder()
+                    .userId(userId)
+                    .currentLesson(2)
+                    .progress(20.0f)
+                    .totalNumberOfLessons(10)
+                    .skills(Arrays.asList("Java", "OOP"))
+                    .build();
+
+            Course courseWithEnrolledUser = Course.builder()
+                    .id(sampleCourse.getId())
+                    .title(sampleCourse.getTitle())
+                    .description(sampleCourse.getDescription())
+                    .instructor(sampleCourse.getInstructor())
+                    .level(sampleCourse.getLevel())
+                    .language(sampleCourse.getLanguage())
+                    .skills(sampleCourse.getSkills())
+                    .categories(sampleCourse.getCategories())
+                    .enrolledUsers(Arrays.asList(enrolledUser))
+                    .modules(sampleCourse.getModules())
+                    .published(sampleCourse.getPublished())
+                    .isPublic(sampleCourse.getIsPublic())
+                    .numberOfEnrolledUsers(1)
+                    .rating(sampleCourse.getRating())
+                    .build();
+
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .enrolledUsers(Arrays.asList(
+                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                                    .userId(userId)
+                                    .currentLesson(5)
+                                    .build()
+                    ))
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(courseWithEnrolledUser));
+            when(courseRepository.save(any(Course.class))).thenReturn(courseWithEnrolledUser);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            // Verify the enrolled user's currentLesson was updated
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should update course status successfully")
+        void shouldUpdateCourseStatusSuccessfully() {
+            // Given
+            String courseId = "course123";
+
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .published(false)
+                    .isPublic(false)
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(sampleCourse));
+            when(courseRepository.save(any(Course.class))).thenReturn(sampleCourse);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should update course metadata successfully")
+        void shouldUpdateCourseMetadataSuccessfully() {
+            // Given
+            String courseId = "course123";
+
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .title("Updated Java Programming")
+                    .description("Updated description")
+                    .instructor("jane.doe")
+                    .level(Level.INTERMEDIATE)
+                    .language(Language.DE)
+                    .rating(4.8)
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(sampleCourse));
+            when(courseRepository.save(any(Course.class))).thenReturn(sampleCourse);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should update course skills and categories successfully")
+        void shouldUpdateCourseSkillsAndCategoriesSuccessfully() {
+            // Given
+            String courseId = "course123";
+
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .skills(Arrays.asList("Java", "Spring", "Hibernate"))
+                    .categories(Arrays.asList("Programming", "Backend", "Framework"))
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(sampleCourse));
+            when(courseRepository.save(any(Course.class))).thenReturn(sampleCourse);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when course not found for partial update")
+        void shouldThrowExceptionWhenCourseNotFoundForPartialUpdate() {
+            // Given
+            String courseId = "nonexistent";
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .enrolledUsers(Arrays.asList(
+                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                                    .userId("user123")
+                                    .currentLesson(1)
+                                    .build()
+                    ))
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.empty());
+
+            // When & Then
+            assertThatThrownBy(() -> courseService.updateCoursePartial(courseId, updateRequest))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Course not found");
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository, never()).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should handle empty update request gracefully")
+        void shouldHandleEmptyUpdateRequestGracefully() {
+            // Given
+            String courseId = "course123";
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder().build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(sampleCourse));
+            when(courseRepository.save(any(Course.class))).thenReturn(sampleCourse);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
+        }
+
+        @Test
+        @DisplayName("Should add new enrolled user successfully")
+        void shouldAddNewEnrolledUserSuccessfully() {
+            // Given
+            String courseId = "course123";
+            String newUserId = "newuser789";
+
+            CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
+                    .enrolledUsers(Arrays.asList(
+                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                                    .userId(newUserId)
+                                    .currentLesson(0)
+                                    .build()
+                    ))
+                    .build();
+
+            when(courseRepository.findById(courseId)).thenReturn(Optional.of(sampleCourse));
+            when(courseRepository.save(any(Course.class))).thenReturn(sampleCourse);
+
+            // When
+            CourseResponse result = courseService.updateCoursePartial(courseId, updateRequest);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(result.getId()).isEqualTo(courseId);
+
+            verify(courseRepository).findById(courseId);
+            verify(courseRepository).save(any(Course.class));
         }
     }
 }
