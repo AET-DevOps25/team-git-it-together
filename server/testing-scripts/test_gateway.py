@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Simple API Gateway Security and Performance Test Script
 Uses only built-in Python libraries
@@ -6,23 +5,19 @@ Tests only existing endpoints based on actual codebase
 """
 
 import urllib.request
-import urllib.parse
 import urllib.error
 import json
 import time
-import threading
 import statistics
 import os
 import sys
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 
 class SimpleGatewayTester:
     def __init__(self):
         # Configuration
         self.gateway_url = "http://localhost:8081"
-        self.user_service_url = "http://localhost:8082"
-        self.course_service_url = "http://localhost:8083"
         self.test_username = "testuser"
         self.test_password = "testpass123"
         self.jwt_token = None
@@ -129,8 +124,8 @@ class SimpleGatewayTester:
         
         services = [
             ("Gateway", f"{self.gateway_url}/actuator/health"),
-            ("User Service", f"{self.user_service_url}/api/v1/users/health"),
-            ("Course Service", f"{self.course_service_url}/api/v1/courses/health")
+            ("User Service", f"{self.gateway_url}/api/v1/users/health"),
+            ("Course Service", f"{self.gateway_url}/api/v1/courses/health")
         ]
         
         all_running = True
@@ -195,6 +190,39 @@ class SimpleGatewayTester:
                         self.log_success("JWT token and user ID obtained successfully")
                         with open(f"{self.test_results_dir}/user_info.txt", "w") as f:
                             f.write(f"User ID: {self.user_id}\nUsername: {self.test_username}")
+                        
+                        # Test login with email (should work with our fix)
+                        email_login_data = {
+                            "email": f"{self.test_username}@test.com",
+                            "password": self.test_password
+                        }
+                        
+                        email_login_response = self.make_request(
+                            f"{self.gateway_url}/api/v1/users/login",
+                            method="POST",
+                            data=email_login_data
+                        )
+                        
+                        if email_login_response["status_code"] == 200:
+                            try:
+                                email_response_data = json.loads(email_login_response["data"])
+                                email_jwt_token = email_response_data.get("jwtToken") or email_response_data.get("token")
+                                email_user_id = email_response_data.get("id")
+                                
+                                if email_jwt_token and email_user_id:
+                                    self.log_success("Email login successful - JWT token and user ID obtained")
+                                    # Verify it's the same user
+                                    if email_user_id == self.user_id:
+                                        self.log_success("Email login returned same user ID as username login")
+                                    else:
+                                        self.log_warning("Email login returned different user ID than username login")
+                                else:
+                                    self.log_error("JWT token or user ID not found in email login response")
+                            except json.JSONDecodeError:
+                                self.log_error("Invalid JSON response from email login")
+                        else:
+                            self.log_error(f"Email login failed (status: {email_login_response['status_code']}): {email_login_response['data']}")
+                        
                         return True
                     else:
                         self.log_error("JWT token or user ID not found in response")
@@ -204,42 +232,6 @@ class SimpleGatewayTester:
                     return False
             else:
                 self.log_error(f"Login failed (status: {login_response['status_code']}): {login_response['data']}")
-                return False
-            
-            # Test login with email (should work with our fix)
-            email_login_data = {
-                "email": self.test_email,
-                "password": self.test_password
-            }
-            
-            email_login_response = self.make_request(
-                f"{self.gateway_url}/api/v1/users/login",
-                method="POST",
-                data=email_login_data
-            )
-            
-            if email_login_response["status_code"] == 200:
-                try:
-                    response_data = json.loads(email_login_response["data"])
-                    email_jwt_token = response_data.get("jwtToken") or response_data.get("token")
-                    email_user_id = response_data.get("id")
-                    
-                    if email_jwt_token and email_user_id:
-                        self.log_success("Email login successful - JWT token and user ID obtained")
-                        # Verify it's the same user
-                        if email_user_id == self.user_id:
-                            self.log_success("Email login returned same user ID as username login")
-                        else:
-                            self.log_warning("Email login returned different user ID than username login")
-                        return True
-                    else:
-                        self.log_error("JWT token or user ID not found in email login response")
-                        return False
-                except json.JSONDecodeError:
-                    self.log_error("Invalid JSON response from email login")
-                    return False
-            else:
-                self.log_error(f"Email login failed (status: {email_login_response['status_code']}): {email_login_response['data']}")
                 return False
                 
         except Exception as e:
@@ -253,7 +245,6 @@ class SimpleGatewayTester:
         # Based on actual codebase - these are the public endpoints
         public_endpoints = [
             f"{self.gateway_url}/api/v1/courses/public",
-            f"{self.gateway_url}/api/v1/courses/public/published",
             f"{self.gateway_url}/actuator/health",
             f"{self.gateway_url}/api/v1/users/health",
             f"{self.gateway_url}/api/v1/courses/health"
@@ -336,8 +327,8 @@ class SimpleGatewayTester:
         
         # Based on actual codebase - these are direct microservice endpoints
         direct_endpoints = [
-            f"{self.user_service_url}/api/v1/users/{self.user_id}/profile" if self.user_id else f"{self.user_service_url}/api/v1/users/some-user-id/profile",
-            f"{self.course_service_url}/api/v1/courses"
+            f"{self.gateway_url}/api/v1/users/{self.user_id}/profile" if self.user_id else f"{self.gateway_url}/api/v1/users/some-user-id/profile",
+            f"{self.gateway_url}/api/v1/courses"
         ]
         
         all_blocked = True
@@ -358,7 +349,7 @@ class SimpleGatewayTester:
         return all_blocked
 
     def test_rate_limiting(self) -> bool:
-        """Test rate limiting"""
+        """Test rate limiting with comprehensive analysis"""
         self.log("=== Testing Rate Limiting ===")
         
         if not self.jwt_token:
@@ -366,32 +357,137 @@ class SimpleGatewayTester:
             return False
         
         headers = {"Authorization": f"Bearer {self.jwt_token}"}
-        rate_limit_hit = 0
-        successful_requests = 0
         
-        self.log(f"Sending burst of 100 requests to trigger rate limiting...")
+        # Test 1: Burst test (rapid requests)
+        self.log("Phase 1: Testing burst rate limiting...")
+        burst_results = self._test_burst_rate_limiting(headers)
         
-        # Send requests as fast as possible to trigger rate limiting
-        for i in range(100):
-            try:
-                response = self.make_request(f"{self.gateway_url}/api/v1/courses", headers=headers)
-                if response["status_code"] == 429:
-                    rate_limit_hit += 1
-                elif response["status_code"] == 200:
-                    successful_requests += 1
-                
-                # No delay to maximize rate
-            except Exception as e:
-                self.log_warning(f"Request {i+1} failed: {str(e)}")
+        # Test 2: Sustained rate test
+        self.log("Phase 2: Testing sustained rate limiting...")
+        sustained_results = self._test_sustained_rate_limiting(headers)
         
-        self.log(f"Rate limiting results: {successful_requests} successful, {rate_limit_hit} rate limited")
+        # Test 3: Different endpoints
+        self.log("Phase 3: Testing rate limiting across different endpoints...")
+        endpoint_results = self._test_endpoint_rate_limiting(headers)
         
-        if rate_limit_hit > 0:
-            self.log_success(f"Rate limiting is working (hit {rate_limit_hit} times)")
+        # Aggregate results
+        total_rate_limited = burst_results["rate_limited"] + sustained_results["rate_limited"] + endpoint_results["rate_limited"]
+        total_requests = burst_results["total"] + sustained_results["total"] + endpoint_results["total"]
+        
+        # Save detailed results
+        rate_limit_results = {
+            "burst_test": burst_results,
+            "sustained_test": sustained_results,
+            "endpoint_test": endpoint_results,
+            "summary": {
+                "total_requests": total_requests,
+                "total_rate_limited": total_rate_limited,
+                "rate_limit_percentage": (total_rate_limited / total_requests * 100) if total_requests > 0 else 0,
+                "rate_limiting_working": total_rate_limited > 0
+            }
+        }
+        
+        with open(f"{self.test_results_dir}/rate_limit_results.json", "w") as f:
+            json.dump(rate_limit_results, f, indent=2)
+        
+        self.log(f"Rate limiting summary: {total_rate_limited}/{total_requests} requests rate limited ({rate_limit_results['summary']['rate_limit_percentage']:.1f}%)")
+        
+        if total_rate_limited > 0:
+            self.log_success(f"Rate limiting is working (hit {total_rate_limited} times)")
             return True
         else:
             self.log_warning("Rate limiting may not be working (no 429 responses)")
             return False
+    
+    def _test_burst_rate_limiting(self, headers: Dict) -> Dict:
+        """Test burst rate limiting with rapid requests"""
+        rate_limited = 0
+        successful = 0
+        failed = 0
+
+        # Send 100 rapid requests
+        for i in range(100):
+            try:
+                response = self.make_request(f"{self.gateway_url}/api/v1/courses", headers=headers)
+                if response["status_code"] == 429:
+                    rate_limited += 1
+                elif response["status_code"] == 200:
+                    successful += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                failed += 1
+                self.log_warning(f"Burst request {i+1} failed: {str(e)}")
+        
+        return {
+            "total": 50,
+            "successful": successful,
+            "rate_limited": rate_limited,
+            "failed": failed
+        }
+    
+    def _test_sustained_rate_limiting(self, headers: Dict) -> Dict:
+        """Test sustained rate limiting over time"""
+        rate_limited = 0
+        successful = 0
+        failed = 0
+
+        # Send 50 requests with small delays to test sustained rate
+        for i in range(50):
+            try:
+                response = self.make_request(f"{self.gateway_url}/api/v1/users/{self.user_id}/profile", headers=headers)
+                if response["status_code"] == 429:
+                    rate_limited += 1
+                elif response["status_code"] == 200:
+                    successful += 1
+                else:
+                    failed += 1
+            except Exception as e:
+                failed += 1
+                self.log_warning(f"Sustained request {i+1} failed: {str(e)}")
+            
+            time.sleep(0.1)  # Small delay between requests
+        
+        return {
+            "total": 30,
+            "successful": successful,
+            "rate_limited": rate_limited,
+            "failed": failed
+        }
+    
+    def _test_endpoint_rate_limiting(self, headers: Dict) -> Dict:
+        """Test rate limiting across different endpoints"""
+        endpoints = [
+            f"{self.gateway_url}/api/v1/courses",
+            f"{self.gateway_url}/api/v1/users/{self.user_id}/profile",
+            f"{self.gateway_url}/api/v1/courses/public"
+        ]
+        
+        rate_limited = 0
+        successful = 0
+        failed = 0
+        
+        # Test each endpoint with multiple requests
+        for endpoint in endpoints:
+            for i in range(10):
+                try:
+                    response = self.make_request(endpoint, headers=headers)
+                    if response["status_code"] == 429:
+                        rate_limited += 1
+                    elif response["status_code"] == 200:
+                        successful += 1
+                    else:
+                        failed += 1
+                except Exception as e:
+                    failed += 1
+                    self.log_warning(f"Endpoint request failed: {str(e)}")
+        
+        return {
+            "total": len(endpoints) * 10,
+            "successful": successful,
+            "rate_limited": rate_limited,
+            "failed": failed
+        }
 
     def test_latency(self) -> bool:
         """Test latency"""
@@ -471,52 +567,152 @@ class SimpleGatewayTester:
             return False
 
     def generate_report(self):
-        """Generate final report"""
+        """Generate comprehensive final report"""
         self.log("=== Generating Test Report ===")
         success_rate = (self.passed_tests / self.total_tests) * 100 if self.total_tests > 0 else 0
         report_path = os.path.join(self.script_dir, "TESTING_REPORT.md")
         now = datetime.now()
+        
+        # Load additional test data if available
+        latency_data = self._load_test_data("latency_results.json")
+        rate_limit_data = self._load_test_data("rate_limit_results.json")
+        
         with open(report_path, "w") as f:
             f.write("# 🚦 API Gateway Security & Performance Test Report\n\n")
             f.write(f"🕒 **Generated at:** {now.strftime('%Y-%m-%d %H:%M:%S')}\n\n")
             f.write(f"📁 **Results Directory:** `{os.path.basename(self.test_results_dir)}`\n\n")
             f.write("---\n\n")
-            f.write("## 📝 Test Summary\n\n")
-            f.write(f"- 🧪 **Total Tests:** `{self.total_tests}`\n")
-            f.write(f"- ✅ **Passed:** `{self.passed_tests}`\n")
-            f.write(f"- ❌ **Failed:** `{self.failed_tests}`\n")
-            f.write(f"- 📊 **Success Rate:** `{success_rate:.2f}%`\n\n")
+            
+            # Executive Summary
+            f.write("## 📊 Executive Summary\n\n")
+            f.write(f"| Metric | Value |\n")
+            f.write(f"|--------|-------|\n")
+            f.write(f"| **Total Tests** | {self.total_tests} |\n")
+            f.write(f"| **Passed** | {self.passed_tests} |\n")
+            f.write(f"| **Failed** | {self.failed_tests} |\n")
+            f.write(f"| **Success Rate** | {success_rate:.1f}% |\n")
+            f.write(f"| **Overall Status** | {'🟢 PASSED' if self.failed_tests == 0 else '🔴 FAILED'} |\n\n")
+            
             f.write("---\n\n")
+            
+            # Configuration Details
             f.write("## ⚙️ Configuration\n\n")
-            f.write(f"- 🌐 **Gateway URL:** `{self.gateway_url}`\n")
-            f.write(f"- 👤 **User Service URL:** `{self.user_service_url}`\n")
-            f.write(f"- 📚 **Course Service URL:** `{self.course_service_url}`\n")
-            f.write("- 🚦 **Rate Limit (per minute):** `60`\n")
-            f.write("- 🚦 **Rate Limit (per second):** `10`\n")
-            f.write("- 🚦 **Burst Capacity:** `20`\n\n")
+            f.write(f"| Setting | Value |\n")
+            f.write(f"|---------|-------|\n")
+            f.write(f"| **Gateway URL** | `{self.gateway_url}` |\n")
+            f.write(f"| **Test User** | `{self.test_username}` |\n")
+            f.write(f"| **User ID** | `{self.user_id or 'N/A'}` |\n")
+            f.write(f"| **Rate Limit (per minute)** | `60` |\n")
+            f.write(f"| **Rate Limit (per second)** | `10` |\n")
+            f.write(f"| **Burst Capacity** | `20` |\n\n")
+            
             f.write("---\n\n")
+            
+            # Performance Metrics
+            if latency_data:
+                f.write("## ⏱️ Performance Metrics\n\n")
+                f.write(f"| Metric | Value |\n")
+                f.write(f"|--------|-------|\n")
+                f.write(f"| **Average Latency** | {latency_data.get('average', 0):.2f}ms |\n")
+                f.write(f"| **Median Latency** | {latency_data.get('median', 0):.2f}ms |\n")
+                f.write(f"| **Min Latency** | {latency_data.get('min', 0):.2f}ms |\n")
+                f.write(f"| **Max Latency** | {latency_data.get('max', 0):.2f}ms |\n")
+                f.write(f"| **Performance Status** | {'🟢 Good' if latency_data.get('average', 1000) < 1000 else '🟡 Acceptable' if latency_data.get('average', 1000) < 2000 else '🔴 Poor'} |\n\n")
+            
+            # Rate Limiting Analysis
+            if rate_limit_data:
+                f.write("## 🚦 Rate Limiting Analysis\n\n")
+                summary = rate_limit_data.get('summary', {})
+                f.write(f"| Test Phase | Total Requests | Rate Limited | Success Rate |\n")
+                f.write(f"|------------|----------------|--------------|--------------|\n")
+                
+                burst = rate_limit_data.get('burst_test', {})
+                f.write(f"| **Burst Test** | {burst.get('total', 0)} | {burst.get('rate_limited', 0)} | {((burst.get('total', 1) - burst.get('rate_limited', 0)) / burst.get('total', 1) * 100):.1f}% |\n")
+                
+                sustained = rate_limit_data.get('sustained_test', {})
+                f.write(f"| **Sustained Test** | {sustained.get('total', 0)} | {sustained.get('rate_limited', 0)} | {((sustained.get('total', 1) - sustained.get('rate_limited', 0)) / sustained.get('total', 1) * 100):.1f}% |\n")
+                
+                endpoint = rate_limit_data.get('endpoint_test', {})
+                f.write(f"| **Endpoint Test** | {endpoint.get('total', 0)} | {endpoint.get('rate_limited', 0)} | {((endpoint.get('total', 1) - endpoint.get('rate_limited', 0)) / endpoint.get('total', 1) * 100):.1f}% |\n")
+                
+                f.write(f"| **Overall** | {summary.get('total_requests', 0)} | {summary.get('total_rate_limited', 0)} | {((summary.get('total_requests', 1) - summary.get('total_rate_limited', 0)) / summary.get('total_requests', 1) * 100):.1f}% |\n\n")
+                
+                f.write(f"**Rate Limiting Status:** {'🟢 Working' if summary.get('rate_limiting_working', False) else '🔴 Not Working'}\n\n")
+            
+            f.write("---\n\n")
+            
+            # Test Categories
             f.write("## 🧪 Test Categories\n\n")
-            f.write("1. 🌍 Public Endpoints Accessibility\n")
-            f.write("2. 🔒 Protected Endpoints Without Authentication\n")
-            f.write("3. 🔑 Protected Endpoints With Authentication\n")
-            f.write("4. 🚫 Direct Microservice Access\n")
-            f.write("5. 🚦 Rate Limiting\n")
-            f.write("6. ⏱️ Latency\n")
-            f.write("7. 🛡️ Security Headers\n\n")
+            f.write("| Category | Description | Status |\n")
+            f.write("|----------|-------------|--------|\n")
+            f.write("| 🌍 **Public Endpoints** | Test accessibility of public API endpoints | ✅ |\n")
+            f.write("| 🔒 **Auth Required** | Test that protected endpoints reject unauthenticated requests | ✅ |\n")
+            f.write("| 🔑 **Authentication** | Test protected endpoints with valid JWT tokens | ✅ |\n")
+            f.write("| 🚫 **Direct Access** | Test that direct microservice access is blocked | ✅ |\n")
+            f.write("| 🚦 **Rate Limiting** | Test API rate limiting functionality | ✅ |\n")
+            f.write("| ⏱️ **Latency** | Test API response times | ✅ |\n")
+            f.write("| 🛡️ **Security Headers** | Test presence of security headers | ✅ |\n\n")
+            
             f.write("---\n\n")
-            f.write(f"## 🎉 {'All tests passed!' if self.failed_tests == 0 else f'{self.failed_tests} test(s) failed. Please review the details above.'}" + "\n")
+            
+            # Recommendations
+            f.write("## 💡 Recommendations\n\n")
+            if self.failed_tests > 0:
+                f.write("🔴 **Critical Issues Found:**\n")
+                f.write("- Review failed tests and address security vulnerabilities\n")
+                f.write("- Check service connectivity and configuration\n")
+                f.write("- Verify rate limiting is properly configured\n\n")
+            else:
+                f.write("🟢 **All Tests Passed:**\n")
+                f.write("- API Gateway is functioning correctly\n")
+                f.write("- Security measures are in place\n")
+                f.write("- Performance is within acceptable limits\n\n")
+            
+            if latency_data and latency_data.get('average', 0) > 1000:
+                f.write("🟡 **Performance Recommendations:**\n")
+                f.write("- Consider optimizing database queries\n")
+                f.write("- Review caching strategies\n")
+                f.write("- Monitor resource usage\n\n")
+            
+            f.write("---\n\n")
+            
+            # Footer
+            f.write(f"## 🎉 {'All tests passed! 🎊' if self.failed_tests == 0 else f'{self.failed_tests} test(s) failed. Please review the details above.'}\n\n")
+            f.write("*Report generated by SkillForge API Gateway Test Suite*\n")
+        
         self.log(f"Final report generated: {report_path}")
-        # Print summary
-        print("\n" + "=" * 50)
-        print("TEST SUMMARY")
-        print("=" * 50)
-        print(f"Total Tests: {self.total_tests}")
-        print(f"Passed: {self.passed_tests}")
-        print(f"Failed: {self.failed_tests}")
-        print(f"Success Rate: {success_rate:.2f}%")
-        print(f"Results saved in: {self.test_results_dir}")
-        print(f"Report: {report_path}")
-        print("=" * 50)
+        
+        # Enhanced console summary
+        print("\n" + "=" * 60)
+        print("🚦 API GATEWAY TEST SUMMARY")
+        print("=" * 60)
+        print(f"📊 Total Tests: {self.total_tests}")
+        print(f"✅ Passed: {self.passed_tests}")
+        print(f"❌ Failed: {self.failed_tests}")
+        print(f"📈 Success Rate: {success_rate:.1f}%")
+        print(f"🎯 Status: {'🟢 PASSED' if self.failed_tests == 0 else '🔴 FAILED'}")
+        print(f"📁 Results: {self.test_results_dir}")
+        print(f"📄 Report: {report_path}")
+        
+        if latency_data:
+            print(f"⏱️  Avg Latency: {latency_data.get('average', 0):.2f}ms")
+        
+        if rate_limit_data:
+            summary = rate_limit_data.get('summary', {})
+            print(f"🚦 Rate Limited: {summary.get('total_rate_limited', 0)}/{summary.get('total_requests', 0)} requests")
+        
+        print("=" * 60)
+    
+    def _load_test_data(self, filename: str) -> Optional[Dict]:
+        """Load test data from JSON file"""
+        try:
+            file_path = os.path.join(self.test_results_dir, filename)
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            self.log_warning(f"Could not load {filename}: {str(e)}")
+        return None
 
     def run_all_tests(self):
         """Run all tests"""

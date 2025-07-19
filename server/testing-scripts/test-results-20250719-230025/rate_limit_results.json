@@ -1,0 +1,26 @@
+{
+  "burst_test": {
+    "total": 50,
+    "successful": 29,
+    "rate_limited": 71,
+    "failed": 0
+  },
+  "sustained_test": {
+    "total": 30,
+    "successful": 50,
+    "rate_limited": 0,
+    "failed": 0
+  },
+  "endpoint_test": {
+    "total": 30,
+    "successful": 30,
+    "rate_limited": 0,
+    "failed": 0
+  },
+  "summary": {
+    "total_requests": 110,
+    "total_rate_limited": 71,
+    "rate_limit_percentage": 64.54545454545455,
+    "rate_limiting_working": true
+  }
+}
