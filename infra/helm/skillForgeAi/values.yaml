@@ -1,0 +1,291 @@
+image:
+  repository: ghcr.io/aet-devops25/team-git-it-together
+  pullPolicy: Always
+  tag: latest
+
+# App configuration
+fullnameOverride: skillforge
+appName: SkillForge.ai
+appVersion: 1.0.0-beta
+publicApiUrl: https://api.{{ .Values.host }}/api
+apiVersion: v1
+
+# Hostname for Ingress
+host: skillforge.student.k8s.aet.cit.tum.de
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+# Replica count for each service
+replicaCount:
+  client: 1
+  genai: 1
+  server:
+    redis: 1
+    gateway: 1
+    user: 1
+    course: 1
+  weaviate: 1
+  mongo: 1
+
+# Horizontal Pod Autoscaler configuration
+hpa:
+  enabled: true
+  client:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  gateway:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  user:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  course:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  genai:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+
+# Redis configuration
+redis:
+  enabled: true
+  image:
+    repository: redis
+    tag: "7-alpine"
+    pullPolicy: IfNotPresent
+  port: 6379
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  storage:
+    enabled: true
+    size: 1Gi
+    storageClassName: ""
+
+# Weaviate configuration
+weaviate:
+  serviceType: ClusterIP
+  replicas: 1
+  storage:
+    type: persistent
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# MongoDB configuration
+mongodb:
+  enabled: true
+  image:
+    repository: mongo
+    tag: "7"
+    pullPolicy: IfNotPresent
+  port: 27017
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  storage:
+    enabled: true
+    size: 5Gi
+    storageClassName: ""
+  # apiKey is set in CI pipeline
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    image:
+      repository: prom/prometheus
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9090
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 10Gi
+      storageClassName: ""
+  grafana:
+    enabled: true
+    image:
+      repository: grafana/grafana
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 3000
+    adminPassword: "admin"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    storage:
+      enabled: true
+      size: 5Gi
+      storageClassName: ""
+  loki:
+    enabled: true
+    image:
+      repository: grafana/loki
+      tag: "2.9.0"
+      pullPolicy: IfNotPresent
+    port: 3100
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    storage:
+      enabled: true
+      size: 20Gi
+      storageClass: ""
+  promtail:
+    enabled: true
+    image:
+      repository: grafana/promtail
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9080
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+  alertmanager:
+    enabled: true
+    image:
+      repository: prom/alertmanager
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    port: 9093
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    storage:
+      enabled: true
+      size: 1Gi
+      storageClassName: ""
+    slack:
+      webhookUrl: ""
+      channel: "#alerts"
+      title: "SkillForge Alert"
+      text: "{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}"
+    webhook:
+      url: "http://127.0.0.1:5001/"
+  mailhog:
+    enabled: true
+    image:
+      repository: mailhog/mailhog
+      tag: "latest"
+      pullPolicy: IfNotPresent
+    webPort: 8025
+    smtpPort: 1025
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Resources for each service
+resources:
+  limits:
+    cpu: "1"
+    memory: "512Mi"
+
+# Ports for each service
+ports:
+  client: 3000
+  genai: 8888
+  mongo: 27017
+  redis: 6379
+  server:
+    gateway: 8081
+    user: 8082
+    course: 8083
+  weaviate:
+    http: 8080
+    grpc: 50051
+    prometheus: 2112
+  monitoring:
+    loki: 3100
+    promtail: 9080
+    prometheus: 9090
+    alertmanager: 9093
+    grafana: 4000
+    mailhog: 8025
+
+services:
+  client: skillforge-client
+  genai: skillforge-genai
+  redis: skillforge-redis
+  mongo: skillforge-mongo
+  server:
+    gateway: skillforge-gateway
+    user: skillforge-user-service
+    course: skillforge-course-service
+  weaviate: skillforge-weaviate
+  monitoring:
+    loki: skillforge-loki
+    promtail: skillforge-promtail
+    prometheus: skillforge-prometheus
+    alertmanager: skillforge-alertmanager
+    grafana: skillforge-grafana
+    mailhog: skillforge-mailhog
+
+
+
+
+
+secrets:
+  mongoDbUrl: "set in CI pipeline"
+  mongodbDatabase: "set in CI pipeline"
+  jwtSecret: "set in CI pipeline"
+
+  llmProvider: "set in CI pipeline"
+  openaiApiBase: "set in CI pipeline"
+  openaiApiKey: "set in CI pipeline"
+  openaiModel: "set in CI pipeline"

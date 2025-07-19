@@ -1,12 +1,6 @@
 name: Build and Test Server
 
 on:
-  push:
-    branches: [main, test, dev]
-    paths:
-      - 'server/skillforge-gateway/**'
-      - 'server/skillforge-user/**'
-      - 'server/skillforge-course/**'
   pull_request:
     branches: [main, test, dev]
     paths:
@@ -14,6 +8,7 @@ on:
       - 'server/skillforge-user/**'
       - 'server/skillforge-course/**'
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

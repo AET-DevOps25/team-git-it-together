@@ -1,0 +1,29 @@
+{{- if and .Values.hpa.enabled .Values.hpa.course.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-course-hpa
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: course
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "skillForgeAi.fullname" . }}-course-service
+  minReplicas: {{ .Values.hpa.course.minReplicas }}
+  maxReplicas: {{ .Values.hpa.course.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.course.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.course.targetMemoryUtilizationPercentage }}
+{{- end }} 

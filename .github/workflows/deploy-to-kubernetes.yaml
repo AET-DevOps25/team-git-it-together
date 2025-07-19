@@ -1,0 +1,94 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      OPENAI_MODEL:
+        required: false
+        type: string
+        default: "gpt-4o"
+    secrets:
+      KUBECONFIG:
+        required: true
+      MONGO_DB_URL:
+        required: true
+      MONGODB_DATABASE:
+        required: true
+      JWT_SECRET:
+        required: true
+      LLM_PROVIDER:
+        required: true
+      OPENAI_BASE_URL:
+        required: true
+      OPENAI_API_KEY:
+        required: true
+jobs:
+  deploy:
+    name: Deploy Helm Chart to Kubernetes
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Kubeconfig
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+    
+      - name: Set image tag
+      # if in main use latest and if not take staging tag
+        id: image_tag
+        run: |
+            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+            else
+            echo "tag=staging" >> $GITHUB_OUTPUT
+            fi
+
+      - name: Get latest version (or use 1.0.0-beta as fallback)
+        id: get_version
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0-beta")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag is: $TAG"
+
+      - name: Helm upgrade/install
+        run: |
+          helm upgrade --install skillforge-ai ./infra/helm/skillForgeAi \
+            --namespace skillforge-ai \
+            --create-namespace \
+            --set image.tag=${{ steps.image_tag.outputs.tag }} \
+            --set host=skillforge.student.k8s.aet.cit.tum.de \
+            --set secrets.mongo-db-url="${{ secrets.MONGO_DB_URL }}" \
+            --set secrets.mongodb-database="${{ secrets.MONGODB_DATABASE }}" \
+            --set secrets.jwt-secret="${{ secrets.JWT_SECRET }}" \
+            --set secrets.llm-provider="${{ secrets.LLM_PROVIDER }}" \
+            --set secrets.openai-base-url="${{ secrets.OPENAI_BASE_URL }}" \
+            --set secrets.openai-api-key="${{ secrets.OPENAI_API_KEY }}" \
+            --set secrets.openai-model="${{ inputs.OPENAI_MODEL }}" \
+            --set monitoring.enabled=true \
+            --set hpa.enabled=true
+
+      - name: Show status
+        run: |
+          kubectl get pods -n skillforge-ai
+          kubectl get svc -n skillforge-ai
+          kubectl get ingress -n skillforge-ai 
+     
+      - name: Print URLs in Workflow Output
+        run: |
+          echo "🌐 Main Application (skillforge-client): https://skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "🔌 API Gateway (skillforge-gateway): https://api.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📈 Prometheus Metrics (skillforge-prometheus): https://prometheus.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📊 Grafana Dashboard (skillforge-grafana): https://grafana.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "🚨 Alert Manager (skillforge-alertmanager): https://alertmanager.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📧 MailHog (skillforge-mailhog): https://mailhog.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT

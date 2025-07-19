@@ -431,6 +431,10 @@
   "schemaVersion": 41,
   "tags": [
     "logs",
+    "skillforge",
+    "server",
+    "client",
+    "genai",
     "monitoring"
   ],
   "templating": {

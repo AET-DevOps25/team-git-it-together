@@ -1,0 +1,18 @@
+apiVersion: v2
+name: skillForgeAi
+description: A Helm chart for deploying the SkillForge AI-powered learning platform.
+type: application
+version: 0.1.0
+appVersion: "1.16.0"
+home: https://skillforge.student.k8s.aet.cit.tum.de
+sources:
+  - https://github.com/AET-DevOps25/team-git-it-together
+maintainers:
+  - name: Achraf Labidi
+  - name: Mahdi Bayouli
+keywords:
+  - ai
+  - education
+  - learning
+  - devops25
+  - skillforge

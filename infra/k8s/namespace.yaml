@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: skillforge-ai
+  labels:
+    environment: prod
+    instance: prod
+    kubernetes.io/metadata.name: skillforge-ai
+    name: skillforge-ai
+    owner: git-it-together
+    part-of: git-it-together-devops25
+    purpose: devops25
+    team: git-it-together
+  annotations:
+    description: "AI-powered learning platform. Accessible, personalized, and engaging education for everyone, built with modern technologies."
+    created-by: "git-it-together"
+    managed-by: "git-it-together"
+    team: "git-it-together"
+    part-of: "git-it-together-devops25"
+    instance: "prod"
+    kubernetes.io/metadata.name: "skillforge-ai"
+    name: "skillforge-ai"
+    owner: "git-it-together"
+    purpose: "devops25"
+    environment: "prod"

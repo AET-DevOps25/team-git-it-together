@@ -1,0 +1,19 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.grafana.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-grafana
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: grafana
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "skillForgeAi.selectorLabels" . | nindent 4 }}
+    component: grafana
+  ports:
+    - port: {{ .Values.monitoring.grafana.port }}
+      targetPort: grafana-port
+      protocol: TCP
+      name: grafana
+{{- end }} 

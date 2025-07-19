@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-client-config" (include "skillForgeAi.fullname" .) | lower }}
+data:
+  config.json: |
+    {
+      "redirectUri": "https://{{ .Values.host }}",
+      "appName": "{{ .Values.appName | default "SkillForge.ai" }}",
+      "appVersion": "{{ .Values.appVersion }}",
+      "publicApiUrl": "{{ .Values.publicApiUrl }}",
+      "apiVersion": "{{ .Values.apiVersion | default "v1" }}",
+      "env": "{{ .Values.buildMode | default "production" }}",
+      "internalApiHost": "{{ .Values.services.server.gateway }}",
+      "internalApiPort": "{{ .Values.ports.server.gateway }}"
+    }

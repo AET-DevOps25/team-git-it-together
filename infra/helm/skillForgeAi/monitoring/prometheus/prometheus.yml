@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['skillforge-alertmanager:9093']
+
+rule_files:
+  - "alert.rules.yml"
+
+scrape_configs:
+  # ----- Spring Boot services (Micrometer) -----
+  - job_name: spring-boot
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - skillforge-gateway:8081
+          - skillforge-user-service:8082
+          - skillforge-course-service:8083
+
+  # ----- GenAI FastAPI -----
+  - job_name: genai
+    metric_relabel_configs:
+      # duplicate app label into app_name for FastAPI dashboard
+      - source_labels: ["job"]
+        target_label: "app_name"
+        regex: "(.*)"
+        replacement: "$1"
+    static_configs:
+      - targets: [ 'skillforge-genai:8888' ]
+
+  # ----- Weaviate vector DB -----
+  - job_name: weaviate
+    metrics_path: /metrics
+    static_configs:
+      - targets: [ 'skillforge-weaviate:2112' ]

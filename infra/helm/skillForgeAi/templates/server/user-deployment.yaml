@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-user-service
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: user-service
+spec:
+  replicas: {{ .Values.replicaCount.server.user }}
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: user-service
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: user-service
+      annotations:
+        checksum/redeploy: "{{ randAlphaNum 8 }}"
+    spec:
+      containers:
+      - name: {{ .Values.services.server.user }}
+        image: "{{ .Values.image.repository }}/user-service:{{ .Values.image.tag }}"
+        imagePullPolicy: Always
+        ports:
+          - containerPort: {{ .Values.ports.server.user }}
+            name: user-port
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: user-port
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: user-port
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        env:
+          - name: APP_VERSION
+            value: "{{ .Values.appVersion }}"
+          - name: SPRING_PROFILES_ACTIVE
+            value: "prod"
+          - name: SERVER_PORT_USER
+            value: "{{ .Values.ports.server.user }}" 
+          - name: MONGO_URL
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: mongodbUrl
+          - name: MONGODB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: mongodbDatabase
+          - name: JWT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: server-secret
+                key: jwtSecret
+          - name: JWT_EXPIRATION_MS
+            value: "86400000"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}

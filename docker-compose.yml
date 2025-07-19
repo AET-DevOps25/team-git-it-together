@@ -45,7 +45,7 @@ services:
       retries: 5
       start_period: 20s
     logging:
-      driver: "none"
+      driver: "json-file"
     networks:
       - skillforge-network
 
@@ -78,10 +78,11 @@ services:
     env_file:
       - .env
     environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-skillforge-dev}
-      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/skillforge-dev}
+      MONGO_URL: ${MONGO_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
     depends_on:
@@ -108,12 +109,13 @@ services:
     env_file:
       - .env
     environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       SERVER_PORT_COURSE: ${SERVER_PORT_COURSE:-8083}
       SERVER_HOST_USER: ${SERVER_HOST_USER:-skillforge-user-service}
       SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
       MONGODB_DATABASE: ${MONGODB_DATABASE:-skillforge-dev}
-      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/skillforge-dev}
+      MONGO_URL: ${MONGO_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: 86400000
       SERVER_HOST_GENAI: ${SERVER_HOST_GENAI:-skillforge-genai}
@@ -144,6 +146,7 @@ services:
     env_file:
       - .env
     environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -161,7 +164,7 @@ services:
       SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY:-8081}
     depends_on:
       redis:
-        condition: service_healthy
+        condition: service_started
       skillforge-user-service:
         condition: service_started
       skillforge-course-service:
@@ -270,7 +273,7 @@ services:
       dockerfile: Dockerfile
       args:
         GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
-        GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0}"
+        GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0-dev}"
         GENAI_PORT: ${GENAI_PORT:-8888}
         UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
         CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
@@ -279,15 +282,15 @@ services:
     env_file:
       - .env
     environment:
-      WEAVIATE_HOST: skillforge-weaviate
+      WEAVIATE_HOST: ${WEAVIATE_HOST:-skillforge-weaviate}
       WEAVIATE_HTTP_PORT: 8080
       WEAVIATE_GRPC_PORT: 50051
       GENAI_PORT: ${GENAI_PORT:-8888}
       GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
-      GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0}"
+      GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0-dev}"
       CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
-      IS_DEV_MODE: ${IS_DEV_MODE:-0}
-      UVICORN_WORKERS: ${UVICORN_WORKERS:-1}
+      IS_DEV_MODE: 0
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
       LLM_PROVIDER: ${LLM_PROVIDER:-openai}
       OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -310,11 +313,16 @@ services:
       - "traefik.http.routers.genai.rule=Host(`${GENAI_HOST:-genai.localhost}`)"
       - "traefik.http.routers.genai.entrypoints=web"
       - "traefik.http.services.genai.loadbalancer.server.port=8888"
-      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigin=${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigins=${CORS_ALLOW_ORIGINS:-*}"
       - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
-  prometheus:
-    image: prom/prometheus
+  skillforge-prometheus:
+    image: prom/prometheus:latest
+    container_name: skillforge-prometheus
+    env_file:
+      - .env
+    environment:
+      - PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
@@ -328,29 +336,50 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_HOST:-prometheus.localhost}`)"
+      - "traefik.http.routers.prometheus.entrypoints=web"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
-  alertmanager:
-    image: prom/alertmanager
+  skillforge-alertmanager:
+    image: prom/alertmanager:latest
     container_name: skillforge-alertmanager
+    env_file:
+      - .env
+    environment:
+      - ALERTMANAGER_PORT=${ALERTMANAGER_PORT:-9093}
     volumes:
       - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     ports:
       - "${ALERTMANAGER_PORT:-9093}:9093"
     networks:
       - skillforge-network
+    depends_on:
+      skillforge-mailhog:
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "-qO", "-", "http://localhost:9093/-/ready"]
       interval: 30s
       timeout: 5s
       retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.rule=Host(`${ALERTMANAGER_HOST:-alertmanager.localhost}`)"
+      - "traefik.http.routers.alertmanager.entrypoints=web"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
 
-  grafana:
+  skillforge-grafana:
     image: grafana/grafana
-    ports:
-      - "${GRAFANA_EXPOSED_PORT:-3001}:3000"
+    container_name: skillforge-grafana
+    env_file:
+      - .env
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PWD:-admin}
       - GF_DATE_FORMATS_DEFAULT_TIMEZONE=browser
+      - GF_SERVER_HTTP_PORT=4000
+    ports:
+      - "${GRAFANA_EXPOSED_PORT:-4000}:4000"
     volumes:
       - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
@@ -362,19 +391,34 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    depends_on:
+      skillforge-prometheus:
+        condition: service_started
+      skillforge-alertmanager:
+        condition: service_started
+      skillforge-loki:
+        condition: service_started
+      skillforge-promtail:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST:-grafana.localhost}`)"
+      - "traefik.http.routers.grafana.entrypoints=web"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
-
-  mongo-exporter:
+  skillforge-mongo-exporter:
+    platform: linux/amd64
     image: percona/mongodb_exporter:0.30
+    container_name: skillforge-mongo-exporter
     command:
-      - --mongodb.uri=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
+      - --mongodb.uri=${MONGO_URL}
       - --collector.dbstats
       - --collector.topmetrics
       - --discovering-mode
       - --compatible-mode
       - --web.listen-address=:9216
     environment:
-      - MONGODB_URI=mongodb://${MONGODB_USERNAME:-root}:${MONGODB_PASSWORD:-password}@mongo:27017/admin?authSource=admin
+      - MONGODB_URI=${MONGO_URL}
     ports:
       - "${MONGO_EXPORTER_PORT:-9216}:9216"
     networks:
@@ -389,11 +433,14 @@ services:
         condition: service_healthy
 
   # ─── Loki for Centralized Logging ────────────────────────────────────────────────
-  loki:
+  skillforge-loki:
+    platform: linux/amd64
     image: grafana/loki:latest
     container_name: skillforge-loki
-    ports:
-      - "${LOKI_PORT:-3100}:3100"
+    env_file:
+      - .env
+    environment:
+      - LOKI_PORT=${LOKI_PORT:-3100}
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
       - loki-data:/loki
@@ -407,9 +454,13 @@ services:
       retries: 3
 
   # ─── Promtail for Log Collection ────────────────────────────────────────────────
-  promtail:
+  skillforge-promtail:
     image: grafana/promtail:latest
     container_name: skillforge-promtail
+    env_file:
+      - .env
+    environment:
+      - PROMTAIL_PORT=${PROMTAIL_PORT:-9080}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
@@ -417,19 +468,36 @@ services:
     command: -config.file=/etc/promtail/config.yml
     networks:
       - skillforge-network
+    ports:
+      - "${PROMTAIL_PORT:-9080}:9080"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.promtail.rule=Host(`${PROMTAIL_HOST:-promtail.localhost}`)"
+      - "traefik.http.routers.promtail.entrypoints=web"
+      - "traefik.http.services.promtail.loadbalancer.server.port=9080"
     depends_on:
-      loki:
+      skillforge-loki:
         condition: service_healthy
 
   # ─── MailHog (SMTP Test Server) ────────────────────────────────────────────────
-  mailhog:
+  skillforge-mailhog:
     image: mailhog/mailhog
+    platform: linux/amd64
     container_name: skillforge-mailhog
+    env_file:
+      - .env
+    environment:
+      - MAILHOG_PORT=${MAILHOG_PORT:-8025}
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
     networks:
       - skillforge-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailhog.rule=Host(`${MAILHOG_HOST:-mail.localhost}`)"
+      - "traefik.http.routers.mailhog.entrypoints=web"
+      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
 
 volumes:
   mongo-data:

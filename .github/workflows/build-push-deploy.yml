@@ -1,0 +1,45 @@
+name: Build, Push and Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      OPENAI_MODEL:
+        description: "OpenAI model to use for deployment"
+        required: false
+        type: string
+        default: "gpt-4"
+      
+jobs:
+  build-and-test-client:
+    name: Build and Test SkillForge.ai Client
+    uses: ./.github/workflows/build-and-test-client.yml
+  build-and-test-server:
+    name: Build and Test SkillForge.ai Server
+    uses: ./.github/workflows/build-and-test-server.yml
+  build-and-test-genai:
+    name: Build and Test SkillForge.ai GenAI
+    uses: ./.github/workflows/build-and-test-genai.yml
+  build-and-push-images:
+    name: Build and Push Docker Images
+    needs: [build-and-test-client, build-and-test-server, build-and-test-genai]
+    uses: ./.github/workflows/docker-build-push.yml
+    with:
+      API_URL: https://api.skillforge.student.k8s.aet.cit.tum.de
+    
+  deploy-to-kubernetes:
+    name: Deploy to Kubernetes Cluster (Rancher Cluster)
+    needs: [build-and-push-images]
+    uses: ./.github/workflows/deploy-to-kubernetes.yml
+    secrets:
+      KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      MONGO_DB_URL: ${{ secrets.MONGO_DB_URL }}
+      MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    with:
+      OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}

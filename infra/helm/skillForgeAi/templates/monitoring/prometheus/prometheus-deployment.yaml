@@ -1,0 +1,79 @@
+{{- if and .Values.monitoring.enabled .Values.monitoring.prometheus.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-prometheus
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: prometheus
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
+      component: prometheus
+  template:
+    metadata:
+      labels:
+        {{- include "skillForgeAi.selectorLabels" . | nindent 8 }}
+        component: prometheus
+    spec:
+      securityContext:
+        fsGroup: 65534
+        supplementalGroups:
+          - 65534
+      containers:
+        - name: prometheus
+          image: "{{ .Values.monitoring.prometheus.image.repository }}:{{ .Values.monitoring.prometheus.image.tag }}"
+          imagePullPolicy: {{ .Values.monitoring.prometheus.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.monitoring.prometheus.port }}
+              name: prometheus-port
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+          args:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/etc/prometheus/console_libraries'
+            - '--web.console.templates=/etc/prometheus/consoles'
+            - '--storage.tsdb.retention.time=200h'
+            - '--web.enable-lifecycle'
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus
+            - name: prometheus-data
+              mountPath: /prometheus
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: prometheus-port
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: prometheus-port
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: {{ .Values.monitoring.prometheus.resources.requests.cpu }}
+              memory: {{ .Values.monitoring.prometheus.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.monitoring.prometheus.resources.limits.cpu }}
+              memory: {{ .Values.monitoring.prometheus.resources.limits.memory }}
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: {{ include "skillForgeAi.fullname" . }}-prometheus-config
+        - name: prometheus-data
+          persistentVolumeClaim:
+            claimName: {{ include "skillForgeAi.fullname" . }}-prometheus-pvc
+{{- end }} 

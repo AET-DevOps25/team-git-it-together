@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-course-service
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: course-service
+spec:
+  selector:
+    {{- include "skillForgeAi.selectorLabels" . | nindent 4 }}
+    component: course-service
+  ports:
+    - protocol: TCP
+      port: {{ .Values.ports.server.course }}
+      targetPort: course-port

@@ -1,0 +1,29 @@
+{{- if and .Values.hpa.enabled .Values.hpa.gateway.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "skillForgeAi.fullname" . }}-gateway-hpa
+  labels:
+    {{- include "skillForgeAi.labels" . | nindent 4 }}
+    component: gateway
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "skillForgeAi.fullname" . }}-gateway
+  minReplicas: {{ .Values.hpa.gateway.minReplicas }}
+  maxReplicas: {{ .Values.hpa.gateway.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.gateway.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.hpa.gateway.targetMemoryUtilizationPercentage }}
+{{- end }} 

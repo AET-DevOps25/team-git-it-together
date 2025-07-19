@@ -138,7 +138,7 @@ jobs:
       ec2_ip: ${{ needs.configure.outputs.ec2_ip }}
     secrets:
       AWS_EC2_PRIVATE_KEY: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
-      MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}
-      MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}
+      MONGODB_URL: ${{ secrets.MONGODB_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}

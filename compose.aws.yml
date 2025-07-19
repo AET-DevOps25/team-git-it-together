@@ -1,0 +1,469 @@
+services:
+  reverse-proxy:
+      image: traefik:v3.4
+      container_name: traefik
+      restart: unless-stopped
+      command:
+        - "--providers.docker=true"
+        - "--providers.docker.exposedByDefault=false"
+        - "--entrypoints.web.address=:80"
+        - "--entrypoints.websecure.address=:443"
+        - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+        - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+        - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+        - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+        - "--certificatesresolvers.letsencrypt.acme.email=achraf.labidi@tum.de"
+        - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      ports:
+        - "80:80"
+        - "443:443"
+        - "8085:8085"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+        - ./letsencrypt:/letsencrypt
+      networks:
+        - skillforge-network
+  
+    # ─── Redis: 6379 ──────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: skillforge-redis
+    # No ports exposed
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - skillforge-network
+
+  # ─── Spring Boot Server: User Service: 8082 ──────────────────────────────
+  skillforge-user-service:
+    image: ghcr.io/aet-devops25/team-git-it-together/user-service:latest
+    container_name: skillforge-user-service
+    restart: unless-stopped
+    # No ports exposed - only accessible through gateway
+    env_file:
+      - .env
+    environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_URL: ${MONGO_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: 86400000
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_USER:-8082}/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - skillforge-network
+  
+  # ─── Spring Boot Server: Course Service: 8083 ──────────────────────────────
+  skillforge-course-service:
+    image: ghcr.io/aet-devops25/team-git-it-together/course-service:latest
+    container_name: skillforge-course-service
+    restart: unless-stopped
+    # No ports exposed - only accessible through gateway
+    env_file:
+      - .env
+    environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT_COURSE: ${SERVER_PORT_COURSE:-8083}
+      SERVER_HOST_USER: ${SERVER_HOST_USER:-skillforge-user-service}
+      SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
+      MONGODB_DATABASE: ${MONGODB_DATABASE}
+      MONGO_URL: ${MONGO_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: 86400000
+      SERVER_HOST_GENAI: ${SERVER_HOST_GENAI:-skillforge-genai}
+      SERVER_PORT_GENAI: ${SERVER_PORT_GENAI:-8888}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_COURSE:-8083}/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - skillforge-network
+  # ─── Spring Boot Server: Gateway: 8081 ──────────────────────────────
+  skillforge-gateway:
+    image: ghcr.io/aet-devops25/team-git-it-together/server-gateway:latest
+    container_name: skillforge-gateway
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT_GATEWAY:-8081}:${SERVER_PORT_GATEWAY:-8081}"
+    env_file:
+      - .env
+    environment:
+      APP_VERSION: ${APP_VERSION:-1.0.0-dev}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      SERVER_PORT_GATEWAY: ${SERVER_PORT_GATEWAY:-8081}
+      SERVER_HOST_GATEWAY: ${SERVER_HOST_GATEWAY:-skillforge-gateway}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: 86400000
+      RATE_LIMIT_REQUESTS_PER_MINUTE: 60
+      RATE_LIMIT_REQUESTS_PER_SECOND: 20
+      RATE_LIMIT_BURST: 40
+      SERVER_HOST_USER: ${SERVER_HOST_USER:-skillforge-user-service}
+      SERVER_PORT_USER: ${SERVER_PORT_USER:-8082}
+      SERVER_HOST_COURSE: ${SERVER_HOST_COURSE:-skillforge-course-service}
+      SERVER_PORT_COURSE: ${SERVER_PORT_COURSE:-8083}
+    depends_on:
+      redis:
+        condition: service_healthy
+      skillforge-user-service:
+        condition: service_healthy
+      skillforge-course-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${SERVER_PORT_GATEWAY:-8081}/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+        # Route 1: API direct domain (api........io)
+      - "traefik.http.routers.gateway-api.rule=Host(`${SERVER_HOST}`)"
+      - "traefik.http.routers.gateway-api.entrypoints=websecure"
+      - "traefik.http.routers.gateway-api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.gateway-api.service=gateway"
+      # Route 2: API on the client domain
+      - "traefik.http.routers.gateway-client.rule=Host(`${CLIENT_HOST}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.gateway-client.entrypoints=websecure"
+      - "traefik.http.routers.gateway-client.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.gateway-client.service=gateway"
+      # Service config:
+      - "traefik.http.services.gateway.loadbalancer.server.port=${SERVER_PORT_GATEWAY:-8081}"
+    networks:
+      - skillforge-network
+  
+  # ─── SkillForge Client: 3000 ──────────────────────────────────────────────────
+  skillforge-client:
+    image: ghcr.io/aet-devops25/team-git-it-together/client:latest
+    container_name: skillforge-client
+    restart: unless-stopped
+    ports:
+      - "${VITE_PORT:-3000}:${VITE_PORT:-3000}"
+    env_file:
+      - .env
+    environment:
+      VITE_PORT: ${VITE_PORT:-3000}
+      BUILD_MODE: ${BUILD_MODE:-production}
+      VITE_APP_NAME: "${VITE_APP_NAME:-SkillForge.ai}"
+      VITE_APP_VERSION: "${VITE_APP_VERSION:-1.0.0-dev}"
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+      VITE_API_VERSION: ${VITE_API_VERSION:-v1}
+      VITE_API_INTERNAL_HOST: ${VITE_API_INTERNAL_HOST:-skillforge-gateway}
+      VITE_API_INTERNAL_PORT: ${VITE_API_INTERNAL_PORT:-8081}
+      VITE_PUBLIC_API_URL: ${VITE_PUBLIC_API_URL}
+    depends_on:
+      skillforge-gateway:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:${VITE_PORT:-3000} || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.client.rule=Host(`${CLIENT_HOST}`)"
+      - "traefik.http.services.client.loadbalancer.server.port=${VITE_PORT:-3000}"
+      - "traefik.http.routers.client.entrypoints=websecure"
+      - "traefik.http.routers.client.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.client-compress.compress=true"
+      - "traefik.http.routers.client.middlewares=client-compress"
+      - "traefik.http.routers.client.priority=1"
+    networks:
+      - skillforge-network
+  
+  # ─── Weaviate DB: 8080 ──────────────────────────────────────────────────
+  skillforge-weaviate:
+      image: cr.weaviate.io/semitechnologies/weaviate:1.30.3
+      container_name: skillforge-weaviate
+      restart: on-failure
+      command:
+        - --host
+        - 0.0.0.0
+        - --port
+        - "8080"
+        - --scheme
+        - http
+      ports:
+        - "8088:8080"
+        - "50051:50051"
+        - "2112:2112"
+      environment:
+        QUERY_DEFAULTS_LIMIT: 25
+        AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+        PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+        BACKUP_FILESYSTEM_PATH: '/var/lib/weaviate/backups'
+        ENABLE_API_BASED_MODULES: 'true'
+        CLUSTER_HOSTNAME: 'node1'
+        PROMETHEUS_MONITORING_ENABLED: 'true'
+      volumes:
+        - weaviate-genai-data:/var/lib/weaviate
+      healthcheck:
+        test: ["CMD-SHELL", "wget --spider -q http://localhost:8080/v1/.well-known/ready || exit 1"]
+        interval: 120s
+        timeout: 10s
+        retries: 3
+        start_period: 50s
+      networks:
+        - skillforge-network
+
+  # ─── GenAI Service: 8888 ──────────────────────────────────────────────────
+  skillforge-genai:
+    image: ghcr.io/aet-devops25/team-git-it-together/genai:latest
+    container_name: skillforge-genai
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      GENAI_APP_NAME: "${GENAI_APP_NAME:-SkillForge GenAI}"
+      GENAI_APP_VERSION: "${GENAI_APP_VERSION:-1.0.0-dev}"
+      GENAI_PORT: ${GENAI_PORT:-8888}
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-*}
+      WEAVIATE_HOST: ${WEAVIATE_HOST:-skillforge-weaviate}
+      WEAVIATE_HTTP_PORT: 8080
+      WEAVIATE_GRPC_PORT: 50051
+      IS_DEV_MODE: 0
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      OPENAI_API_BASE: ${OPENAI_API_BASE:-https://api.openai.com/v1}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+    ports:
+      - "${GENAI_PORT:-8888}:${GENAI_PORT:-8888}"
+    depends_on:
+      skillforge-weaviate:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.genai.rule=Host(`${GENAI_HOST}`)"
+      - "traefik.http.routers.genai.entrypoints=websecure"
+      - "traefik.http.routers.genai.tls.certresolver=letsencrypt"
+      - "traefik.http.services.genai.loadbalancer.server.port=${GENAI_PORT:-8888}"
+      - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOriginList=${CORS_ALLOW_ORIGINS:-*}"
+      - "traefik.http.routers.genai.middlewares=genai-cors@docker"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:${GENAI_PORT:-8888}/ping || exit 1"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    networks:
+      - skillforge-network
+
+  # ─── Prometheus ──────────────────────────────────────────────────────────
+  skillforge-prometheus:
+    image: prom/prometheus:latest
+    container_name: skillforge-prometheus
+    env_file:
+      - .env
+    environment:
+      - PROMETHEUS_PORT=${PROMETHEUS_PORT:-9090}
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+      - prometheus-data:/prometheus
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9090/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`${PROMETHEUS_HOST}`)"
+      - "traefik.http.routers.prometheus.entrypoints=websecure"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=${PROMETHEUS_PORT:-9090}"
+
+  # ─── Alertmanager ──────────────────────────────────────────────────────────
+  skillforge-alertmanager:
+    image: prom/alertmanager:latest
+    container_name: skillforge-alertmanager
+    env_file:
+      - .env
+    environment:
+      - ALERTMANAGER_PORT=${ALERTMANAGER_PORT:-9093}
+    volumes:
+      - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    networks:
+      - skillforge-network
+    depends_on:
+      skillforge-mailhog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9093/-/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alertmanager.rule=Host(`${ALERTMANAGER_HOST}`)"
+      - "traefik.http.routers.alertmanager.entrypoints=websecure"
+      - "traefik.http.routers.alertmanager.tls.certresolver=letsencrypt"
+      - "traefik.http.services.alertmanager.loadbalancer.server.port=${ALERTMANAGER_PORT:-9093}"
+
+  # ─── Grafana ──────────────────────────────────────────────────────────
+  skillforge-grafana:
+    image: grafana/grafana:latest
+    container_name: skillforge-grafana
+    env_file:
+      - .env
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PWD:-admin}
+      - GF_DATE_FORMATS_DEFAULT_TIMEZONE=browser
+      - GF_SERVER_HTTP_PORT=${GRAFANA_INTERNAL_PORT:-4000}
+    volumes:
+      - ./monitoring/grafana/dashboards/:/var/lib/grafana/dashboards/
+      - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+      - grafana-data:/var/lib/grafana
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${GRAFANA_INTERNAL_PORT:-4000}/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      skillforge-prometheus:
+        condition: service_started
+      skillforge-alertmanager:
+        condition: service_started
+      skillforge-loki:
+        condition: service_started
+      skillforge-promtail:
+        condition: service_started
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST}`)"
+      - "traefik.http.routers.grafana.entrypoints=websecure"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grafana.loadbalancer.server.port=${GRAFANA_INTERNAL_PORT:-4000}"
+
+  # ─── MongoDB Exporter ──────────────────────────────────────────────────────────
+  skillforge-mongo-exporter:
+    platform: linux/amd64
+    image: percona/mongodb_exporter:0.30
+    container_name: skillforge-mongo-exporter
+    command:
+      - --mongodb.uri=${MONGO_URL}
+      - --collector.dbstats
+      - --collector.topmetrics
+      - --discovering-mode
+      - --compatible-mode
+      - --web.listen-address=:9216
+    environment:
+      - MONGODB_URI=${MONGO_URL}
+    ports:
+      - "${MONGO_EXPORTER_PORT:-9216}:9216"
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9216/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ─── Loki ──────────────────────────────────────────────────────────
+  skillforge-loki:
+    image: grafana/loki:latest
+    platform: linux/amd64
+    container_name: skillforge-loki
+    env_file:
+      - .env
+    environment:
+      - LOKI_PORT=${LOKI_PORT:-3100}
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:3100/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  
+  # ─── Promtail ──────────────────────────────────────────────────────────
+  skillforge-promtail:
+    image: grafana/promtail:latest
+    container_name: skillforge-promtail
+    env_file:
+      - .env
+    environment:
+      - PROMTAIL_PORT=${PROMTAIL_PORT:-9080}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./monitoring/loki/promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9080/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      skillforge-loki:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.promtail.rule=Host(`${PROMTAIL_HOST}`)"
+      - "traefik.http.routers.promtail.entrypoints=websecure"
+      - "traefik.http.routers.promtail.tls.certresolver=letsencrypt"
+      - "traefik.http.services.promtail.loadbalancer.server.port=${PROMTAIL_PORT:-9080}"
+
+  # ─── MailHog (SMTP Test Server) ────────────────────────────────────────────────
+  skillforge-mailhog:
+    image: mailhog/mailhog:latest
+    platform: linux/amd64
+    container_name: skillforge-mailhog
+    env_file:
+      - .env
+    environment:
+      - MAILHOG_PORT=${MAILHOG_PORT:-8025}
+    networks:
+      - skillforge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8025"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailhog.rule=Host(`${MAILHOG_HOST}`)"
+      - "traefik.http.routers.mailhog.entrypoints=websecure"
+      - "traefik.http.routers.mailhog.tls.certresolver=letsencrypt"
+      - "traefik.http.services.mailhog.loadbalancer.server.port=8025"
+
+volumes:
+  weaviate-genai-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+
+networks:
+  skillforge-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.0.0/16
+        - gateway: 172.16.0.1
