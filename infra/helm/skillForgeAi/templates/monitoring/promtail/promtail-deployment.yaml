@@ -1,15 +1,12 @@
 {{- if and .Values.monitoring.enabled .Values.monitoring.promtail.enabled }}
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: {{ include "skillForgeAi.fullname" . }}-promtail
   labels:
     {{- include "skillForgeAi.labels" . | nindent 4 }}
     component: promtail
 spec:
-  strategy:
-    type: Recreate
-  replicas: 1
   selector:
     matchLabels:
       {{- include "skillForgeAi.selectorLabels" . | nindent 6 }}
@@ -32,15 +29,18 @@ spec:
             - containerPort: {{ .Values.monitoring.promtail.port }}
               name: promtail-port
           securityContext:
-            runAsNonRoot: true
-            runAsUser: 65534
+            runAsNonRoot: false
+            runAsUser: 0
           args:
             - -config.file=/etc/promtail/promtail-config.yml
           volumeMounts:
             - name: promtail-config
               mountPath: /etc/promtail
+            - name: promtail-positions
+              mountPath: /data
             - name: varlog
               mountPath: /var/log
+              readOnly: true
             - name: varlibdockercontainers
               mountPath: /var/lib/docker/containers
               readOnly: true
@@ -51,14 +51,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 10
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /ready
-              port: promtail-port
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
             failureThreshold: 3
           resources:
             requests:
@@ -71,6 +63,8 @@ spec:
         - name: promtail-config
           configMap:
             name: {{ include "skillForgeAi.fullname" . }}-promtail-config
+        - name: promtail-positions
+          emptyDir: {}
         - name: varlog
           hostPath:
             path: /var/log

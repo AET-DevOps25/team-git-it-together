@@ -32,30 +32,22 @@ spec:
           env:
             - name: GF_SERVER_ROOT_URL
               value: "https://grafana.student.k8s.aet.cit.tum.de/"
-            - name: GF_SECURITY_ADMIN_PASSWORD
-              value: "{{ .Values.monitoring.grafana.adminPassword }}"
             - name: GF_SERVER_HTTP_PORT
               value: "{{ .Values.monitoring.grafana.port }}"
-            - name: GF_INSTALL_PLUGINS
-              value: "grafana-piechart-panel,grafana-worldmap-panel"
-            - name: GF_PATHS_DATA
-              value: /var/lib/grafana
-            - name: GF_PATHS_LOGS
-              value: /var/log/grafana
-            - name: GF_PATHS_PLUGINS
-              value: /var/lib/grafana/plugins
-            - name: GF_PATHS_PROVISIONING
-              value: /etc/grafana/provisioning
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: "{{ .Values.monitoring.grafana.adminPassword }}"
           securityContext:
             runAsNonRoot: true
             runAsUser: 472
           volumeMounts:
-            - name: grafana-data
+            - name: storage
               mountPath: /var/lib/grafana
-            - name: grafana-config
-              mountPath: /etc/grafana/provisioning/dashboards
             - name: datasources
               mountPath: /etc/grafana/provisioning/datasources
+            - name: dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards
             - name: dashboards
               mountPath: /var/lib/grafana/dashboards
           livenessProbe:
@@ -82,16 +74,16 @@ spec:
               cpu: {{ .Values.monitoring.grafana.resources.limits.cpu }}
               memory: {{ .Values.monitoring.grafana.resources.limits.memory }}
       volumes:
-        - name: grafana-data
+        - name: storage
           persistentVolumeClaim:
             claimName: {{ include "skillForgeAi.fullname" . }}-grafana-pvc
-        - name: grafana-config
-          configMap:
-            name: {{ include "skillForgeAi.fullname" . }}-grafana-config
-        - name: dashboards
-          configMap:
-            name: {{ include "skillForgeAi.fullname" . }}-grafana-dashboards
         - name: datasources
           configMap:
             name: {{ include "skillForgeAi.fullname" . }}-grafana-datasources
-{{- end }} 
+        - name: dashboards-config
+          configMap:
+            name: {{ include "skillForgeAi.fullname" . }}-grafana-dashboard-provider
+        - name: dashboards
+          configMap:
+            name: {{ include "skillForgeAi.fullname" . }}-grafana-dashboards
+{{- end }}

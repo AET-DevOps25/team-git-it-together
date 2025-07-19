@@ -11,8 +11,6 @@ data:
 {{ .Files.Get "monitoring/grafana/dashboards/genai.json" | indent 4 }}
   server.json: |
 {{ .Files.Get "monitoring/grafana/dashboards/server.json" | indent 4 }}
-  mongodb.json: |
-{{ .Files.Get "monitoring/grafana/dashboards/mongodb.json" | indent 4 }}
   logs.json: |
 {{ .Files.Get "monitoring/grafana/dashboards/logs.json" | indent 4 }}
   user-custom-metrics.json: |

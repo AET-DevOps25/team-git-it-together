@@ -5,7 +5,7 @@ metadata:
   labels:
     grafana_datasource: "1"
 data:
-  prometheus.yml: |
+  datasources.yaml: |
     apiVersion: 1
     datasources:
       - name: Prometheus
@@ -14,9 +14,6 @@ data:
         url: http://skillforge-prometheus:9090
         uid: DS_PROMETHEUS
         isDefault: true
-  loki.yml: |
-    apiVersion: 1
-    datasources:
       - name: Loki
         type: loki
         access: proxy
@@ -24,10 +21,9 @@ data:
         jsonData:
           maxLines: 1000
           derivedFields:
-            - datasourceUid: prometheus
+            - datasourceUid: DS_PROMETHEUS
               matcherRegex: "traceID=(\\w+)"
               name: TraceID
               url: "${__value.raw}"
         isDefault: false
-        version: 1
-        editable: false
+        editable: true
