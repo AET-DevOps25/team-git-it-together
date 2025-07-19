@@ -4,6 +4,21 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      # Ignore all markdown files (root & subdirs)
+      - '**/*.md'
+      # Ignore everything in docs, seed, and testing scripts
+      - 'docs/**'
+      - 'seed/**'
+      - 'testing-scripts/**'
+      # Ignore any copy-env.* file at any depth
+      - '**/copy-env.*'
+      # ignore .gitignore files anywhere
+      - '**/.gitignore'
+      # ignore .env* files
+      - '**/.env*'
+      # Ignore files not in .github/workflows
+      - '!**/.github/workflows/**'
   workflow_dispatch:
     inputs:
       OPENAI_MODEL:
