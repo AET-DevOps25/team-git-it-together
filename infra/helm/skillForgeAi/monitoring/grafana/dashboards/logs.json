@@ -21,8 +21,8 @@
       },
       {
         "datasource": {
-          "type": "loki",
-          "uid": "Loki"
+          "type": "prometheus",
+          "uid": "DS_PROMETHEUS"
         },
         "enable": true,
         "expr": "{namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} |~ \"(?i)version|deploy|restart\"",
@@ -43,10 +43,6 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
       "description": "Shows active alerts related to the GenAI service and other microservices",
       "fieldConfig": {
         "defaults": {},
