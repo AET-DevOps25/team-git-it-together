@@ -38,14 +38,15 @@ jobs:
             name: Build and Push SkillForge Client
             build-args: |
               VITE_APP_NAME=SkillForge.ai
-              VITE_APP_VERSION=1.0.0-beta
               VITE_API_BASE_URL=/api/
               VITE_API_VERSION=v1
-              VITE_PUBLIC_API_URL=${{ inputs.API_URL || vars.API_URL || 'http://localhost:8081' }}
               VITE_API_INTERNAL_HOST=skillforge-gateway
               VITE_API_INTERNAL_PORT=8081
               BUILD_MODE=production
               VITE_PORT=3000
+            dynamic-build-args: |
+              VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
+              VITE_PUBLIC_API_URL=${{ inputs.API_URL || vars.API_URL || 'http://localhost:8081' }}
           - id: skillforge-gateway
             path: server/skillforge-gateway
             image: server-gateway
@@ -114,7 +115,7 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache,mode=max
           build-args: |
             ${{ matrix.build-args }}
-            VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
+            ${{ matrix.dynamic-build-args || '' }}
 
       - name: Clean up dangling images
         run: |

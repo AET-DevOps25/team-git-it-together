@@ -31,7 +31,7 @@ jobs:
     
   deploy-to-kubernetes:
     name: Deploy to Kubernetes Cluster (Rancher Cluster)
-    needs: [build-and-push-images]
+    needs: [build-and-push-images, build-and-test-client, build-and-test-server, build-and-test-genai]
     uses: ./.github/workflows/deploy-to-kubernetes.yml
     secrets:
       KUBECONFIG: ${{ secrets.KUBECONFIG }}
