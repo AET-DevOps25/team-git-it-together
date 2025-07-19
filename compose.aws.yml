@@ -266,7 +266,7 @@ services:
       - skillforge-network
 
   # ─── Prometheus ──────────────────────────────────────────────────────────
-  prometheus:
+  skillforge-prometheus:
     image: prom/prometheus:latest
     container_name: skillforge-prometheus
     env_file:
@@ -292,7 +292,7 @@ services:
       - "traefik.http.services.prometheus.loadbalancer.server.port=${PROMETHEUS_PORT:-9090}"
 
   # ─── Alertmanager ──────────────────────────────────────────────────────────
-  alertmanager:
+  skillforge-alertmanager:
     image: prom/alertmanager:latest
     container_name: skillforge-alertmanager
     env_file:
@@ -303,6 +303,9 @@ services:
       - ./monitoring/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
     networks:
       - skillforge-network
+    depends_on:
+      skillforge-mailhog:
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "-qO", "-", "http://localhost:9093/-/ready"]
       interval: 30s
@@ -316,7 +319,7 @@ services:
       - "traefik.http.services.alertmanager.loadbalancer.server.port=${ALERTMANAGER_PORT:-9093}"
 
   # ─── Grafana ──────────────────────────────────────────────────────────
-  grafana:
+  skillforge-grafana:
     image: grafana/grafana:latest
     container_name: skillforge-grafana
     env_file:
@@ -336,6 +339,15 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    depends_on:
+      skillforge-prometheus:
+        condition: service_started
+      skillforge-alertmanager:
+        condition: service_started
+      skillforge-loki:
+        condition: service_started
+      skillforge-promtail:
+        condition: service_started
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_HOST}`)"
@@ -344,22 +356,21 @@ services:
       - "traefik.http.services.grafana.loadbalancer.server.port=${GRAFANA_INTERNAL_PORT:-4000}"
 
   # ─── MongoDB Exporter ──────────────────────────────────────────────────────────
-  mongo-exporter:
-    image: percona/mongodb_exporter:0.44.0
+  skillforge-mongo-exporter:
     platform: linux/amd64
+    image: percona/mongodb_exporter:0.30
     container_name: skillforge-mongo-exporter
     command:
       - --mongodb.uri=${MONGO_URL}
-      - --no-mongodb.direct-connect
-      - --collector.collstats
-      - --collector.topmetrics
-      - --collector.indexstats
       - --collector.dbstats
+      - --collector.topmetrics
       - --discovering-mode
       - --compatible-mode
       - --web.listen-address=:9216
     environment:
       - MONGODB_URI=${MONGO_URL}
+    ports:
+      - "${MONGO_EXPORTER_PORT:-9216}:9216"
     networks:
       - skillforge-network
     healthcheck:
@@ -369,7 +380,7 @@ services:
       retries: 3
 
   # ─── Loki ──────────────────────────────────────────────────────────
-  loki:
+  skillforge-loki:
     image: grafana/loki:latest
     platform: linux/amd64
     container_name: skillforge-loki
@@ -388,15 +399,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.loki.rule=Host(`${LOKI_HOST}`)"
-      - "traefik.http.routers.loki.entrypoints=websecure"
-      - "traefik.http.routers.loki.tls.certresolver=letsencrypt"
-      - "traefik.http.services.loki.loadbalancer.server.port=${LOKI_PORT:-3100}"
-
+  
   # ─── Promtail ──────────────────────────────────────────────────────────
-  promtail:
+  skillforge-promtail:
     image: grafana/promtail:latest
     container_name: skillforge-promtail
     env_file:
@@ -415,6 +420,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    depends_on:
+      skillforge-loki:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.promtail.rule=Host(`${PROMTAIL_HOST}`)"
@@ -423,7 +431,7 @@ services:
       - "traefik.http.services.promtail.loadbalancer.server.port=${PROMTAIL_PORT:-9080}"
 
   # ─── MailHog (SMTP Test Server) ────────────────────────────────────────────────
-  mailhog:
+  skillforge-mailhog:
     image: mailhog/mailhog:latest
     platform: linux/amd64
     container_name: skillforge-mailhog

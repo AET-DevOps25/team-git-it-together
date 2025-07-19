@@ -316,8 +316,8 @@ services:
       - "traefik.http.middlewares.genai-cors.headers.accessControlAllowOrigins=${CORS_ALLOW_ORIGINS:-*}"
       - "traefik.http.routers.genai.middlewares=genai-cors@traefik"
 
-  prometheus:
-    image: prom/prometheus
+  skillforge-prometheus:
+    image: prom/prometheus:latest
     container_name: skillforge-prometheus
     env_file:
       - .env
@@ -342,8 +342,8 @@ services:
       - "traefik.http.routers.prometheus.entrypoints=web"
       - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
 
-  alertmanager:
-    image: prom/alertmanager
+  skillforge-alertmanager:
+    image: prom/alertmanager:latest
     container_name: skillforge-alertmanager
     env_file:
       - .env
@@ -356,7 +356,7 @@ services:
     networks:
       - skillforge-network
     depends_on:
-      mailhog:
+      skillforge-mailhog:
         condition: service_started
     healthcheck:
       test: ["CMD", "wget", "-qO", "-", "http://localhost:9093/-/ready"]
@@ -369,7 +369,7 @@ services:
       - "traefik.http.routers.alertmanager.entrypoints=web"
       - "traefik.http.services.alertmanager.loadbalancer.server.port=9093"
 
-  grafana:
+  skillforge-grafana:
     image: grafana/grafana
     container_name: skillforge-grafana
     env_file:
@@ -392,13 +392,13 @@ services:
       timeout: 5s
       retries: 3
     depends_on:
-      prometheus:
+      skillforge-prometheus:
         condition: service_started
-      alertmanager:
+      skillforge-alertmanager:
         condition: service_started
-      loki:
+      skillforge-loki:
         condition: service_started
-      promtail:
+      skillforge-promtail:
         condition: service_started
     labels:
       - "traefik.enable=true"
@@ -406,30 +406,34 @@ services:
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
 
-  mongo-exporter:
+  skillforge-mongo-exporter:
     platform: linux/amd64
-    image: percona/mongodb_exporter:0.44.0
+    image: percona/mongodb_exporter:0.30
     container_name: skillforge-mongo-exporter
     command:
       - --mongodb.uri=${MONGO_URL}
-      - --no-mongodb.direct-connect
-      - --collector.collstats
-      - --collector.topmetrics
-      - --collector.indexstats
       - --collector.dbstats
+      - --collector.topmetrics
       - --discovering-mode
       - --compatible-mode
       - --web.listen-address=:9216
     environment:
       - MONGODB_URI=${MONGO_URL}
+    ports:
+      - "${MONGO_EXPORTER_PORT:-9216}:9216"
     networks:
       - skillforge-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO", "-", "http://localhost:9216/metrics"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     depends_on:
       mongo:
-        condition: service_started
+        condition: service_healthy
 
   # ─── Loki for Centralized Logging ────────────────────────────────────────────────
-  loki:
+  skillforge-loki:
     platform: linux/amd64
     image: grafana/loki:latest
     container_name: skillforge-loki
@@ -450,7 +454,7 @@ services:
       retries: 3
 
   # ─── Promtail for Log Collection ────────────────────────────────────────────────
-  promtail:
+  skillforge-promtail:
     image: grafana/promtail:latest
     container_name: skillforge-promtail
     env_file:
@@ -472,11 +476,11 @@ services:
       - "traefik.http.routers.promtail.entrypoints=web"
       - "traefik.http.services.promtail.loadbalancer.server.port=9080"
     depends_on:
-      loki:
+      skillforge-loki:
         condition: service_healthy
 
   # ─── MailHog (SMTP Test Server) ────────────────────────────────────────────────
-  mailhog:
+  skillforge-mailhog:
     image: mailhog/mailhog
     platform: linux/amd64
     container_name: skillforge-mailhog
