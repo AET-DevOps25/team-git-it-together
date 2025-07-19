@@ -79,10 +79,7 @@ jobs:
             --set secrets.openaiApiKey="${{ secrets.OPENAI_API_KEY }}" \
             --set secrets.openaiModel="${{ inputs.OPENAI_MODEL }}" \
             --set monitoring.enabled=true \
-            --set hpa.enabled=true \
-            --wait \
-            --timeout=10m \
-            --atomic
+            --set hpa.enabled=true
 
       - name: Wait for deployment to be ready
         run: |
