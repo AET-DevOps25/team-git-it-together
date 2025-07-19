@@ -21,17 +21,17 @@
       },
       {
         "datasource": {
-          "type": "prometheus",
-          "uid": "DS_PROMETHEUS"
+          "type": "loki",
+          "uid": "Loki"
         },
         "enable": true,
-        "expr": "changes(app_version_info{service=~\".*\"}[1m]) > 0",
+        "expr": "{namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} |~ \"(?i)version|deploy|restart\"",
         "hide": false,
         "iconColor": "green",
         "name": "Version Changes",
         "showIn": 0,
-        "tagKeys": "service",
-        "textFormat": "{{service}} version change",
+        "tagKeys": "container",
+        "textFormat": "{{container}} version change",
         "titleFormat": "Version Change"
       }
     ]
@@ -43,6 +43,10 @@
   "links": [],
   "panels": [
     {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "description": "Shows active alerts related to the GenAI service and other microservices",
       "fieldConfig": {
         "defaults": {},
@@ -170,13 +174,13 @@
             "uid": "Loki"
           },
           "editorMode": "code",
-          "expr": "sum by(service) (count_over_time({service=~\".+\"} [5m]))",
-          "legendFormat": "{{service}}",
+          "expr": "sum by(container) (count_over_time({namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} [5m]))",
+          "legendFormat": "{{container}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Log Volume by Service",
+      "title": "Log Volume by Container (skillforge-ai)",
       "type": "timeseries"
     },
     {
@@ -275,7 +279,7 @@
             "uid": "Loki"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time(({service=~\".+\"} |~ \"(?i)error|exception|fail\")[1h]))",
+          "expr": "sum(count_over_time(({namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} |~ \"(?i)error|exception|fail\")[1h]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -372,13 +376,13 @@
             "uid": "Loki"
           },
           "editorMode": "code",
-          "expr": "sum by(service) (count_over_time({service=~\".+\"} |~ \"(?i)error|exception|fail\" [5m]))",
-          "legendFormat": "{{service}}",
+          "expr": "sum by(container) (count_over_time({namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} |~ \"(?i)error|exception|fail\" [5m]))",
+          "legendFormat": "{{container}}",
           "queryType": "range",
           "refId": "A"
         }
       ],
-      "title": "Error Log Volume by Service",
+      "title": "Error Log Volume by Container (skillforge-ai)",
       "type": "timeseries"
     },
     {
@@ -416,7 +420,7 @@
             "uid": "Loki"
           },
           "editorMode": "code",
-          "expr": "{service=~\"$service\"} |~ \"$search\"",
+          "expr": "{namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"} |~ \"$search\"",
           "key": "Q-c23586d9-65e3-4064-b675-b7ac0a3bcd0a-0",
           "queryType": "range",
           "refId": "A"
@@ -448,12 +452,12 @@
           "type": "loki",
           "uid": "Loki"
         },
-        "definition": "label_values(service)",
+        "definition": "label_values({namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"}, container)",
         "includeAll": true,
-        "label": "Service",
+        "label": "Container",
         "name": "service",
         "options": [],
-        "query": "label_values(service)",
+        "query": "label_values({namespace=\"skillforge-ai\", container!~\"alertmanager|grafana|loki|mailhog|prometheus|promtail\"}, container)",
         "refresh": 1,
         "regex": "",
         "type": "query"
@@ -507,5 +511,5 @@
   "timezone": "",
   "title": "SkillForge Logs",
   "uid": "qxShEwrPz",
-  "version": 3
+  "version": 8
 }
