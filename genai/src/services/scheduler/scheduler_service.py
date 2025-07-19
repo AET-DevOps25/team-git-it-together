@@ -65,34 +65,23 @@ class BlogEmbedderScheduler:
            async with httpx.AsyncClient(timeout=30.0) as client:
                response = await client.get("https://www.freecodecamp.org/news/")
                response.raise_for_status()
-              
+               
                soup = BeautifulSoup(response.text, 'html.parser')
                article_links = []
-              
-               # Find article links - adjust selectors based on actual HTML structure
-               articles = soup.find_all('article') or soup.find_all('div', class_=re.compile(r'article|post|card'))
-              
-               # Check more articles to find non-embedded ones
-               for article in articles[:50]:  # Check up to 50 articles
-                   link = article.find('a', href=True)
-                   if link:
-                       url = link['href']
-                       if url.startswith('/'):
-                           url = f"https://www.freecodecamp.org{url}"
-                       elif not url.startswith('http'):
-                           continue
-                          
-                       # Only add if not already embedded
-                       if url not in self.embedded_urls:
-                           article_links.append(url)
-                          
-                       # Stop when we have 5 non-embedded articles
-                       if len(article_links) >= 5:
-                           break
-              
-               logger.info(f"Found {len(article_links)} non-embedded articles from freeCodeCamp (checked {min(len(articles), 50)} articles)")
+               
+               # Find article links (adjust selector based on actual HTML structure)
+               for link in soup.find_all('a', href=True):
+                   href = link['href']
+                   if '/news/' in href and href not in self.embedded_urls:
+                       full_url = f"https://www.freecodecamp.org{href}" if href.startswith('/') else href
+                       if full_url not in self.embedded_urls:
+                           article_links.append(full_url)
+                           if len(article_links) >= 5:
+                               break
+               
+               logger.info(f"Found {len(article_links)} non-embedded articles from freeCodeCamp")
                return article_links
-              
+               
        except Exception as e:
            logger.error(f"Error fetching freeCodeCamp articles: {e}")
            return []
@@ -109,16 +98,25 @@ class BlogEmbedderScheduler:
                    logger.warning(f"No content found at {url}")
                    continue
               
-               # Embed the content
-               num_chunks = embedder_service.embed_and_store_text(
-                   text=crawled_data["text"],
-                   source_url=url
-               )
-              
-               # Mark as embedded and save to cache
-               self.embedded_urls.add(url)
-               self._save_cache()
-               logger.info(f"Successfully embedded {url} with {num_chunks} chunks")
+               # Embed the content with retry logic
+               try:
+                   num_chunks = embedder_service.embed_and_store_text(
+                       text=crawled_data["text"],
+                       source_url=url
+                   )
+                   
+                   # Mark as embedded and save to cache
+                   self.embedded_urls.add(url)
+                   self._save_cache()
+                   logger.info(f"Successfully embedded {url} with {num_chunks} chunks")
+                   
+               except RuntimeError as e:
+                   if "startup timeout" in str(e).lower() or "weaviate is not ready" in str(e).lower():
+                       logger.error(f"Weaviate connection issue while embedding {url}: {e}")
+                       logger.info("Skipping this article due to Weaviate connectivity issues")
+                       continue
+                   else:
+                       raise
               
                # Small delay to be respectful to the server
                await asyncio.sleep(2)
@@ -175,15 +173,6 @@ class BlogEmbedderScheduler:
        if self.thread and self.thread.is_alive():
            self.thread.join(timeout=10)
        logger.info("Blog embedder scheduler stopped")
-  
-   def get_status(self) -> dict:
-       """Get scheduler status"""
-       return {
-           "running": self.running,
-           "last_run": self.last_run.isoformat() if self.last_run else None,
-           "embedded_count": len(self.embedded_urls),
-           "thread_alive": self.thread.is_alive() if self.thread else False
-       }
 
 
 # Global scheduler instance
@@ -201,6 +190,11 @@ def stop_scheduler():
 
 
 def get_scheduler_status() -> dict:
-   """Get the current scheduler status"""
-   return _scheduler.get_status()
+   """Get the current status of the scheduler"""
+   return {
+       "running": _scheduler.running,
+       "last_run": _scheduler.last_run.isoformat() if _scheduler.last_run else None,
+       "embedded_count": len(_scheduler.embedded_urls),
+       "thread_alive": _scheduler.thread.is_alive() if _scheduler.thread else False
+   }
 
