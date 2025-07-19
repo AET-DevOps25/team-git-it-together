@@ -2,13 +2,27 @@ name: Deploy to Kubernetes
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["docker-build-push"]
-    types:
-      - completed
-    branches:
-      - main
-
+  workflow_call:
+    inputs:
+      OPENAI_MODEL:
+        required: false
+        type: string
+        default: "gpt-4o"
+    secrets:
+      KUBECONFIG:
+        required: true
+      MONGO_DB_URL:
+        required: true
+      MONGODB_DATABASE:
+        required: true
+      JWT_SECRET:
+        required: true
+      LLM_PROVIDER:
+        required: true
+      OPENAI_BASE_URL:
+        required: true
+      OPENAI_API_KEY:
+        required: true
 jobs:
   deploy:
     name: Deploy Helm Chart to Kubernetes
@@ -24,7 +38,7 @@ jobs:
       - name: Configure Kubeconfig
         run: |
           mkdir -p ~/.kube
-          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
           chmod 600 ~/.kube/config
 
       - name: Set up Helm
@@ -35,9 +49,9 @@ jobs:
         id: image_tag
         run: |
             if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "::set-output name=tag::latest"
+            echo "tag=latest" >> $GITHUB_OUTPUT
             else
-            echo "::set-output name=tag::staging"
+            echo "tag=staging" >> $GITHUB_OUTPUT
             fi
 
       - name: Get latest version (or use 1.0.0-beta as fallback)
@@ -60,7 +74,9 @@ jobs:
             --set secrets.llm-provider="${{ secrets.LLM_PROVIDER }}" \
             --set secrets.openai-base-url="${{ secrets.OPENAI_BASE_URL }}" \
             --set secrets.openai-api-key="${{ secrets.OPENAI_API_KEY }}" \
-            --set secrets.openai-model="${{ vars.OPENAI_MODEL }}"
+            --set secrets.openai-model="${{ inputs.OPENAI_MODEL }}" \
+            --set monitoring.enabled=true \
+            --set hpa.enabled=true
 
       - name: Show status
         run: |
@@ -68,6 +84,11 @@ jobs:
           kubectl get svc -n skillforge-ai
           kubectl get ingress -n skillforge-ai 
      
-      - name: Print Client URL in Workflow Output
+      - name: Print URLs in Workflow Output
         run: |
-          echo "CLIENT_URL=https://skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "🌐 Main Application (skillforge-client): https://skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "🔌 API Gateway (skillforge-gateway): https://api.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📈 Prometheus Metrics (skillforge-prometheus): https://prometheus.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📊 Grafana Dashboard (skillforge-grafana): https://grafana.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "🚨 Alert Manager (skillforge-alertmanager): https://alertmanager.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
+          echo "📧 MailHog (skillforge-mailhog): https://mailhog.skillforge.student.k8s.aet.cit.tum.de" >> $GITHUB_OUTPUT
