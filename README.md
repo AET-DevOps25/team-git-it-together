@@ -24,22 +24,24 @@
 
 ## 📊 Status
 
+<div align="center">
+
 <table>
   <tr>
     <td colspan="3" align="center"><b>🔨 Build & Test</b></td>
   </tr>
   <tr>
-    <td>
+    <td align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-client.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-client.yml/badge.svg" alt="Build and Test Client"/>
       </a>
     </td>
-    <td>
+    <td align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-server.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-server.yml/badge.svg" alt="Build and Test Server"/>
       </a>
     </td>
-    <td>
+    <td align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-genai.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-genai.yml/badge.svg" alt="Build and Test GenAI"/>
       </a>
@@ -54,7 +56,7 @@
     <td colspan="3" align="center"><b>🐳 Docker</b></td>
   </tr>
   <tr>
-    <td colspan="3">
+    <td colspan="3" align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml/badge.svg" alt="Build and Push Docker Images"/>
       </a>
@@ -64,7 +66,7 @@
     <td colspan="3" align="center"><b>☸️ Kubernetes Deployment</b></td>
   </tr>
   <tr>
-    <td colspan="3">
+    <td colspan="3" align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-push-deploy.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-push-deploy.yml/badge.svg" alt="Build, Push and Deploy to Kubernetes"/>
       </a>
@@ -74,13 +76,15 @@
     <td colspan="3" align="center"><b>☁️ AWS Deployment</b></td>
   </tr>
   <tr>
-    <td colspan="3">
+    <td colspan="3" align="center">
       <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml">
         <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
       </a>
     </td>
   </tr>
 </table>
+
+</div>
 
 ## 🌐 Live Application Links
 
