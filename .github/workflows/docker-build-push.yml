@@ -44,9 +44,6 @@ jobs:
               VITE_API_INTERNAL_PORT=8081
               BUILD_MODE=production
               VITE_PORT=3000
-            dynamic-build-args: |
-              VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
-              VITE_PUBLIC_API_URL=${{ inputs.API_URL || vars.API_URL || 'http://localhost:8081' }}
           - id: skillforge-gateway
             path: server/skillforge-gateway
             image: server-gateway
@@ -115,7 +112,8 @@ jobs:
           cache-to: type=registry,ref=ghcr.io/aet-devops25/team-git-it-together/${{ matrix.image }}-cache,mode=max
           build-args: |
             ${{ matrix.build-args }}
-            ${{ matrix.dynamic-build-args || '' }}
+            VITE_APP_VERSION=${{ steps.extract_version.outputs.version }}
+            VITE_PUBLIC_API_URL=${{ inputs.API_URL || vars.API_URL || 'http://localhost:8081' }}
 
       - name: Clean up dangling images
         run: |
