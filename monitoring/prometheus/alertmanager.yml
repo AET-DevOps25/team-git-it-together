@@ -13,6 +13,6 @@ receivers:
     email_configs:
       - to: oncall@skillforge.ai
         from: alertmanager@skillforge.local
-        smarthost: mailhog:1025
+        smarthost: skillforge-mailhog:1025
         require_tls: false
         send_resolved: true

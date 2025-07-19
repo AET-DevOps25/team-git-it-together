@@ -5,7 +5,7 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']
+        - targets: ['skillforge-alertmanager:9093']
 
 rule_files:
   - "alert.rules.yml"
@@ -50,7 +50,7 @@ scrape_configs:
       - target_label: "job"
         replacement: "mongodb-exporter"
     static_configs:
-      - targets: [ 'mongo-exporter:9216' ]
+      - targets: [ 'skillforge-mongo-exporter:9216' ]
 
   # ----- Weaviate vector DB -----
   - job_name: weaviate
