@@ -1,14 +1,6 @@
 groups:
   - name: basic-alerts
     rules:
-      - alert: MongoExporterDown
-        expr: absent(up{job="mongo_exporter"} == 1) or up{job="mongo_exporter"} == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "MongoDB exporter is down"
-
       - alert: UserAuthFailuresHigh
         expr: increase(user_auth_failure_total[2m]) > 50
         for: 0s

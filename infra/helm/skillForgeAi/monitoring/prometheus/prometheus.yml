@@ -31,27 +31,6 @@ scrape_configs:
     static_configs:
       - targets: [ 'skillforge-genai:8888' ]
 
-  # ----- Traefik Proxy -----
-  # - job_name: traefik
-  #   metric_relabel_configs:
-  #     # add static namespace label expected by upstream Traefik dashboard
-  #     - target_label: "namespace"
-  #       replacement: "default"
-  #     # add service label for dashboard compatibility
-  #     - target_label: "service"
-  #       replacement: "traefik"
-  #   # static_configs:
-  #   #   - targets: [ 'skillforge-traefik:8085' ]
-
-  # ----- Database exporters -----
-  - job_name: mongo_exporter
-    metric_relabel_configs:
-      # rename job label so MongoDB dashboard variable matches
-      - target_label: "job"
-        replacement: "mongodb-exporter"
-    static_configs:
-      - targets: [ 'skillforge-mongo-exporter:9216' ]
-
   # ----- Weaviate vector DB -----
   - job_name: weaviate
     metrics_path: /metrics
