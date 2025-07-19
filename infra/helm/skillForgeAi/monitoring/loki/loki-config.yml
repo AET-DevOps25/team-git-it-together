@@ -40,6 +40,7 @@ limits_config:
   max_query_parallelism: 16
   ingestion_rate_mb: 4
   ingestion_burst_size_mb: 6
+  volume_enabled: true
 
 table_manager:
   retention_deletes_enabled: false

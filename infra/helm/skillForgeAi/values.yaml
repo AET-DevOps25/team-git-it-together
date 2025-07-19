@@ -173,7 +173,7 @@ monitoring:
         memory: 2Gi
     storage:
       enabled: true
-      size: 5Gi
+      size: 20Gi
       storageClass: ""
   promtail:
     enabled: true
