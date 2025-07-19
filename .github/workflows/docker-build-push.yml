@@ -1,14 +1,6 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    branches: [main, test, dev]
-    paths:
-      - 'client/**'
-      - 'server/skillforge-gateway/**'
-      - 'server/skillforge-user/**'
-      - 'server/skillforge-course/**'
-      - 'genai/**'
   pull_request:
     branches: [main, test, dev]
     paths:
