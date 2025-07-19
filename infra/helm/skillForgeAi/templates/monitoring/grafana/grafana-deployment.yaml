@@ -35,9 +35,15 @@ spec:
             - name: GF_SERVER_HTTP_PORT
               value: "{{ .Values.monitoring.grafana.port }}"
             - name: GF_SECURITY_ADMIN_USER
-              value: "admin"
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: adminUser
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: "{{ .Values.monitoring.grafana.adminPassword }}"
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: adminPassword
             - name: GF_FEATURE_TOGGLES_ENABLE
               value: "publicDashboards"
             - name: GF_UNIFIED_ALERTING_ENABLED
