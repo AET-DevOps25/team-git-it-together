@@ -6,3 +6,7 @@ datasources:
     url: http://skillforge-prometheus:9090
     uid: DS_PROMETHEUS
     isDefault: true
+    jsonData:
+      timeInterval: "15s"
+      queryTimeout: "60s"
+      httpMethod: "POST"

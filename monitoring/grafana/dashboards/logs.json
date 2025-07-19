@@ -84,7 +84,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "DS_LOKI"
       },
       "description": "Log volumes by service over time",
       "fieldConfig": {
@@ -167,7 +167,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "DS_LOKI"
           },
           "editorMode": "code",
           "expr": "sum by(service) (count_over_time({service=~\".+\"} [5m]))",
@@ -182,7 +182,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "DS_LOKI"
       },
       "description": "Total error log count across all services (last hour)",
       "fieldConfig": {
@@ -272,7 +272,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "DS_LOKI"
           },
           "editorMode": "code",
           "expr": "sum(count_over_time(({service=~\".+\"} |~ \"(?i)error|exception|fail\")[1h]))",
@@ -286,7 +286,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "DS_LOKI"
       },
       "description": "Error log count per service (last 5m interval)",
       "fieldConfig": {
@@ -369,7 +369,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "DS_LOKI"
           },
           "editorMode": "code",
           "expr": "sum by(service) (count_over_time({service=~\".+\"} |~ \"(?i)error|exception|fail\" [5m]))",
@@ -384,7 +384,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "Loki"
+        "uid": "DS_LOKI"
       },
       "fieldConfig": {
         "defaults": {},
@@ -413,7 +413,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "Loki"
+            "uid": "DS_LOKI"
           },
           "editorMode": "code",
           "expr": "{service=~\"$service\"} |~ \"$search\"",
@@ -446,7 +446,7 @@
         },
         "datasource": {
           "type": "loki",
-          "uid": "Loki"
+          "uid": "DS_LOKI"
         },
         "definition": "label_values(service)",
         "includeAll": true,
@@ -467,7 +467,7 @@
         },
         "datasource": {
           "type": "loki",
-          "uid": "Loki"
+          "uid": "DS_LOKI"
         },
         "definition": "label_values(level)",
         "includeAll": true,
