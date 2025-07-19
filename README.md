@@ -1,23 +1,3 @@
-<table>
-  <tr>
-    <td>
-      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml">
-        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml/badge.svg" alt="Build and Push Docker Images"/>
-      </a>
-    </td>
-    <td>
-      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml">
-        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><b>Build & Push Docker Images</b></td>
-    <td align="center"><b>Provision, Configure & Deploy to AWS</b></td>
-  </tr>
-</table>
-
-
 # SkillForge.ai
 
 **Team**: git-it-together
@@ -26,20 +6,92 @@
 
 **Tutor:** Sindi Buklaji
 
-
 ## 📚 Table of Contents  
-1. [📅 Project Timeline](#-project-timeline)
-2. [📝 Problem Statement](#-problem-statement)
-3. [🧩 System Overview and Architecture](#-system-overview-and-architecture)
-4. [📋 Requirements](#-requirements)  
-5. [🔧 Features](#-features)  
-6. [🛠️ Tech Stack](#-tech-stack)  
-8. [📦 Setup Instructions](#-setup-instructions)
-9. [📌 Future Improvements](#-future-improvements)  
-10. [👥 Team Roles](#-team-roles)  
-11. [📄 License](#-license)  
+1. [📊 Status](#-status)
+2. [🌐 Live Application Links](#-live-application-links)
+3. [📅 Project Timeline](#-project-timeline)
+4. [📝 Problem Statement](#-problem-statement)
+5. [🧩 System Overview and Architecture](#-system-overview-and-architecture)
+6. [📋 Requirements](#-requirements)  
+7. [🔧 Features](#-features)  
+8. [🛠️ Tech Stack](#-tech-stack)  
+10. [📦 Setup Instructions](#-setup-instructions)
+11. [📌 Future Improvements](#-future-improvements)  
+12. [👥 Team Roles](#-team-roles)  
+13. [📄 License](#-license)  
  
 ---
+
+## 📊 Status
+
+<table>
+  <tr>
+    <td colspan="3" align="center"><b>🔨 Build & Test</b></td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-client.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-client.yml/badge.svg" alt="Build and Test Client"/>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-server.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-server.yml/badge.svg" alt="Build and Test Server"/>
+      </a>
+    </td>
+    <td>
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-genai.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-and-test-genai.yml/badge.svg" alt="Build and Test GenAI"/>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><b>Client</b></td>
+    <td align="center"><b>Server</b></td>
+    <td align="center"><b>GenAI</b></td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center"><b>🐳 Docker</b></td>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/docker-build-push.yml/badge.svg" alt="Build and Push Docker Images"/>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center"><b>☸️ Kubernetes Deployment</b></td>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-push-deploy.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/build-push-deploy.yml/badge.svg" alt="Build, Push and Deploy to Kubernetes"/>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center"><b>☁️ AWS Deployment</b></td>
+  </tr>
+  <tr>
+    <td colspan="3">
+      <a href="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml">
+        <img src="https://github.com/AET-DevOps25/team-git-it-together/actions/workflows/provision_configure_deploy.yml/badge.svg" alt="Provision, Configure and Deploy to AWS"/>
+      </a>
+    </td>
+  </tr>
+</table>
+
+## 🌐 Live Application Links
+
+| Service | Description | URL |
+|---------|-------------|-----|
+| 🎯 **Main Application** | SkillForge.ai Frontend | [https://skillforge.student.k8s.aet.cit.tum.de](https://skillforge.student.k8s.aet.cit.tum.de) |
+| 🔌 **API Gateway** | Backend API Services | [https://api.skillforge.student.k8s.aet.cit.tum.de](https://api.skillforge.student.k8s.aet.cit.tum.de) |
+| 📈 **Prometheus** | Metrics & Monitoring | [https://prometheus.skillforge.student.k8s.aet.cit.tum.de](https://prometheus.skillforge.student.k8s.aet.cit.tum.de) |
+| 📊 **Grafana** | Dashboards & Analytics | [https://grafana.skillforge.student.k8s.aet.cit.tum.de](https://grafana.skillforge.student.k8s.aet.cit.tum.de) |
+| 🚨 **Alert Manager** | Alerts & Notifications | [https://alertmanager.skillforge.student.k8s.aet.cit.tum.de](https://alertmanager.skillforge.student.k8s.aet.cit.tum.de) |
+| 📧 **MailHog** | Email Testing Tool | [https://mailhog.skillforge.student.k8s.aet.cit.tum.de](https://mailhog.skillforge.student.k8s.aet.cit.tum.de) |
 
 ## 📅 Project Timeline
 
@@ -56,43 +108,53 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
 
 ## 📋 Requirements
 
-Before you get started, make sure you have the following installed on your development machine:
-
+### 🚀 **Essential Requirements (Local Development)**
 * **[Docker Desktop](https://www.docker.com/products/docker-desktop) (with Docker Compose)**
-  *For running and orchestrating all local containers*
-* **[Node.js](https://nodejs.org/) (v18+ recommended) & [npm](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com/)**
-  *For building and running the frontend locally (optional, but recommended for development and hot-reload)*
-* **[Java JDK 21+](https://www.oracle.com/java/technologies/javase-jdk21-downloads.html)**
-  *For building and running the backend services*
-* **[MongoDB](https://www.mongodb.com/try/download/community)**
-  *For local development and testing (if you want to run MongoDB locally)*
-* **[Weaviate](https://weaviate.io/developers/weaviate/install)**
-  *For local development and testing (if you want to run Weaviate locally)*
-* **[Python](https://www.python.org/downloads/) (v3.10+ recommended)**
-  *For running the GenAI service locally (if you want to use GenAI features)*
+  *Required for running and orchestrating all local containers*
 * **[Git](https://git-scm.com/)**
-  *For cloning the repository and managing version control*
-* **[Terraform](https://www.terraform.io/downloads.html)**
-  *For provisioning cloud infrastructure (if you plan to use Infrastructure as Code)*
-* **[Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
-  *For automating configuration and server setup (optional for local development)*
-* **[kubectl](https://kubernetes.io/docs/tasks/tools/) & [Helm](https://helm.sh/docs/intro/install/)**
-  *For managing Kubernetes deployments (optional, required only if deploying to a k8s cluster)*
-* **[Helm](https://helm.sh/docs/intro/install/)**
-  *For managing Kubernetes deployments (optional, required only if deploying to a k8s cluster)*
-* **[Helmfile](https://github.com/roboll/helmfile)**
-  *For managing Helm charts and releases (optional, required only if deploying to a k8s cluster)*
-* **[Prometheus](https://prometheus.io/docs/prometheus/latest/installation/) & [Grafana](https://grafana.com/docs/grafana/latest/installation/)**
-  *For monitoring and observability (optional, but recommended for production deployments)*
-* **[OpenAI API Key](https://platform.openai.com/signup)**
-  *For using GenAI features (if you want to use OpenAI's models locally)*
-* **[AWS CLI](https://aws.amazon.com/cli/)**
-  *For managing AWS resources (if you plan to deploy to AWS)*
-* **[LM Studio](https://lmstudio.ai/)**
-  *For running local language models (optional, if you want to run models locally instead of using OpenAI)* 
+  *Required for cloning the repository and managing version control*
 
-> **Note:**
-> Most local development tasks require only Docker and Git. Other tools are needed for infrastructure automation, cloud, or advanced scenarios.
+### 💻 **Development Tools (Recommended)**
+* **[Node.js](https://nodejs.org/) (v18+ recommended) & [npm](https://www.npmjs.com/) or [Yarn](https://yarnpkg.com/)**
+  *For building and running the frontend locally with hot-reload*
+* **[Java JDK 21+](https://www.oracle.com/java/technologies/javase-jdk21-downloads.html)**
+  *For building and running the backend services locally*
+* **[Python](https://www.python.org/downloads/) (v3.10+ recommended)**
+  *For running the GenAI service locally and database seeding*
+
+### 🗄️ **Local Services (Optional)**
+* **[MongoDB](https://www.mongodb.com/try/download/community)**
+  *For local development and testing (Docker version is used by default)*
+* **[Weaviate](https://weaviate.io/developers/weaviate/install)**
+  *For local development and testing (Docker version is used by default)*
+
+### 🤖 **AI/ML Requirements**
+* **[OpenAI API Key](https://platform.openai.com/signup)**
+  *Required for using GenAI features with OpenAI models*
+* **[LM Studio](https://lmstudio.ai/) (Optional)**
+  *For running local language models instead of using OpenAI*
+
+### ☁️ **Infrastructure & Deployment (Optional)**
+* **[Terraform](https://www.terraform.io/downloads.html)**
+  *For provisioning cloud infrastructure (Infrastructure as Code)*
+* **[Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)**
+  *For automating configuration and server setup*
+* **[kubectl](https://kubernetes.io/docs/tasks/tools/)**
+  *For managing Kubernetes deployments*
+* **[Helm](https://helm.sh/docs/intro/install/)**
+  *For managing Kubernetes deployments and Helm charts*
+* **[Helmfile](https://github.com/roboll/helmfile)**
+  *For managing Helm charts and releases*
+* **[AWS CLI](https://aws.amazon.com/cli/)**
+  *For managing AWS resources*
+
+### 📊 **Monitoring & Observability (Optional)**
+* **[Prometheus](https://prometheus.io/docs/prometheus/latest/installation/)**
+  *For metrics collection and monitoring*
+* **[Grafana](https://grafana.com/docs/grafana/latest/installation/)**
+  *For dashboards and analytics*
+
+> **💡 Note:** Most local development tasks require only **Docker** and **Git**. Other tools are needed for infrastructure automation, cloud deployment, or advanced development scenarios.
 
 ## 🔧 Features
 
@@ -342,8 +404,15 @@ Before you get started, make sure you have the following installed on your devel
 
 ## 👥 Team Roles
 
-* **Mahdi Bayouli** – \[Role: TBD]
-* **Achraf Labidi** – \[Role: TBD]
+### **Achraf Labidi** – Full Stack Software Developer
+* **Backend Development** - Java Spring Boot services (Gateway, User Service, Course Service)
+* **Frontend Development** - React/TypeScript application with Vite and Tailwind CSS
+* **Deployment & Infrastructure** - Docker containerization, Kubernetes deployment, AWS deployment, CI/CD pipelines
+
+### **Mahdi Bayouli** – Full Stack Software Developer  
+* **GenAI Development** - Python-based AI services with LangChain and OpenAI integration
+* **Monitoring & Observability** - Prometheus, Grafana, Alert Manager setup and configuration
+* **Deployment & Infrastructure** - Kubernetes deployment and monitoring stack
 
 
 ## 📄 License
