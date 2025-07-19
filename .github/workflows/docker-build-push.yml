@@ -11,6 +11,12 @@ on:
       - 'genai/**'
   workflow_dispatch:
   workflow_call:
+    inputs:
+      API_URL:
+        required: false
+        type: string
+        description: "API URL for the client build"
+        default: "https://api.skillforge.student.k8s.aet.cit.tum.de"
 
 permissions: 
   contents: read
@@ -35,7 +41,7 @@ jobs:
               VITE_APP_VERSION=1.0.0-beta
               VITE_API_BASE_URL=/api/
               VITE_API_VERSION=v1
-              VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api
+              VITE_PUBLIC_API_URL=${{ inputs.API_URL || vars.API_URL || 'http://localhost:8081' }}
               VITE_API_INTERNAL_HOST=skillforge-gateway
               VITE_API_INTERNAL_PORT=8081
               BUILD_MODE=production

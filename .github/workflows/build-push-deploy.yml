@@ -26,6 +26,8 @@ jobs:
     name: Build and Push Docker Images
     needs: [build-and-test-client, build-and-test-server, build-and-test-genai]
     uses: ./.github/workflows/docker-build-push.yml
+    with:
+      API_URL: https://api.skillforge.student.k8s.aet.cit.tum.de
     
   deploy-to-kubernetes:
     name: Deploy to Kubernetes Cluster (Rancher Cluster)

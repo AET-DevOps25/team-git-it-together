@@ -5,11 +5,10 @@ datasources:
     type: loki
     access: proxy
     url: http://skillforge-loki:3100
-    uid: DS_LOKI
     jsonData:
       maxLines: 1000
       derivedFields:
-        - datasourceUid: DS_PROMETHEUS
+        - datasourceUid: prometheus
           matcherRegex: "traceID=(\\w+)"
           name: TraceID
           url: "${__value.raw}"
