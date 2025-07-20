@@ -17,7 +17,7 @@ user:
     uri: http://${SERVER_HOST_USER:user-service}:${SERVER_PORT_USER:8082}
 course:
   service:
-    uri: http://${SERVER_HOST_COURSE:course-service}:${SERVER_PORT_COURSES:8083}
+    uri: http://${SERVER_HOST_COURSE:course-service}:${SERVER_PORT_COURSE:8083}
 
 #Overide Rate limiting configuration for Docker
 rate:
@@ -29,11 +29,3 @@ rate:
 gateway:
   health:
     uri: http://${SERVER_HOST_GATEWAY:server-gateway}:${SERVER_PORT_GATEWAY:8081}
-
-logging:
-  level:
-    com.gitittogether.skillforge.server.gateway: INFO
-    com.gitittogether.skillforge.server.gateway.config: INFO
-    org.springframework.cloud.gateway: INFO
-    org.springframework.security: INFO
-    org.springframework.data.redis: INFO

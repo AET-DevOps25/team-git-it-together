@@ -9,7 +9,6 @@ spring:
   data:
     mongodb:
       database: test-db
-      # Use embedded MongoDB for tests with default values
       host: localhost
       port: 27017
       username: ${MONGODB_USERNAME:testuser}

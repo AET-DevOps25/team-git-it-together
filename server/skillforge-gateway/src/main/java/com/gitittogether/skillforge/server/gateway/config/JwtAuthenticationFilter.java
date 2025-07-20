@@ -80,7 +80,14 @@ public class JwtAuthenticationFilter implements GatewayFilter {
                 !path.contains("/api/v1/users/register") &&
                 !path.contains("/api/v1/courses/public") &&
                 !path.contains("/api/v1/courses/search") &&
-                !path.contains("/docs");
+                !path.contains("/docs") &&
+                !path.contains("/swagger-ui") &&
+                !path.contains("/v3/api-docs") &&
+                !path.contains("/actuator") &&
+                !path.contains("/health") &&
+                !path.contains("/info") &&
+                !path.contains("/metrics") &&
+                !path.contains("/prometheus");
 
         log.info("JWT Filter: Path {} is secured: {}", path, secured);
         return secured;

@@ -2,25 +2,26 @@
 
 **Team**: git-it-together
 
-**Authors:** Achraf Labidi · Mahdi Bayouli 
+**Authors:** Achraf Labidi (@GravityDarkLab) x Mahdi Bayouli  (@mahdibayouli)
 
 **Tutor:** Sindi Buklaji
+
+**Description:** SkillForge is an innovative AI-powered learning platform that revolutionizes how people acquire new skills and knowledge. Our mission is to make quality education accessible, personalized, and engaging for everyone, regardless of their location or background.
+
 
 ## 📚 Table of Contents  
 1. [📊 Status](#-status)
 2. [🌐 Live Application Links](#-live-application-links)
-3. [📅 Project Timeline](#-project-timeline)
+3. [📅 Internal Project Timeline](#-internal-project-timeline)
 4. [📝 Problem Statement](#-problem-statement)
 5. [🧩 System Overview and Architecture](#-system-overview-and-architecture)
 6. [📋 Requirements](#-requirements)  
 7. [🔧 Features](#-features)  
 8. [🛠️ Tech Stack](#-tech-stack)  
-10. [📦 Setup Instructions](#-setup-instructions)
-11. [📌 Future Improvements](#-future-improvements)  
-12. [👥 Team Roles](#-team-roles)  
-13. [📄 License](#-license)  
+9. [📦 Setup Instructions](#-setup-instructions)
+10. [👥 Team Roles](#-team-roles)  
+11. [📄 License](#-license)  
  
----
 
 ## 📊 Status
 
@@ -92,14 +93,15 @@
 |---------|-------------|-----|
 | 🎯 **Main Application** | SkillForge.ai Frontend | [https://skillforge.student.k8s.aet.cit.tum.de](https://skillforge.student.k8s.aet.cit.tum.de) |
 | 🔌 **API Gateway** | Backend API Services | [https://api.skillforge.student.k8s.aet.cit.tum.de](https://api.skillforge.student.k8s.aet.cit.tum.de) |
+| 🤖 **GenAI** | GenAI Service | [https://api.genai.skillforge.student.k8s.aet.cit.tum.de](https://api.genai.skillforge.student.k8s.aet.cit.tum.de) |
 | 📈 **Prometheus** | Metrics & Monitoring | [https://prometheus.skillforge.student.k8s.aet.cit.tum.de](https://prometheus.skillforge.student.k8s.aet.cit.tum.de) |
 | 📊 **Grafana** | Dashboards & Analytics | [https://grafana.skillforge.student.k8s.aet.cit.tum.de](https://grafana.skillforge.student.k8s.aet.cit.tum.de) |
 | 🚨 **Alert Manager** | Alerts & Notifications | [https://alertmanager.skillforge.student.k8s.aet.cit.tum.de](https://alertmanager.skillforge.student.k8s.aet.cit.tum.de) |
 | 📧 **MailHog** | Email Testing Tool | [https://mailhog.skillforge.student.k8s.aet.cit.tum.de](https://mailhog.skillforge.student.k8s.aet.cit.tum.de) |
 
-## 📅 Project Timeline
+## 📅 Internal Project Timeline
 
-See the [weekly progress](./docs/weekly-progress.md) document for a detailed timeline of the project.
+See the [weekly progress](https://confluence.aet.cit.tum.de/spaces/DO25WR/pages/258581490/git-it-together) document for a detailed timeline of the project.
 
 ## 📝 Problem Statement
 
@@ -107,8 +109,11 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
 
 ## 🧩 System Overview and Architecture
 
-> TODO: _Add link to the system overview and architecture diagram._
+See the [system overview and architecture](./docs/system-overview-and-architecture.md) document for a detailed description of the system overview and architecture.
 
+For the Server, See the [README](./server/README.md) file for a detailed description of the server.
+For the Client, See the [README](./client/README.md) file for a detailed description of the client.
+For the GenAI, See the [README](./genai/README.md) file for a detailed description of the GenAI.
 
 ## 📋 Requirements
 
@@ -162,7 +167,47 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
 
 ## 🔧 Features
 
-> TODO: _List of features and functionalities that the app provides._ 
+
+Built with cutting-edge technologies and modern development practices, SkillForge combines the power of artificial intelligence with comprehensive learning management to create a truly personalized educational experience. Our platform adapts to each learner's pace, preferences, and goals, ensuring maximum engagement and retention.
+
+### 🔥 **Current Features**
+
+* ✨ **AI-Curated Course Generation**
+  Create and explore dynamic courses powered by artificial intelligence.
+
+* 💬 **Interactive AI Chat Assistant**
+  Get instant help and learning guidance from an intelligent AI tutor.
+
+* 🧭 **Personalized Learning Paths**
+  Customized journeys tailored to your skills, pace, and goals.
+
+* 🏆 **Achievement & Badge System**
+  Unlock milestones and collect badges as you learn.
+
+* 📚 **Course Bookmarking**
+  Save and organize your favorite courses for quick access.
+
+* ⚡️ **Real-time Progress Updates**
+  Track your learning progress instantly, every step of the way.
+
+---
+
+### 🚀 **Planned Features**
+
+* 🌐 **Global Learning Community** *(Coming Soon)*
+  Connect, collaborate, and grow with learners worldwide.
+
+* 🈺 **Multi-language Support** *(Coming Soon)*
+  Learn in your preferred language.
+
+* 📊 **Advanced Analytics Dashboard** *(Coming Soon)*
+  Dive deep into your learning stats and trends.
+
+* 💻 **Interactive Code Playground** *(Coming Soon)*
+  Practice coding live within the platform.
+
+* 🎓 **Certification Programs** *(Coming Soon)*
+  Earn certificates to showcase your achievements.
 
 
 ## 🛠️ Tech Stack
@@ -177,174 +222,98 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
 * **☁️ Cloud Provider:** AWS (Amazon Web Services), AET Cluster on Rancher
 
 
-## 📦 Setup Instructions for Local Development
+## 📦 Quick Start: Local Development Setup
 
-### **1. Prepare Your Environment**
+### 1. Prerequisites
+- **Docker Desktop** (includes Docker Compose) — [Download here](https://www.docker.com/products/docker-desktop)
+- **Git**
+- (Linux only) [Follow these steps](https://docs.docker.com/engine/install/) to install Docker Engine
 
-* **Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)** (includes Docker Compose).
-* For Linux users, [follow these steps](https://docs.docker.com/engine/install/).
+### 2. Clone the Repository
+```bash
+git clone https://github.com/AET-DevOps25/team-git-it-together.git
+cd team-git-it-together
+```
 
-### **2. Clone the repository:**
-
-  ```bash
-  git clone https://github.com/AET-DevOps25/team-git-it-together.git
-  cd team-git-it-together
-  ```
-
-### **3. Create and Configure Your `.env` File**
-
-* **Copy the example environment file to `.env` in the root directory:**
-
-  * **On macOS/Linux:**
-
-    using the provided script:
-
+### 3. Configure Environment Variables
+- Copy the example environment file to `.env` in the root directory:
+  - **macOS/Linux:**
     ```bash
     ./copy-env.sh .env.dev.example .env
     ```
-  * **On Windows (PowerShell):**
-
-    using the provided script:
-
+  - **Windows (PowerShell):**
     ```powershell
     .\copy-env.ps1 .env.dev.example .env
     ```
-
-* **Fill in all required secrets and configurations in your new `.env` file.**
-
-  * A minimal example:
-
-    ```env
-    MONGODB_DATABASE=skillforge_dev
-    MONGODB_USERNAME=dev_user
-    MONGODB_PASSWORD=dev_password
-    JWT_SECRET=<secret-key>
-    JWT_EXPIRATION_MS=3600000
-    VITE_APP_VERSION=1.0.0
-    VITE_API_VERSION=v1
-    GENAI_APP_VERSION=1.0.0
-    CORS_ALLOW_ORIGINS=*
-    LLM_PROVIDER=openai
-    OPENAI_API_BASE=https://api.openai.com/v1
-    OPENAI_API_KEY=<secret-key>
-    OPENAI_MODEL=gpt-4o-mini
-    ```
-  * List of Default Ports:
-
-    | Service | Port |
-    | ------- | ---- |
-    | mongo | 27017 |
-    | weaviate-db | 8080 |
-    | server-gateway | 8081 |
-    | user-service | 8082 |
-    | course-service | 8083 |
-    | genai | 8888 |
-
-### **3. Build and Start the Application**
-
-* **In the root project directory, run:**
-
-  ```bash
-  docker compose up --build
+- Edit `.env` and fill in all required secrets and configuration values.
+- **Minimal example:**
+  ```env
+  MONGODB_DATABASE=skillforge_dev
+  MONGODB_USERNAME=dev_user
+  MONGODB_PASSWORD=dev_password
+  JWT_SECRET=<secret-key>
+  JWT_EXPIRATION_MS=3600000
+  VITE_APP_VERSION=1.0.0
+  VITE_API_VERSION=v1
+  GENAI_APP_VERSION=1.0.0
+  CORS_ALLOW_ORIGINS=*
+  LLM_PROVIDER=openai
+  OPENAI_API_BASE=https://api.openai.com/v1
+  OPENAI_API_KEY=<secret-key>
+  OPENAI_MODEL=gpt-4o-mini
   ```
+- **Default Ports:**
+  | Service         | Port  |
+  |-----------------|-------|
+  | mongo           | 27017 |
+  | weaviate-db     | 8080  |
+  | server-gateway  | 8081  |
+  | user-service    | 8082  |
+  | course-service  | 8083  |
+  | genai           | 8888  |
+  | mailhog         | 8025  |
+  | prometheus      | 9090  |
+  | grafana         | 3000  |
+  | alertmanager    | 9093  |
+  | client          | 3000  |
 
-  * This will build and start all services defined in `docker-compose.yml`.
-
-* **To run in detached mode (in the background):**
-
+### 4. Build and Start All Services
+```bash
+docker compose up --build
+```
+- To run in detached/background mode:
   ```bash
   docker compose up --build -d
   ```
 
-### **4. (Optional) Seed the Database**
+### 5. (Optional) Seed the Database
+```bash
+cd seed
+python seed_all.py
+```
+- This will create a demo user and seed the database with sample courses.
 
-* **Seed the database with some data:**
+### 6. Access the Application
+- **Frontend:** [http://localhost:3000](http://localhost:3000) or [http://client.localhost](http://client.localhost)
+- **API Gateway:** [http://localhost:8081/api/v1/health](http://localhost:8081/api/v1/health) or [http://server.localhost](http://server.localhost)
+- **GenAI Service:** [http://localhost:8888/api/v1/health](http://localhost:8888/api/v1/health) or [http://genai.localhost](http://genai.localhost)
 
-  ```bash
-  cd seed
-  python seed_all.py
-  ```
-  This will will create a user with the following credentials:
-  ```
-  username: max123
-  password: password
-  ```
-  and will seed the database with some courses.
-
-
-### **5. Access the Application**
-
-* **Access the application in your browser:**
-
-  ```bash
-  http://localhost:3000
-  ```
-  or
-
-  ```bash
-  http://client.localhost
-  ```
-  __Note:__ The client is accessible at `http://client.localhost` because of the `client.localhost` entry in the `/etc/hosts` file that you can add manually.
-  To add it, you can run the following command:
-  ```bash
-  echo "127.0.0.1 client.localhost" | sudo tee -a /etc/hosts
-  ```
-
-* **Access the API using the API:**
-
-  ```bash
-  http://localhost:8081/api/v1/health
-  ```
-  or
-
-  ```bash
-  http://server.localhost
-  ```
-  __Note:__ The server is accessible at `http://server.localhost` because of the `server.localhost` entry in the `/etc/hosts` file that you can add manually.
-  To add it, you can run the following command:
-  ```bash
-  echo "127.0.0.1 server.localhost" | sudo tee -a /etc/hosts
-  ```
-  
-* **Access the GenAI service using the API:**
-
-  ```bash
-  http://localhost:8888/api/v1/health
-  ```
-  or
-  ```bash
-  http://genai.localhost
-  ```
-  __Note:__ The GenAI service is accessible at `http://genai.localhost` because of the `genai.localhost` entry in the `/etc/hosts` file that you can add manually.
-  To add it, you can run the following command:
-  ```bash
-  echo "127.0.0.1 genai.localhost" | sudo tee -a /etc/hosts
-  ```
-
-> You can save the `client.localhost`, `server.localhost`, and `genai.localhost` entries in the `/etc/hosts` file to access the application, API, and GenAI service from your browser by doing the following:
+> **Tip:** For pretty URLs like `client.localhost`, `server.localhost`, and `genai.localhost`, add this to your `/etc/hosts` file:
 > ```bash
 > echo "127.0.0.1 client.localhost server.localhost genai.localhost" | sudo tee -a /etc/hosts
 > ```
 
-### **6. Login and Explore the Application**
+---
 
-* **Login with the following credentials:**
+### ℹ️ Running Services Individually
+To run a specific service (e.g., client, server, genai) on its own, see the README in that service's directory for detailed instructions:
+- [`client/README.md`](client/README.md)
+- [`server/README.md`](server/README.md)
+- [`genai/README.md`](genai/README.md)
 
-  ```
-  username: max123
-  password: password
-  ```
-  * **Explore the application:**
-    * **Dashboard**
-    * **Courses**
-    * **Profile**
-    * **Settings**
-    * **Achievements**
-    * **AI Center**
-    * **AI Chat**
-    * **Logout**
+---
 
-### **7. Managing the Application**
+### **8. Managing the Application**
 
 * **To stop all running containers:**
 
@@ -359,7 +328,7 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
   ```
   **Note:** This will perform a hard reset, removing all data in volumes. Perform this only if you want to reset your local environment.
 
-### **8. Troubleshooting & Tips**
+### **9. Troubleshooting & Tips**
 
 * **Check logs for any service:**
 
@@ -398,12 +367,6 @@ See the [problem statement](./docs/problem-statement.md) document for a detailed
     ```bash
     docker compose --env-file .env.prod -f docker-compose.local.yaml down --volumes --remove-orphans
     ```
-
-
-## 📌 Future Improvements
-
-> TODO: _List of potential future improvements or features that could be added to the app._
-
 
 
 ## 👥 Team Roles

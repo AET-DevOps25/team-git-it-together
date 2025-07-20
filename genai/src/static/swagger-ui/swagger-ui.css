@@ -1,0 +1,151 @@
+/* Custom Swagger UI Styles for SkillForge GenAI */
+
+/* Header and branding */
+.swagger-ui .topbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.swagger-ui .topbar .download-url-wrapper .select-label {
+    color: #fff;
+    font-weight: 600;
+}
+
+.swagger-ui .topbar .download-url-wrapper input[type=text] {
+    border: 1px solid rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+
+.swagger-ui .topbar .download-url-wrapper input[type=text]::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+
+/* Info section styling */
+.swagger-ui .info {
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.swagger-ui .info .title {
+    color: #2c3e50;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.swagger-ui .info .description {
+    color: #555;
+    line-height: 1.6;
+}
+
+/* Server selection */
+.swagger-ui .scheme-container {
+    background: #f8f9fa;
+    margin: 0 0 20px;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.swagger-ui .scheme-container .servers-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+/* Operation styling */
+.swagger-ui .opblock {
+    margin: 0 0 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.swagger-ui .opblock.opblock-get {
+    border-color: #61affe;
+    background: rgba(97, 175, 254, 0.1);
+}
+
+.swagger-ui .opblock.opblock-post {
+    border-color: #49cc90;
+    background: rgba(73, 204, 144, 0.1);
+}
+
+.swagger-ui .opblock.opblock-put {
+    border-color: #fca130;
+    background: rgba(252, 161, 48, 0.1);
+}
+
+.swagger-ui .opblock.opblock-delete {
+    border-color: #f93e3e;
+    background: rgba(249, 62, 62, 0.1);
+}
+
+/* Try it out button */
+.swagger-ui .try-out__btn {
+    background: #667eea;
+    border-color: #667eea;
+    color: #fff;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+.swagger-ui .try-out__btn:hover {
+    background: #5a6fd8;
+    border-color: #5a6fd8;
+}
+
+/* Execute button */
+.swagger-ui .execute-wrapper .btn.execute {
+    background: #49cc90;
+    border-color: #49cc90;
+    color: #fff;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-weight: 600;
+}
+
+.swagger-ui .execute-wrapper .btn.execute:hover {
+    background: #3fb37f;
+    border-color: #3fb37f;
+}
+
+/* Response section */
+.swagger-ui .responses-wrapper .responses-inner {
+    background: #f8f9fa;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+/* Code blocks */
+.swagger-ui .highlight-code {
+    background: #2d3748;
+    color: #e2e8f0;
+    border-radius: 4px;
+    padding: 15px;
+}
+
+/* Model schema */
+.swagger-ui .model {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .swagger-ui .info .title {
+        font-size: 24px;
+    }
+    
+    .swagger-ui .scheme-container {
+        padding: 15px;
+    }
+} 

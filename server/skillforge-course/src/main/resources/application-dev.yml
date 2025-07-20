@@ -17,9 +17,6 @@ user:
   service:
     uri: http://${SERVER_HOST_USER:localhost}:${SERVER_PORT_USER:8082}
 
-logging:
-  level:
-    root: INFO
-    org.springframework.web: WARN
-    org.springframework.data.mongodb: INFO
-    org.mongodb.driver: WARN
+genai:
+  service:
+    uri: http://${SERVER_HOST_GENAI:localhost}:${SERVER_PORT_GENAI:8888}

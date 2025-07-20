@@ -17,7 +17,7 @@ user:
     uri: http://localhost:${SERVER_PORT_USER:8082}
 course:
   service:
-    uri: http://localhost:${SERVER_PORT_COURSES:8083}
+    uri: http://localhost:${SERVER_PORT_COURSE:8083}
 
 # Override Rate limiting configuration for development
 rate:

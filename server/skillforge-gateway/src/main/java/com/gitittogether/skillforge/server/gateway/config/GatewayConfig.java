@@ -26,9 +26,6 @@ public class GatewayConfig {
             @Value("${course.service.uri}") String courseServiceUri,
             @Value("${gateway.health.uri}") String gatewayHealthUri
     ) {
-        log.info("GatewayConfig: Configuring routes with user service URI: {} and course service URI: {}",
-                userServiceUri, courseServiceUri);
-
         RouteLocator routeLocator = builder.routes()
                 // Health check routes (no rate limiting, no auth) - must come first
                 .route("gateway-health", r -> r.path("/actuator/health")
@@ -37,14 +34,32 @@ public class GatewayConfig {
                         .uri(userServiceUri))
                 .route("course-health", r -> r.path("/api/v1/courses/health")
                         .uri(courseServiceUri))
-
-                // Swagger documentation routes (no auth, no rate limiting) - MUST come before general routes
+                // Documentation routes (no rate limiting, no auth)
+                // User service documentation routes
                 .route("user-service-docs", r -> r.path("/api/v1/users/docs", "/api/v1/users/docs/**")
+                        .filters(f -> f
+                                .rewritePath("/api/v1/users/docs/swagger-ui/(?<segment>.*)", "/swagger-ui/${segment}")
+                                .rewritePath("/api/v1/users/docs/(?<segment>.*)", "/swagger-ui/${segment}")
+                                .rewritePath("/api/v1/users/docs", "/swagger-ui/index.html"))
                         .uri(userServiceUri))
+                .route("user-service-swagger-ui", r -> r.path("/api/v1/users/swagger-ui/**")
+                        .uri(userServiceUri))
+                .route("user-service-openapi", r -> r.path("/api/v1/users/user-openapi.yaml")
+                        .filters(f -> f.rewritePath("/api/v1/users/user-openapi.yaml", "/user-openapi.yaml"))
+                        .uri(userServiceUri))
+                // Course service documentation routes
                 .route("course-service-docs", r -> r.path("/api/v1/courses/docs", "/api/v1/courses/docs/**")
+                        .filters(f -> f
+                                .rewritePath("/api/v1/courses/docs/swagger-ui/(?<segment>.*)", "/swagger-ui/${segment}")
+                                .rewritePath("/api/v1/courses/docs/(?<segment>.*)", "/swagger-ui/${segment}")
+                                .rewritePath("/api/v1/courses/docs", "/swagger-ui/index.html"))
                         .uri(courseServiceUri))
-
-                // User service routes that are public (no auth)
+                .route("course-service-swagger-ui", r -> r.path("/api/v1/courses/swagger-ui/**")
+                        .uri(courseServiceUri))
+                .route("course-service-openapi", r -> r.path("/api/v1/courses/course-openapi.yaml")
+                        .filters(f -> f.rewritePath("/api/v1/courses/course-openapi.yaml", "/course-openapi.yaml"))
+                        .uri(courseServiceUri))
+                // User service routes that are public (no auth) but rate-limited
                 .route("user-service-auth", r -> r.path("/api/v1/users/login", "/api/v1/users/register")
                         .filters(f -> f
                                 .requestRateLimiter(config -> config
@@ -54,7 +69,6 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(userServiceUri))
-
                 // The Public course service routes (no JWT required)
                 .route("course-service-public", r -> r.path("/api/v1/courses/public/**")
                         .filters(f -> f
@@ -65,9 +79,10 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
-
                 // Protected user service routes (requires JWT)
                 .route("user-service-protected", r -> r.path("/api/v1/users/**")
+                        .and()
+                        .not(p -> p.path("/api/v1/users/docs", "/api/v1/users/docs/**", "/api/v1/users/swagger-ui/**", "/api/v1/users/user-openapi.yaml"))
                         .filters(f -> f
                                 .filter(jwtFilter)
                                 .requestRateLimiter(config -> config
@@ -77,9 +92,10 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(userServiceUri))
-
-                // Protected course service routes (requires JWT)
+                // Protected course service routes (requires JWT) - exclude documentation paths
                 .route("course-service-protected", r -> r.path("/api/v1/courses/**")
+                        .and()
+                        .not(p -> p.path("/api/v1/courses/docs", "/api/v1/courses/docs/**", "/api/v1/courses/swagger-ui/**", "/api/v1/courses/course-openapi.yaml"))
                         .filters(f -> f
                                 .filter(jwtFilter)
                                 .requestRateLimiter(config -> config

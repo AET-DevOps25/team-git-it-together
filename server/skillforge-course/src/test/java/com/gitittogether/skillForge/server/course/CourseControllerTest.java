@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.controller.courses.CourseController;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -243,8 +245,8 @@ class CourseControllerTest {
         void shouldUpdateCourseProgressSuccessfully() throws Exception {
             // Given
             CourseUpdateRequest request = CourseUpdateRequest.builder()
-                    .enrolledUsers(Arrays.asList(
-                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                    .enrolledUsers(Collections.singletonList(
+                            EnrolledUserInfoRequest.builder()
                                     .userId("user123")
                                     .currentLesson(5)
                                     .build()
@@ -362,8 +364,8 @@ class CourseControllerTest {
         void shouldReturnErrorWhenCourseNotFound() throws Exception {
             // Given
             CourseUpdateRequest request = CourseUpdateRequest.builder()
-                    .enrolledUsers(Arrays.asList(
-                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                    .enrolledUsers(Collections.singletonList(
+                            EnrolledUserInfoRequest.builder()
                                     .userId("user123")
                                     .currentLesson(1)
                                     .build()

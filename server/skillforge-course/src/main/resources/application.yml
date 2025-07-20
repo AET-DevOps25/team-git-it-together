@@ -10,15 +10,15 @@ spring:
     active: ${SPRING_PROFILE_ACTIVES:dev}
   web:
     resources:
-      add-mappings: false
+      add-mappings: true
 
 springdoc:
   api-docs:
-    enabled: true
-    path: /docs/api
+    enabled: false
+    url: /api/v1/courses/docs/course-openapi.yaml
   swagger-ui:
     enabled: true
-    path: /docs
+    url: /docs/course-openapi.yaml
 
 management:
   metrics:
@@ -36,6 +36,9 @@ jwt:
 logging:
   level:
     root: INFO
-    org.springframework.web: WARN
+    org.springframework.web: INFO
     org.springframework.data.mongodb: INFO
     org.mongodb.driver: WARN
+    com.gitittogether.skillforge: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} | %-5level | [%thread] | %logger{20} | %msg%n"

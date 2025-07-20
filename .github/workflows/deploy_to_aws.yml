@@ -6,16 +6,30 @@ on:
       ec2_ip:
         required: true
         type: string
+      OPENAI_MODEL:
+        required: false
+        type: string
+        default: "gpt-4o-mini"
+      LLM_PROVIDER:
+        required: false
+        type: string
+        default: "openai"
     secrets:
       AWS_EC2_PRIVATE_KEY:
         required: true
       MONGODB_URL:
+        required: true
+      MONGODB_DATABASE:
         required: true
       JWT_SECRET:
         required: true
       OPENAI_BASE_URL:
         required: true
       OPENAI_API_KEY:
+        required: true
+      GRAFANA_ADMIN_USER:
+        required: true
+      GRAFANA_ADMIN_PASSWORD:
         required: true
 permissions:
   contents: read
@@ -54,8 +68,9 @@ jobs:
           host: ${{ inputs.ec2_ip }}
           username: ${{ vars.AWS_EC2_USER }}
           key: ${{ secrets.AWS_EC2_PRIVATE_KEY }}
+          # Copy and rename the compose file so that the follow-up command uses the expected filename
           source: "./compose.aws.yml"
-          target: /home/${{ vars.AWS_EC2_USER }}
+          target: /home/${{ vars.AWS_EC2_USER }}/docker-compose.prod.yml
     
       - name: Get latest version (or use 1.0.0-beta as fallback)
         id: get_tag
@@ -83,25 +98,30 @@ jobs:
             echo "SPRING_PROFILES_ACTIVE=prod" >> .env
             
             echo "MONGO_URL=${{ secrets.MONGODB_URL }}" >> .env
-            echo "MONGODB_DATABASE=SkillForge" >> .env
+            echo "MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }}" >> .env
             
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
             
-            echo "OPENAI_BASE_URL=${{ secrets.OPENAI_BASE_URL }}" >> .env
+            # GenAI service expects OPENAI_API_BASE
+            echo "OPENAI_API_BASE=${{ secrets.OPENAI_BASE_URL }}" >> .env
             echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-            echo "OPENAI_MODEL=gpt-4o" >> .env
+            echo "OPENAI_MODEL=${{ inputs.OPENAI_MODEL }}" >> .env
+            echo "LLM_PROVIDER=${{ inputs.LLM_PROVIDER }}" >> .env
+
             echo "UVICORN_WORKERS=${{ vars.UVICORN_WORKERS }}" >> .env
             
-            echo "VITE_PUBLIC_API_URL=https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io/api" >> .env
-            echo "CLIENT_HOST=client.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "SERVER_HOST=api.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "GENAI_HOST=api.genai.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "MAILHOG_HOST=mail.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "PROMETHEUS_HOST=prometheus.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "LOKI_HOST=loki.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "PROMTAIL_HOST=promtail.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "ALERTMANAGER_HOST=alertmanager.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
-            echo "GRAFANA_HOST=grafana.${{ vars.EC2_PUBLIC_IP }}.nip.io" >> .env
+            echo "VITE_PUBLIC_API_URL=https://api.${{ inputs.ec2_ip }}.nip.io/api" >> .env
+            echo "CLIENT_HOST=client.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "SERVER_HOST=api.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "GENAI_HOST=api.genai.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "MAILHOG_HOST=mail.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "PROMETHEUS_HOST=prometheus.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "PROMTAIL_HOST=promtail.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "ALERTMANAGER_HOST=alertmanager.${{ inputs.ec2_ip }}.nip.io" >> .env
+            echo "GRAFANA_HOST=grafana.${{ inputs.ec2_ip }}.nip.io" >> .env
+
+            echo "GRAFANA_ADMIN_USER=${{ secrets.GRAFANA_ADMIN_USER }}" >> .env
+            echo "GRAFANA_ADMIN_PWD=${{ secrets.GRAFANA_ADMIN_PASSWORD }}" >> .env
 
             chmod 600 .env
             echo ".env file created ✅"
@@ -129,16 +149,16 @@ jobs:
       - name: Echo all links
         run: |
           echo "Deployment complete! Access your services at:"
-          echo "Client: https://client.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "API: https://api.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "GenAI: https://api.genai.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Mailhog: https://mail.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Prometheus: https://prometheus.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Loki: https://loki.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Promtail: https://promtail.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Alertmanager: https://alertmanager.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Grafana: https://grafana.${{ vars.EC2_PUBLIC_IP }}.nip.io"
-          echo "Check the status of your services with:"
+          echo "Client: https://client.${{ inputs.ec2_ip }}.nip.io"
+          echo "API: https://api.${{ inputs.ec2_ip }}.nip.io"
+          echo "GenAI: https://api.genai.${{ inputs.ec2_ip }}.nip.io"
+          echo "Mailhog: https://mail.${{ inputs.ec2_ip }}.nip.io"
+          echo "Prometheus: https://prometheus.${{ inputs.ec2_ip }}.nip.io"
+          echo "Loki: https://loki.${{ inputs.ec2_ip }}.nip.io"
+          echo "Promtail: https://promtail.${{ inputs.ec2_ip }}.nip.io"
+          echo "Alertmanager: https://alertmanager.${{ inputs.ec2_ip }}.nip.io"
+          echo "Grafana: https://grafana.${{ inputs.ec2_ip }}.nip.io"
+          echo "Check the status of the services on the EC2 instance with:"
           echo "docker compose -f docker-compose.prod.yml ps"
           echo "View logs with:"
           echo "docker compose -f docker-compose.prod.yml logs --tail=40"

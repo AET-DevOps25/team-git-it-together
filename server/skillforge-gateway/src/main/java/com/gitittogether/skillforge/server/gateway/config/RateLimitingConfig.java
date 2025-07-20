@@ -25,22 +25,26 @@ public class RateLimitingConfig {
 
     /**
      * Redis-based rate limiter using Spring Cloud Gateway's built-in RedisRateLimiter
+     * Note: The ReactiveRedisConnectionFactory is injected but not used in the constructor
+     * as Spring Cloud Gateway's RedisRateLimiter uses its own Redis connection management
      */
     @Bean
     public RedisRateLimiter redisRateLimiter(ReactiveRedisConnectionFactory connectionFactory) {
-        log.info("Creating Redis rate limiter with {} requests per minute, {} per second, burst: {}", 
+        log.info("Creating Redis rate limiter with {} requests per minute, {} per second, burst: {}",
                 requestsPerMinute, requestsPerSecond, burstCapacity);
-        
+
         // Use the requests per second directly as replenish rate
         // Ensure we use integer values to avoid Lua script errors
         int replenishRate = Math.max(1, requestsPerSecond); // Minimum 1 token per second
         int burst = Math.max(1, burstCapacity); // Minimum burst of 1
-        
+
         log.info("Redis rate limiter configured with replenishRate: {}, burstCapacity: {}", replenishRate, burst);
-        
+
+        // Spring Cloud Gateway's RedisRateLimiter uses the two-parameter constructor
+        // The ReactiveRedisConnectionFactory is used internally by Spring Cloud Gateway
         return new RedisRateLimiter(
-            replenishRate,  // replenishRate (tokens per second) - must be integer
-            burst          // burstCapacity - must be integer
+                replenishRate,  // replenishRate (tokens per second) - must be integer
+                burst          // burstCapacity - must be integer
         );
     }
 
@@ -54,16 +58,16 @@ public class RateLimitingConfig {
         return exchange -> {
             // Try to get client ID from header first
             String clientId = exchange.getRequest().getHeaders().getFirst("X-Client-ID");
-            
+
             if (clientId != null && !clientId.isEmpty()) {
                 log.debug("Rate limiting by client ID: {}", clientId);
                 return Mono.just(clientId);
             }
-            
+
             // Fallback to IP address
-            String ipAddress = exchange.getRequest().getRemoteAddress() != null ? 
-                exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
-            
+            String ipAddress = exchange.getRequest().getRemoteAddress() != null ?
+                    exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
+
             log.debug("Rate limiting by IP address: {}", ipAddress);
             return Mono.just("ip:" + ipAddress);
         };
@@ -78,16 +82,16 @@ public class RateLimitingConfig {
         return exchange -> {
             // Try to get user ID from JWT token
             String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
-            
+
             if (userId != null && !userId.isEmpty()) {
                 log.debug("Rate limiting by user ID: {}", userId);
                 return Mono.just("user:" + userId);
             }
-            
+
             // Fallback to IP address
-            String ipAddress = exchange.getRequest().getRemoteAddress() != null ? 
-                exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
-            
+            String ipAddress = exchange.getRequest().getRemoteAddress() != null ?
+                    exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
+
             log.debug("Rate limiting by IP address (fallback): {}", ipAddress);
             return Mono.just("ip:" + ipAddress);
         };

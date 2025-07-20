@@ -3,12 +3,29 @@ channels:
   - defaults
   - conda-forge
 dependencies:
-  - python=3.12
+  - python=3.10
   - pip
   - pip:
-      - langchain
-      - openai
-      - weaviate-client
-      - python-dotenv
+      # FastAPI and web framework
       - fastapi
-      - uvicorn
+      - uvicorn[standard]
+      - httpx
+      - pydantic
+      
+      # Web scraping and parsing
+      - beautifulsoup4
+      
+      # Vector database
+      - weaviate-client<4.0.0
+      
+      # LangChain and LLM integration
+      - langchain
+      - langchain-openai
+      - langchain_community
+      - tiktoken
+      
+      # Monitoring and metrics
+      - prometheus-fastapi-instrumentator
+      
+      # Environment management
+      - python-dotenv

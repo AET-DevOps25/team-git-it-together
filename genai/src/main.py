@@ -10,6 +10,9 @@ import httpx
 from contextlib import asynccontextmanager
 from langchain_openai import OpenAIEmbeddings
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
+import pathlib
 
 
 from .utils.vector_db_test import test_weaviate_connection
@@ -96,7 +99,8 @@ app = FastAPI(
     version=APP_VERSION,
     description=APP_DESCRIPTION,
     lifespan=lifespan,
-    docs_url="/docs",
+    docs_url=None,  # Disable default docs
+    redoc_url=None,  # Disable default redoc
     openapi_url="/openapi.json",
     contact={
         "name": "SkillForge AI Team",
@@ -126,6 +130,28 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve the OpenAPI YAML as a static file
+OPENAPI_YAML_PATH = str(pathlib.Path(__file__).parent / "static" / "genai-openapi.yaml")
+
+
+# Rote "/docs/genai-openapi.yaml" to the OpenAPI YAML file
+@app.get("/docs/genai-openapi.yaml", include_in_schema=False)
+def get_openapi_yaml():
+    return FileResponse(OPENAPI_YAML_PATH, media_type="text/yaml")
+
+# Mount static files for Swagger UI
+app.mount("/static", StaticFiles(directory=str(pathlib.Path(__file__).parent / "static")), name="static")
+
+# Route "/" to the swagger ui
+@app.get("/", include_in_schema=False)
+def redirect_to_swagger_ui():
+    return FileResponse(str(pathlib.Path(__file__).parent / "static" / "swagger-ui" / "index.html"))
+
+# Serve Swagger UI that loads the external YAML
+@app.get("/docs", include_in_schema=False)
+def custom_swagger_ui():
+    return FileResponse(str(pathlib.Path(__file__).parent / "static" / "swagger-ui" / "index.html"))
 
 # --- Custom Exception Handler for 422 & 500 errors ---
 @app.exception_handler(HTTPException)

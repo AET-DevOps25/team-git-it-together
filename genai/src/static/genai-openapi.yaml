@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: SkillForge GenAI Service API
+  version: 1.0.0
+  description: |
+    SkillForge GenAI Service provides endpoints for web crawling, chunking, embedding, semantic querying, and text generation using LLMs. Ideal for integrating vector search and AI-driven workflows.
+  contact:
+    name: SkillForge AI Team
+    url: https://github.com/AET-DevOps25/team-git-it-together
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: http://localhost:8084/api/v1
+    description: Local development
+  - url: https://api.skillforge.ai/genai/api/v1
+    description: Production
+paths:
+  /health:
+    get:
+      summary: Deep health check
+      tags: [System]
+      responses:
+        '200':
+          description: Service and DB are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+        '500':
+          description: Dependency failure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  message:
+                    type: string
+  /ping:
+    get:
+      summary: Lightweight liveness check
+      tags: [System]
+      responses:
+        '200':
+          description: Pong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    type: string
+  /crawl:
+    post:
+      summary: Crawl and clean website content
+      tags: [Crawler]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrawlRequest'
+      responses:
+        '200':
+          description: Page crawled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrawlResponse'
+        '400':
+          description: No content found
+        '500':
+          description: Unexpected error
+  /embed:
+    post:
+      summary: Chunk and embed text to vector DB
+      tags: [Embedder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmbedRequest'
+      responses:
+        '200':
+          description: Content successfully crawled and embedded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedResponse'
+        '404':
+          description: No text content to embed
+        '500':
+          description: Failed to embed content
+  /query:
+    post:
+      summary: Query the vector database
+      tags: [Embedder]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Query results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+  /generate:
+    post:
+      summary: Generate a text completion using LLM
+      tags: [LLM]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateRequest'
+      responses:
+        '200':
+          description: Generated text
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateResponse'
+        '500':
+          description: Failed to generate text
+  /rag/generate-course:
+    post:
+      summary: Generate a course using RAG
+      tags: [rag]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseGenerationRequest'
+      responses:
+        '200':
+          description: Generated course
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+        '500':
+          description: Failed to generate course
+components:
+  schemas:
+    CrawlRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required: [url]
+    CrawlResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        text:
+          type: string
+        message:
+          type: string
+    EmbedRequest:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required: [url]
+    EmbedResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        chunks_embedded:
+          type: integer
+        message:
+          type: string
+    QueryRequest:
+      type: object
+      properties:
+        query_text:
+          type: string
+        limit:
+          type: integer
+      required: [query_text]
+    QueryResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentResult'
+    DocumentResult:
+      type: object
+      properties:
+        content:
+          type: string
+        source_url:
+          type: string
+    GenerateRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+      required: [prompt]
+    GenerateResponse:
+      type: object
+      properties:
+        prompt:
+          type: string
+        generated_text:
+          type: string
+        provider:
+          type: string
+    CourseGenerationRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+        existing_skills:
+          type: array
+          items:
+            type: string
+      required: [prompt]
+    Course:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        modules:
+          type: array
+          items:
+            type: object 

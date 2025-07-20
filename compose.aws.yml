@@ -325,6 +325,7 @@ services:
     env_file:
       - .env
     environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PWD:-admin}
       - GF_DATE_FORMATS_DEFAULT_TIMEZONE=browser
       - GF_SERVER_HTTP_PORT=${GRAFANA_INTERNAL_PORT:-4000}
