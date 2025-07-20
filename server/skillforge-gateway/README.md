@@ -2,11 +2,14 @@
 
 ## Overview
 
-The SkillForge API Gateway is a Spring Cloud Gateway-based service that acts as the single entry point for all client requests to the SkillForge microservices architecture. It provides centralized routing, authentication, rate limiting, and security controls for the entire application.
+The SkillForge API Gateway is a Spring Cloud Gateway-based service that acts as the single entry point for all client
+requests to the SkillForge microservices architecture. It provides centralized routing, authentication, rate limiting,
+and security controls for the entire application.
 
 ## Architecture
 
 The gateway serves as a reverse proxy that:
+
 - Routes requests to appropriate microservices (User Service, Course Service)
 - Validates JWT tokens for protected endpoints
 - Implements rate limiting to prevent abuse
@@ -20,10 +23,10 @@ The gateway serves as a reverse proxy that:
 1. **Client Request**: Client sends HTTP request to gateway (port 8081)
 2. **Route Matching**: Gateway matches request path to configured routes
 3. **Filter Chain**: Request passes through configured filters in order:
-   - CORS Filter (if applicable)
-   - Rate Limiting Filter (if applicable)
-   - JWT Authentication Filter (if applicable)
-   - Logging Filter
+    - CORS Filter (if applicable)
+    - Rate Limiting Filter (if applicable)
+    - JWT Authentication Filter (if applicable)
+    - Logging Filter
 4. **Service Routing**: Request is forwarded to appropriate microservice
 5. **Response**: Response flows back through filters to client
 
@@ -32,30 +35,35 @@ The gateway serves as a reverse proxy that:
 The gateway organizes routes into distinct categories with different security and rate limiting policies:
 
 #### 1. Health Check Routes
+
 - **Paths**: `/actuator/health`, `/api/v1/users/health`, `/api/v1/courses/health`
 - **Authentication**: None required
 - **Rate Limiting**: None
 - **Purpose**: Service health monitoring
 
 #### 2. Documentation Routes
+
 - **Paths**: `/api/v1/users/docs/**`, `/api/v1/courses/docs/**`
 - **Authentication**: None required
 - **Rate Limiting**: None
 - **Purpose**: API documentation access (Swagger UI)
 
 #### 3. Public Authentication Routes
+
 - **Paths**: `/api/v1/users/login`, `/api/v1/users/register`
 - **Authentication**: None required
 - **Rate Limiting**: Applied (prevents brute force attacks)
 - **Purpose**: User authentication endpoints
 
 #### 4. Public Course Routes
+
 - **Paths**: `/api/v1/courses/public/**`
 - **Authentication**: None required
 - **Rate Limiting**: Applied
 - **Purpose**: Public course content access
 
 #### 5. Protected Routes
+
 - **Paths**: `/api/v1/users/**`, `/api/v1/courses/**` (excluding public paths)
 - **Authentication**: JWT token required
 - **Rate Limiting**: Applied
@@ -78,11 +86,12 @@ rate:
 ### Implementation
 
 - **Redis Rate Limiter**: Uses Spring Cloud Gateway's built-in `RedisRateLimiter`
-- **Redis Connection**: Spring Cloud Gateway manages Redis connections internally using the configured `ReactiveRedisConnectionFactory`
+- **Redis Connection**: Spring Cloud Gateway manages Redis connections internally using the configured
+  `ReactiveRedisConnectionFactory`
 - **Token Bucket Algorithm**: Implements token bucket with configurable replenish rate and burst capacity
 - **Key Resolution**: Rate limiting keys are resolved by:
-  1. `X-Client-ID` header (if provided)
-  2. Client IP address (fallback)
+    1. `X-Client-ID` header (if provided)
+    2. Client IP address (fallback)
 
 ### Rate Limiting Behavior
 
@@ -107,6 +116,7 @@ The gateway validates JWT tokens for protected routes using a custom `JwtAuthent
 #### Secured vs Unsecured Routes
 
 **Unsecured Routes** (no JWT required):
+
 - `/api/v1/users/login`
 - `/api/v1/users/register`
 - `/api/v1/courses/public/**`
@@ -114,6 +124,7 @@ The gateway validates JWT tokens for protected routes using a custom `JwtAuthent
 - All documentation routes (`/docs`)
 
 **Secured Routes** (JWT required):
+
 - All other `/api/v1/users/**` routes
 - All other `/api/v1/courses/**` routes
 
@@ -130,15 +141,35 @@ The gateway validates JWT tokens for protected routes using a custom `JwtAuthent
 Routes are configured in `GatewayConfig.java` using Spring Cloud Gateway's `RouteLocatorBuilder`:
 
 ```java
-.route("user-service-protected", r -> r.path("/api/v1/users/**")
-    .and()
-    .not(p -> p.path("/api/v1/users/docs/**", "/api/v1/users/login", "/api/v1/users/register"))
-    .filters(f -> f
-        .filter(jwtFilter)
-        .requestRateLimiter(config -> config
-            .setRateLimiter(redisRateLimiter)
-            .setKeyResolver(userKeyResolver)))
-    .uri(userServiceUri))
+.route("user-service-protected",r ->r.
+
+path("/api/v1/users/**")
+    .
+
+and()
+    .
+
+not(p ->p.
+
+path("/api/v1/users/docs/**","/api/v1/users/login","/api/v1/users/register"))
+        .
+
+filters(f ->f
+        .
+
+filter(jwtFilter)
+        .
+
+requestRateLimiter(config ->config
+        .
+
+setRateLimiter(redisRateLimiter)
+            .
+
+setKeyResolver(userKeyResolver)))
+        .
+
+uri(userServiceUri))
 ```
 
 ### Path Rewriting
@@ -161,6 +192,7 @@ The gateway uses path rewriting for documentation routes:
 The gateway implements multiple security layers:
 
 #### 1. Spring Security
+
 - **CSRF Protection**: Disabled (not needed for API gateway)
 - **CORS**: Configured per environment
 - **HTTP Basic Auth**: Disabled (using JWT instead)
@@ -172,8 +204,12 @@ Environment-specific CORS policies:
 ```java
 // Development
 config.addAllowedOriginPattern("*");
-config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-config.setAllowedHeaders(List.of("*"));
+config.
+
+setAllowedMethods(Arrays.asList("GET", "POST","PUT","PATCH","DELETE","OPTIONS"));
+        config.
+
+setAllowedHeaders(List.of("*"));
 ```
 
 #### 3. JWT Security
@@ -290,6 +326,146 @@ export JWT_EXPIRATION_MS=86400000
 ./gradlew test --tests GatewayConfigTest
 ```
 
+### Gateway Testing Script
+
+The gateway includes a comprehensive testing script that validates security, performance, and functionality:
+
+```bash
+# Navigate to the testing scripts directory
+cd ../testing-scripts
+
+# Run the gateway test script
+python test_gateway.py
+```
+
+#### What the Test Script Does
+
+The `test_gateway.py` script performs comprehensive testing of the API Gateway:
+
+1. **Service Health Checks**
+    - Verifies all services (Gateway, User Service, Course Service) are running
+    - Tests health endpoints
+
+2. **Authentication Testing**
+    - Creates a test user account
+    - Tests user registration and login
+    - Validates JWT token generation and usage
+    - Tests both username and email login
+
+3. **Security Testing**
+    - **Public Endpoints**: Verifies public endpoints are accessible
+    - **Protected Endpoints**: Ensures protected endpoints reject unauthenticated requests
+    - **Authenticated Access**: Tests protected endpoints with valid JWT tokens
+    - **Direct Access Blocking**: Confirms direct microservice access is blocked
+    - **Security Headers**: Validates presence of security headers
+
+4. **Rate Limiting Testing**
+    - **Burst Testing**: Sends rapid requests to test burst rate limiting
+    - **Sustained Testing**: Tests sustained rate limiting over time
+    - **Endpoint Testing**: Tests rate limiting across different endpoints
+    - **Analysis**: Provides detailed rate limiting statistics
+
+5. **Performance Testing**
+    - **Latency Measurement**: Measures response times for multiple requests
+    - **Statistical Analysis**: Calculates average, median, min, and max latency
+    - **Performance Validation**: Ensures latency is within acceptable limits
+
+6. **Report Generation**
+    - Creates detailed test reports in JSON format
+    - Generates comprehensive markdown report (`TESTING_REPORT.md`)
+    - Provides executive summary with pass/fail status
+    - Includes performance metrics and recommendations
+
+#### Test Results
+
+The script creates a timestamped results directory containing:
+
+- `test.log` - Detailed test execution log
+- `user_info.txt` - Test user credentials and ID
+- `latency_results.json` - Performance metrics
+- `rate_limit_results.json` - Rate limiting analysis
+- `TESTING_REPORT.md` - Comprehensive test report
+
+#### Prerequisites
+
+Before running the test script, ensure:
+
+1. **All services are running**:
+    - Gateway (port 8081)
+    - User Service (port 8082)
+    - Course Service (port 8083)
+    - Redis (for rate limiting)
+    - MongoDB (So that user adn course services can function properly)
+
+2. **Python is available** (uses only built-in libraries)
+
+3. **Network connectivity** between services
+
+#### Example Output
+
+```bash
+$ python test_gateway.py
+
+[2025-07-20 13:30:00] Starting API Gateway Security and Performance Tests
+[2025-07-20 13:30:00] Results will be saved to: test-results-20250720-133000
+[2025-07-20 13:30:01] ✓ Gateway is running
+[2025-07-20 13:30:01] ✓ User Service is running
+[2025-07-20 13:30:01] ✓ Course Service is running
+[2025-07-20 13:30:02] ✓ User registration successful (status: 201)
+[2025-07-20 13:30:02] ✓ JWT token and user ID obtained successfully
+[2025-07-20 13:30:02] ✓ Email login successful - JWT token and user ID obtained
+[2025-07-20 13:30:03] ✓ Public endpoint accessible: http://localhost:8081/api/v1/courses/public
+[2025-07-20 13:30:04] ✓ Protected endpoint correctly rejects unauthenticated requests
+[2025-07-20 13:30:05] ✓ Protected endpoint accessible with JWT
+[2025-07-20 13:30:06] ✓ Rate limiting is working (hit 15 times)
+[2025-07-20 13:30:07] ✓ Average latency: 45.23ms
+[2025-07-20 13:30:08] ✓ X-Content-Type-Options header present
+
+============================================================
+🚦 API GATEWAY TEST SUMMARY
+============================================================
+📊 Total Tests: 7
+✅ Passed: 7
+❌ Failed: 0
+📈 Success Rate: 100.0%
+🎯 Status: 🟢 PASSED
+📁 Results: test-results-20250720-133000
+📄 Report: TESTING_REPORT.md
+⏱️  Avg Latency: 45.23ms
+🚦 Rate Limited: 15/180 requests
+============================================================
+
+🎉 All tests passed!
+```
+
+#### Troubleshooting
+
+If tests fail:
+
+1. **Service Connectivity Issues**:
+   ```bash
+   # Check if services are running
+   curl http://localhost:8081/actuator/health
+   curl http://localhost:8082/api/v1/users/health
+   curl http://localhost:8083/api/v1/courses/health
+   ```
+
+2. **Redis Issues**:
+   ```bash
+   # Check Redis connectivity
+   redis-cli ping
+   ```
+
+3. **Rate Limiting Not Working**:
+    - Verify Redis is running and accessible
+    - Check gateway rate limiting configuration
+    - Review Redis connection settings
+
+4. **Authentication Issues**:
+    - Check JWT secret configuration
+    - Verify user service is responding correctly
+    - Review gateway JWT validation settings
+
 ### Adding New Routes
 
 1. **Update GatewayConfig.java**: Add new route configuration
@@ -303,24 +479,24 @@ export JWT_EXPIRATION_MS=86400000
 ### Common Issues
 
 1. **Redis Connection Errors**
-   - Ensure Redis is running and accessible
-   - Check Redis host/port configuration
-   - Verify Redis password if configured
+    - Ensure Redis is running and accessible
+    - Check Redis host/port configuration
+    - Verify Redis password if configured
 
 2. **JWT Validation Failures**
-   - Check JWT secret configuration
-   - Verify token format and expiration
-   - Ensure proper Authorization header format
+    - Check JWT secret configuration
+    - Verify token format and expiration
+    - Ensure proper Authorization header format
 
 3. **Rate Limiting Issues**
-   - Check Redis connectivity
-   - Verify rate limiting configuration
-   - Monitor Redis memory usage
+    - Check Redis connectivity
+    - Verify rate limiting configuration
+    - Monitor Redis memory usage
 
 4. **CORS Errors**
-   - Verify CORS configuration for environment
-   - Check allowed origins and methods
-   - Ensure proper preflight request handling
+    - Verify CORS configuration for environment
+    - Check allowed origins and methods
+    - Ensure proper preflight request handling
 
 ### Debug Mode
 
@@ -336,21 +512,26 @@ logging:
 ## API Endpoints
 
 ### Health Checks
+
 - `GET /actuator/health` - Gateway health
 - `GET /api/v1/users/health` - User service health (Ensure the user service is running)
 - `GET /api/v1/courses/health` - Course service health (Ensure the course service is running)
 
 ### Documentation
+
 - `GET /api/v1/users/docs` - User service API docs (Ensure the user service is running)
 - `GET /api/v1/courses/docs` - Course service API docs (Ensure the course service is running)
 
 ### Authentication
+
 - `POST /api/v1/users/login` - User login (Ensure the user service is running)
 - `POST /api/v1/users/register` - User registration (Ensure the user service is running)
 
 ### Public Content
+
 - `GET /api/v1/courses/public/**` - Public course content (Ensure the course service is running)
 
 ### Protected Resources
+
 - `GET /api/v1/users/**` - User operations (requires JWT) (Ensure the user service is running)
 - `GET /api/v1/courses/**` - Course operations (requires JWT) (Ensure the course service is running)
