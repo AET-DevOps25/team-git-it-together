@@ -11,12 +11,12 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
-    description: Production API Gateway
   - url: http://localhost:8081
     description: Development Gateway Server
   - url: http://localhost:8083
     description: Development Direct Course Service
+  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
+    description: Production API Gateway
 
 paths:
   /api/v1/courses:
@@ -753,7 +753,7 @@ components:
           items:
             type: string
           description: Skills that can be learned in this course
-          example: ["Spring Boot", "Java", "REST API", "Security"]
+          example: [ "Spring Boot", "Java", "REST API", "Security" ]
         modules:
           type: array
           items:
@@ -774,7 +774,7 @@ components:
           items:
             type: string
           description: Course categories
-          example: ["Programming", "Backend Development", "Java"]
+          example: [ "Programming", "Backend Development", "Java" ]
         level:
           $ref: '#/components/schemas/Level'
           description: Course difficulty level
@@ -832,7 +832,7 @@ components:
           items:
             type: string
           description: Skills that can be learned in this course
-          example: ["Spring Boot", "Java", "REST API", "Security"]
+          example: [ "Spring Boot", "Java", "REST API", "Security" ]
         modules:
           type: array
           items:
@@ -853,7 +853,7 @@ components:
           items:
             type: string
           description: Course categories
-          example: ["Programming", "Backend Development", "Java"]
+          example: [ "Programming", "Backend Development", "Java" ]
         level:
           $ref: '#/components/schemas/Level'
           description: Course difficulty level
@@ -907,7 +907,7 @@ components:
           items:
             type: string
           description: Skills that can be learned in this course
-          example: ["Spring Boot", "Java", "REST API", "Security"]
+          example: [ "Spring Boot", "Java", "REST API", "Security" ]
         modules:
           type: array
           items:
@@ -922,7 +922,7 @@ components:
           items:
             type: string
           description: Course categories
-          example: ["Programming", "Backend Development", "Java"]
+          example: [ "Programming", "Backend Development", "Java" ]
         level:
           $ref: '#/components/schemas/Level'
           description: Course difficulty level
@@ -979,7 +979,7 @@ components:
           items:
             type: string
           description: Skills that can be learned in this course
-          example: ["Spring Boot", "Java", "REST API", "Security"]
+          example: [ "Spring Boot", "Java", "REST API", "Security" ]
         numberOfEnrolledUsers:
           type: integer
           description: Number of users enrolled in the course
@@ -989,7 +989,7 @@ components:
           items:
             type: string
           description: Course categories
-          example: ["Programming", "Backend Development", "Java"]
+          example: [ "Programming", "Backend Development", "Java" ]
         level:
           $ref: '#/components/schemas/Level'
           description: Course difficulty level
@@ -1179,7 +1179,7 @@ components:
           items:
             type: string
           description: Skills to be learned in this path
-          example: ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
+          example: [ "HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB" ]
 
     EmbedResult:
       type: object
@@ -1202,13 +1202,13 @@ components:
 
     Level:
       type: string
-      enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+      enum: [ BEGINNER, INTERMEDIATE, ADVANCED, EXPERT ]
       description: Course difficulty level
       example: "INTERMEDIATE"
 
     Language:
       type: string
-      enum: [EN, ES, FR, DE, IT, PT, RU, ZH, JA, KO]
+      enum: [ EN, ES, FR, DE, IT, PT, RU, ZH, JA, KO ]
       description: Course language
       example: "EN"
 
@@ -1245,7 +1245,7 @@ components:
           items:
             type: string
           description: Field-specific validation error messages
-          example: ["Title must not be blank"]
+          example: [ "Title must not be blank" ]
 
 tags:
   - name: Course Management

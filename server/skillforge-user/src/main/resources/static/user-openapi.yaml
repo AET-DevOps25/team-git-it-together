@@ -11,12 +11,12 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
-    description: Production API Gateway
   - url: http://localhost:8081
     description: Development Gateway Server
   - url: http://localhost:8082
     description: Development Direct User Service
+  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
+    description: Production API Gateway
 
 paths:
   /api/v1/users/register:
