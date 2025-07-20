@@ -59,4 +59,7 @@ logging:
     com.gitittogether.skillforge.server.gateway.config: INFO
     org.springframework.cloud.gateway: INFO
     org.springframework.security: INFO
-    org.springframework.data.redis: DEBUG
+    org.springframework.data.redis: INFO
+    com.gitittogether.skillforge: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} | %-5level | [%thread] | %logger{20} | %msg%n"
