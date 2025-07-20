@@ -92,8 +92,8 @@
 | Service | Description | URL |
 |---------|-------------|-----|
 | 🎯 **Main Application** | SkillForge.ai Frontend | [https://skillforge.student.k8s.aet.cit.tum.de](https://skillforge.student.k8s.aet.cit.tum.de) |
-| 🔌 **API Gateway** | Backend API Services | [https://api.skillforge.student.k8s.aet.cit.tum.de/api/v1](https://api.skillforge.student.k8s.aet.cit.tum.de/api/v1) |
-| 🤖 **GenAI** | GenAI Service | [https://api.genai.skillforge.student.k8s.aet.cit.tum.de/api/v1](https://api.genai.skillforge.student.k8s.aet.cit.tum.de/api/v1) |
+| 🔌 **API Gateway** | Backend API Services | [https://api.skillforge.student.k8s.aet.cit.tum.de](https://api.skillforge.student.k8s.aet.cit.tum.de) |
+| 🤖 **GenAI** | GenAI Service | [https://api.genai.skillforge.student.k8s.aet.cit.tum.de](https://api.genai.skillforge.student.k8s.aet.cit.tum.de) |
 | 📈 **Prometheus** | Metrics & Monitoring | [https://prometheus.skillforge.student.k8s.aet.cit.tum.de](https://prometheus.skillforge.student.k8s.aet.cit.tum.de) |
 | 📊 **Grafana** | Dashboards & Analytics | [https://grafana.skillforge.student.k8s.aet.cit.tum.de](https://grafana.skillforge.student.k8s.aet.cit.tum.de) |
 | 🚨 **Alert Manager** | Alerts & Notifications | [https://alertmanager.skillforge.student.k8s.aet.cit.tum.de](https://alertmanager.skillforge.student.k8s.aet.cit.tum.de) |

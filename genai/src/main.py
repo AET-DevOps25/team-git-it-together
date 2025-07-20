@@ -134,12 +134,19 @@ app.add_middleware(
 # Serve the OpenAPI YAML as a static file
 OPENAPI_YAML_PATH = str(pathlib.Path(__file__).parent / "static" / "genai-openapi.yaml")
 
+
+# Rote "/docs/genai-openapi.yaml" to the OpenAPI YAML file
 @app.get("/docs/genai-openapi.yaml", include_in_schema=False)
 def get_openapi_yaml():
     return FileResponse(OPENAPI_YAML_PATH, media_type="text/yaml")
 
 # Mount static files for Swagger UI
 app.mount("/static", StaticFiles(directory=str(pathlib.Path(__file__).parent / "static")), name="static")
+
+# Route "/" to the swagger ui
+@app.get("/", include_in_schema=False)
+def redirect_to_swagger_ui():
+    return FileResponse(str(pathlib.Path(__file__).parent / "static" / "swagger-ui" / "index.html"))
 
 # Serve Swagger UI that loads the external YAML
 @app.get("/docs", include_in_schema=False)
