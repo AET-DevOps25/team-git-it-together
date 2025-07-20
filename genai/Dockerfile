@@ -11,6 +11,7 @@ WORKDIR /build
 # Install dependencies into a local dir
 COPY requirements.txt ./
 RUN pip install --upgrade pip && pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir sentence_transformers
 
 # Copy app code (but not user)
 COPY . .
@@ -18,8 +19,11 @@ COPY . .
 # --- Stage 2: Final runtime image ---
 FROM python:3.12-slim AS runtime
 
-# For healthcheck
-RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
+# Install curl & the new embeddings lib
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && pip install --no-cache-dir sentence_transformers langchain-huggingface \
+    && rm -rf /var/lib/apt/lists/*
 
 # Non-root user
 RUN useradd --create-home appuser
