@@ -47,6 +47,10 @@ spec:
           - pathType: Prefix
             path: /
             backend:
+              service:
+                name: {{ include "skillForgeAi.fullname" . }}-genai
+                port:
+                  number: {{ .Values.ports.genai }}
     # Prometheus monitoring
     - host: prometheus.{{ .Values.host }}
       http:
