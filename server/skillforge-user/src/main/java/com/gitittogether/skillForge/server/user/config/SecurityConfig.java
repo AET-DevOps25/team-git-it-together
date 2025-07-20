@@ -60,12 +60,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
                         // docs endpoints
                         .requestMatchers(HttpMethod.GET, "/api/v1/users/docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/user-openapi.yaml").permitAll()
                         .requestMatchers(
                                 "/api/v1/users/docs/**",
+                                "/docs/**",
+                                "/docs",
                                 "/actuator/*",
                                 "/api/v1/users/health",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/docs/user-openapi.yaml",
+                                "/user-openapi.yaml",
+                                "/api/v1/users/user-openapi.yaml"
                         ).permitAll()
                         // Inter-service communication endpoints (only from course service)
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/*/enroll/*").access(this::isInternalService)

@@ -32,18 +32,20 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints: health checks, public courses, search, Swagger/OpenAPI
+                        // Public endpoints: health checks, public courses, search
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/courses/categories/**").permitAll()
-                        // Docs endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/v1/courses/docs/**").permitAll()
+                        // Documentation endpoints
+                        .requestMatchers("/docs/**", "/docs").permitAll()
+                        .requestMatchers("/course-openapi.yaml").permitAll()
                         .requestMatchers(
-                                "/api/v1/courses/docs/**",
-                                "/actuator/*",
-                                "/api/v1/courses/health",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                "/actuator/*",
+                                "/api/v1/courses/health"
                         ).permitAll()
                         // All other course endpoints require authentication (JWT from gateway)
                         .requestMatchers("/api/v1/courses/**").authenticated()
