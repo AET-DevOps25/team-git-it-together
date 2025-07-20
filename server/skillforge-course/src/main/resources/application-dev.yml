@@ -16,3 +16,7 @@ spring:
 user:
   service:
     uri: http://${SERVER_HOST_USER:localhost}:${SERVER_PORT_USER:8082}
+
+genai:
+  service:
+    uri: http://${SERVER_HOST_GENAI:localhost}:${SERVER_PORT_GENAI:8888}
