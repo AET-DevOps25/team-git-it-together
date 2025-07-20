@@ -29,3 +29,4 @@ dependencies:
       
       # Environment management
       - python-dotenv
+      - langchain_huggingface
