@@ -47,6 +47,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // All other course endpoints require authentication (JWT from gateway)
                         .requestMatchers("/api/v1/courses/**").authenticated()
+                        // Chat endpoints require authentication (JWT from gateway)
+                        .requestMatchers("/api/v1/chat/**").authenticated()
                         // Block all other requests
                         .anyRequest().denyAll()
                 )

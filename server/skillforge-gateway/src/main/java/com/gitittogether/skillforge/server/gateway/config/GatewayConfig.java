@@ -89,6 +89,18 @@ public class GatewayConfig {
                                         .setDenyEmptyKey(false)
                                         .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
                         .uri(courseServiceUri))
+
+                // Chat service routes (requires JWT) - must come before course-service-protected to avoid conflicts
+                .route("chat-service-protected", r -> r.path("/api/v1/chat/**")
+                        .filters(f -> f
+                                .filter(jwtFilter)
+                                .requestRateLimiter(config -> config
+                                        .setRateLimiter(redisRateLimiter)
+                                        .setKeyResolver(userKeyResolver)
+                                        .setStatusCode(HttpStatus.TOO_MANY_REQUESTS)
+                                        .setDenyEmptyKey(false)
+                                        .setEmptyKeyStatus("TOO_MANY_REQUESTS")))
+                        .uri(courseServiceUri))
                 .build();
 
         log.info("GatewayConfig: Routes configured successfully with Redis-based rate limiting and JWT authentication");
