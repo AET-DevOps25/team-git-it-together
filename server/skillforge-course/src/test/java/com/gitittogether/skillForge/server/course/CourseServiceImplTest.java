@@ -3,6 +3,7 @@ package com.gitittogether.skillForge.server.course;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.CourseUpdateRequest;
+import com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest;
 import com.gitittogether.skillForge.server.course.dto.request.course.LearningPathRequest;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseResponse;
 import com.gitittogether.skillForge.server.course.dto.response.course.CourseSummaryResponse;
@@ -31,10 +32,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -144,7 +142,7 @@ class CourseServiceImplTest {
         @DisplayName("Should get all courses successfully")
         void shouldGetAllCoursesSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findAll()).thenReturn(courses);
 
             // When
@@ -153,7 +151,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getId()).isEqualTo("course123");
+            assertThat(result.getFirst().getId()).isEqualTo("course123");
 
             verify(courseRepository).findAll();
         }
@@ -162,7 +160,7 @@ class CourseServiceImplTest {
         @DisplayName("Should return empty list when no courses exist")
         void shouldReturnEmptyListWhenNoCoursesExist() {
             // Given
-            when(courseRepository.findAll()).thenReturn(Arrays.asList());
+            when(courseRepository.findAll()).thenReturn(List.of());
 
             // When
             List<CourseSummaryResponse> result = courseService.getAllCourses();
@@ -183,7 +181,7 @@ class CourseServiceImplTest {
         @DisplayName("Should get public courses successfully")
         void shouldGetPublicCoursesSuccessfully() {
             // Given
-            List<Course> publicCourses = Arrays.asList(sampleCourse);
+            List<Course> publicCourses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByIsPublicTrue()).thenReturn(publicCourses);
 
             // When
@@ -192,7 +190,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getIsPublic()).isTrue();
+            assertThat(result.getFirst().getIsPublic()).isTrue();
 
             verify(courseRepository).findByIsPublicTrue();
         }
@@ -206,7 +204,7 @@ class CourseServiceImplTest {
         @DisplayName("Should get published courses successfully")
         void shouldGetPublishedCoursesSuccessfully() {
             // Given
-            List<Course> publishedCourses = Arrays.asList(sampleCourse);
+            List<Course> publishedCourses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByPublishedTrue()).thenReturn(publishedCourses);
 
             // When
@@ -215,7 +213,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getPublished()).isTrue();
+            assertThat(result.getFirst().getPublished()).isTrue();
 
             verify(courseRepository).findByPublishedTrue();
         }
@@ -309,7 +307,7 @@ class CourseServiceImplTest {
                     .title("Java Programming")
                     .description("Learn Java from scratch")
                     .instructor("john.doe")
-                    .enrolledUsers(new ArrayList<>(Arrays.asList(existingEnrollment)))
+                    .enrolledUsers(new ArrayList<>(Collections.singletonList(existingEnrollment)))
                     .modules(new ArrayList<>())
                     .numberOfEnrolledUsers(1)
                     .build();
@@ -344,7 +342,7 @@ class CourseServiceImplTest {
                     .title("Java Programming")
                     .description("Learn Java from scratch")
                     .instructor("john.doe")
-                    .enrolledUsers(new ArrayList<>(Arrays.asList(enrolledUser)))
+                    .enrolledUsers(new ArrayList<>(Collections.singletonList(enrolledUser)))
                     .modules(new ArrayList<>())
                     .numberOfEnrolledUsers(1)
                     .build();
@@ -412,7 +410,7 @@ class CourseServiceImplTest {
                     .title("Java Programming")
                     .description("Learn Java from scratch")
                     .instructor("john.doe")
-                    .enrolledUsers(new ArrayList<>(Arrays.asList(enrolledUser)))
+                    .enrolledUsers(new ArrayList<>(Collections.singletonList(enrolledUser)))
                     .modules(new ArrayList<>())
                     .numberOfEnrolledUsers(1)
                     .build();
@@ -542,7 +540,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by instructor successfully")
         void shouldSearchCoursesByInstructorSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByInstructor("john.doe")).thenReturn(courses);
 
             // When
@@ -551,7 +549,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getInstructor()).isEqualTo("john.doe");
+            assertThat(result.getFirst().getInstructor()).isEqualTo("john.doe");
 
             verify(courseRepository).findByInstructor("john.doe");
         }
@@ -560,7 +558,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by level successfully")
         void shouldSearchCoursesByLevelSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByLevel(Level.BEGINNER)).thenReturn(courses);
 
             // When
@@ -569,7 +567,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getLevel()).isEqualTo(Level.BEGINNER);
+            assertThat(result.getFirst().getLevel()).isEqualTo(Level.BEGINNER);
 
             verify(courseRepository).findByLevel(Level.BEGINNER);
         }
@@ -578,7 +576,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by language successfully")
         void shouldSearchCoursesByLanguageSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByLanguage(Language.EN)).thenReturn(courses);
 
             // When
@@ -587,7 +585,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getLanguage()).isEqualTo(Language.EN);
+            assertThat(result.getFirst().getLanguage()).isEqualTo(Language.EN);
 
             verify(courseRepository).findByLanguage(Language.EN);
         }
@@ -596,7 +594,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by skill successfully")
         void shouldSearchCoursesBySkillSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findBySkillsContainingIgnoreCase("Java")).thenReturn(courses);
 
             // When
@@ -605,7 +603,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getSkills()).contains("Java");
+            assertThat(result.getFirst().getSkills()).contains("Java");
 
             verify(courseRepository).findBySkillsContainingIgnoreCase("Java");
         }
@@ -614,7 +612,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by category successfully")
         void shouldSearchCoursesByCategorySuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByCategoriesContainingIgnoreCase("Programming")).thenReturn(courses);
 
             // When
@@ -623,7 +621,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getCategories()).contains("Programming");
+            assertThat(result.getFirst().getCategories()).contains("Programming");
 
             verify(courseRepository).findByCategoriesContainingIgnoreCase("Programming");
         }
@@ -632,7 +630,7 @@ class CourseServiceImplTest {
         @DisplayName("Should search courses by title fuzzy successfully")
         void shouldSearchCoursesByTitleFuzzySuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(courseRepository.findByTitleContainingIgnoreCase("Java")).thenReturn(courses);
 
             // When
@@ -641,7 +639,7 @@ class CourseServiceImplTest {
             // Then
             assertThat(result).isNotNull();
             assertThat(result).hasSize(1);
-            assertThat(result.get(0).getTitle()).contains("Java");
+            assertThat(result.getFirst().getTitle()).contains("Java");
 
             verify(courseRepository).findByTitleContainingIgnoreCase("Java");
         }
@@ -655,7 +653,7 @@ class CourseServiceImplTest {
         @DisplayName("Should perform advanced search successfully")
         void shouldPerformAdvancedSearchSuccessfully() {
             // Given
-            List<Course> courses = Arrays.asList(sampleCourse);
+            List<Course> courses = Collections.singletonList(sampleCourse);
             when(mongoTemplate.find(any(Query.class), eq(Course.class))).thenReturn(courses);
 
             // When
@@ -673,7 +671,7 @@ class CourseServiceImplTest {
         @DisplayName("Should return empty list when no criteria match")
         void shouldReturnEmptyListWhenNoCriteriaMatch() {
             // Given
-            when(mongoTemplate.find(any(Query.class), eq(Course.class))).thenReturn(Arrays.asList());
+            when(mongoTemplate.find(any(Query.class), eq(Course.class))).thenReturn(List.of());
 
             // When
             List<CourseResponse> result = courseService.advancedSearch(
@@ -785,7 +783,7 @@ class CourseServiceImplTest {
                     .language(sampleCourse.getLanguage())
                     .skills(sampleCourse.getSkills())
                     .categories(sampleCourse.getCategories())
-                    .enrolledUsers(Arrays.asList(enrolledUser))
+                    .enrolledUsers(Collections.singletonList(enrolledUser))
                     .modules(sampleCourse.getModules())
                     .published(sampleCourse.getPublished())
                     .isPublic(sampleCourse.getIsPublic())
@@ -794,8 +792,8 @@ class CourseServiceImplTest {
                     .build();
 
             CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
-                    .enrolledUsers(Arrays.asList(
-                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                    .enrolledUsers(Collections.singletonList(
+                            EnrolledUserInfoRequest.builder()
                                     .userId(userId)
                                     .currentLesson(5)
                                     .build()
@@ -902,8 +900,8 @@ class CourseServiceImplTest {
             // Given
             String courseId = "nonexistent";
             CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
-                    .enrolledUsers(Arrays.asList(
-                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                    .enrolledUsers(Collections.singletonList(
+                            EnrolledUserInfoRequest.builder()
                                     .userId("user123")
                                     .currentLesson(1)
                                     .build()
@@ -950,8 +948,8 @@ class CourseServiceImplTest {
             String newUserId = "newuser789";
 
             CourseUpdateRequest updateRequest = CourseUpdateRequest.builder()
-                    .enrolledUsers(Arrays.asList(
-                            com.gitittogether.skillForge.server.course.dto.request.course.EnrolledUserInfoRequest.builder()
+                    .enrolledUsers(Collections.singletonList(
+                            EnrolledUserInfoRequest.builder()
                                     .userId(newUserId)
                                     .currentLesson(0)
                                     .build()
