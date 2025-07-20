@@ -1,0 +1,996 @@
+openapi: "3.1.0"
+info:
+  title: SkillForge User Service API
+  description: API for managing user accounts, authentication, and user-related operations in the SkillForge platform
+  version: 1.0.0
+  contact:
+    name: SkillForge Team
+    email: support@skillforge.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
+    description: Production API Gateway
+  - url: http://localhost:8081
+    description: Development Gateway Server
+  - url: http://localhost:8082
+    description: Development Direct User Service
+
+paths:
+  /api/v1/users/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with the provided information
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '409':
+          description: Conflict - user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/login:
+    post:
+      summary: Authenticate user
+      description: Authenticates a user with username/email and password
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLoginRequest'
+      responses:
+        '200':
+          description: User successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserLoginResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '401':
+          description: Unauthorized - invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/profile:
+    get:
+      summary: Get user profile
+      description: Retrieves the profile information for a specific user
+      tags:
+        - User Profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    put:
+      summary: Update user profile
+      description: Updates the profile information for a specific user
+      tags:
+        - User Profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Delete user profile
+      description: Permanently deletes a user account
+      tags:
+        - User Profile
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User profile deleted successfully
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/bookmark/{courseId}:
+    post:
+      summary: Bookmark a course
+      description: Adds a course to the user's bookmarked courses (inter-service endpoint)
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course bookmarked successfully
+        '404':
+          description: User or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Unbookmark a course
+      description: Removes a course from the user's bookmarked courses (inter-service endpoint)
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course unbookmarked successfully
+        '404':
+          description: User or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/complete/{courseId}:
+    post:
+      summary: Mark course as completed
+      description: Marks a course as completed for a user and adds skills (inter-service endpoint)
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              description: List of skills gained from completing the course
+      responses:
+        '200':
+          description: Course marked as completed successfully
+        '404':
+          description: User or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/bookmarks:
+    get:
+      summary: Get bookmarked courses
+      description: Retrieves all bookmarked course IDs for a user
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bookmarked course IDs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/enroll/{courseId}:
+    post:
+      summary: Enroll user in course
+      description: Enrolls a user in a course and adds skills in progress (inter-service endpoint)
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              description: List of skills that will be in progress
+      responses:
+        '200':
+          description: User enrolled in course successfully
+        '404':
+          description: User or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+    delete:
+      summary: Unenroll user from course
+      description: Unenrolls a user from a course and removes skills in progress (inter-service endpoint)
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+              description: List of skills to remove from in progress
+      responses:
+        '204':
+          description: User unenrolled from course successfully
+        '404':
+          description: User or course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/skills:
+    get:
+      summary: Get user skills
+      description: Retrieves all skills for a specific user
+      tags:
+        - Skills
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User skills retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/skills-in-progress:
+    get:
+      summary: Get user skills in progress
+      description: Retrieves all skills in progress for a specific user
+      tags:
+        - Skills
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User skills in progress retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/courses/enrolled:
+    get:
+      summary: Get enrolled courses
+      description: Retrieves all enrolled course IDs for a specific user
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Enrolled course IDs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/courses/completed:
+    get:
+      summary: Get completed courses
+      description: Retrieves all completed course IDs for a specific user
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Completed course IDs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/{userId}/courses/bookmarked:
+    get:
+      summary: Get bookmarked courses
+      description: Retrieves all bookmarked course IDs for a specific user
+      tags:
+        - Course Management
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bookmarked course IDs retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/users/with-skill:
+    get:
+      summary: Get users with skill
+      description: Retrieves all users who have a specific skill
+      tags:
+        - User Search
+      parameters:
+        - name: skill
+          in: query
+          required: true
+          description: The skill to filter users by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users with skill retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/v1/users/with-skill-in-progress:
+    get:
+      summary: Get users with skill in progress
+      description: Retrieves all users who have a specific skill in progress
+      tags:
+        - User Search
+      parameters:
+        - name: skill
+          in: query
+          required: true
+          description: The skill to filter users by
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users with skill in progress retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/v1/users/enrolled-in/{courseId}:
+    get:
+      summary: Get users enrolled in course
+      description: Retrieves all users enrolled in a specific course
+      tags:
+        - User Search
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users enrolled in course retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/v1/users/completed/{courseId}:
+    get:
+      summary: Get users who completed course
+      description: Retrieves all users who have completed a specific course
+      tags:
+        - User Search
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users who completed course retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/v1/users/bookmarked/{courseId}:
+    get:
+      summary: Get users who bookmarked course
+      description: Retrieves all users who have bookmarked a specific course
+      tags:
+        - User Search
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users who bookmarked course retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+
+  /api/v1/users/search/user/{username}:
+    get:
+      summary: Search users by username
+      description: Searches for users by username (partial match)
+      tags:
+        - User Search
+      parameters:
+        - name: username
+          in: path
+          required: true
+          description: The username to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+        '404':
+          description: No users found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "No users found"
+
+  /api/v1/users/search/email/{email}:
+    get:
+      summary: Search users by email
+      description: Searches for users by email (partial match)
+      tags:
+        - User Search
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: The email to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Users found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserProfileResponse'
+        '404':
+          description: No users found
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "No users found"
+
+components:
+  schemas:
+    UserRegisterRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - username
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          minLength: 2
+          maxLength: 50
+          description: User's last name
+          example: "Doe"
+        username:
+          type: string
+          minLength: 3
+          maxLength: 25
+          description: Unique username for the account
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 50
+          description: User's password
+          example: "securePassword123"
+
+    UserLoginRequest:
+      type: object
+      required:
+        - password
+      properties:
+        username:
+          type: string
+          description: Username for login (either username or email is required)
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: Email for login (either username or email is required)
+          example: "john.doe@example.com"
+        password:
+          type: string
+          description: User's password
+          example: "securePassword123"
+
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+        username:
+          type: string
+          description: Unique username for the account
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        profilePictureUrl:
+          type: string
+          description: URL to user's profile picture
+          example: "https://example.com/profile.jpg"
+        bio:
+          type: string
+          description: User's biography
+          example: "Software developer passionate about learning"
+        skills:
+          type: array
+          items:
+            type: string
+          description: List of skills the user has
+          example: [ "Java", "Spring Boot", "MongoDB" ]
+        skillsInProgress:
+          type: array
+          items:
+            type: string
+          description: List of skills the user is currently learning
+          example: [ "React", "TypeScript" ]
+        enrolledCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user is enrolled in
+          example: [ "course123", "course456" ]
+        bookmarkedCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user has bookmarked
+          example: [ "course789", "course101" ]
+        completedCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user has completed
+          example: [ "course111", "course222" ]
+
+    UserRegisterResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - username
+        - email
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+          example: "507f1f77bcf86cd799439011"
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+
+    UserLoginResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - username
+        - email
+        - jwtToken
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+          example: "507f1f77bcf86cd799439011"
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        profilePictureUrl:
+          type: string
+          description: URL to user's profile picture
+          example: "https://example.com/profile.jpg"
+        jwtToken:
+          type: string
+          description: JWT token for authentication
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    UserProfileResponse:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - username
+        - email
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the user
+          example: "507f1f77bcf86cd799439011"
+        firstName:
+          type: string
+          description: User's first name
+          example: "John"
+        lastName:
+          type: string
+          description: User's last name
+          example: "Doe"
+        username:
+          type: string
+          description: User's username
+          example: "johndoe"
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@example.com"
+        profilePictureUrl:
+          type: string
+          description: URL to user's profile picture
+          example: "https://example.com/profile.jpg"
+        bio:
+          type: string
+          description: User's biography
+          example: "Software developer passionate about learning"
+        skills:
+          type: array
+          items:
+            type: string
+          description: List of skills the user has
+          example: [ "Java", "Spring Boot", "MongoDB" ]
+        skillsInProgress:
+          type: array
+          items:
+            type: string
+          description: List of skills the user is currently learning
+          example: [ "React", "TypeScript" ]
+        enrolledCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user is enrolled in
+          example: [ "course123", "course456" ]
+        bookmarkedCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user has bookmarked
+          example: [ "course789", "course101" ]
+        completedCourseIds:
+          type: array
+          items:
+            type: string
+          description: List of course IDs the user has completed
+          example: [ "course111", "course222" ]
+
+    ApiError:
+      type: object
+      required:
+        - status
+        - error
+        - message
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the error occurrence
+          example: "2024-01-15T10:30:00Z"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: HTTP error reason
+          example: "Bad Request"
+        message:
+          type: string
+          description: Detailed error message
+          example: "Validation failed for field 'email'"
+        path:
+          type: string
+          description: Request path that caused the error
+          example: "/api/v1/users/register"
+        details:
+          type: array
+          items:
+            type: string
+          description: Field-specific validation error messages
+          example: [ "Email must be a valid email address" ]
+
+tags:
+  - name: Authentication
+    description: User authentication and registration endpoints
+  - name: User Profile
+    description: User profile management endpoints
+  - name: Course Management
+    description: Course enrollment, completion, and bookmarking endpoints
+  - name: Skills
+    description: User skills management endpoints
+  - name: User Search
+    description: User search and filtering endpoints

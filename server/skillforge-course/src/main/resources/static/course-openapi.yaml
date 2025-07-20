@@ -1,0 +1,1262 @@
+openapi: 3.1.0
+info:
+  title: SkillForge Course Service API
+  description: API for managing courses, course enrollment, course generation, and course-related operations in the SkillForge platform
+  version: 1.0.0
+  contact:
+    name: SkillForge Team
+    email: support@skillforge.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.skillforge.student.k8s.aet.cit.tum.de
+    description: Production API Gateway
+  - url: http://localhost:8081
+    description: Development Gateway Server
+  - url: http://localhost:8083
+    description: Development Direct Course Service
+
+paths:
+  /api/v1/courses:
+    post:
+      summary: Create a new course
+      description: Creates a new course with the provided information
+      tags:
+        - Course Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseRequest'
+      responses:
+        '200':
+          description: Course successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    get:
+      summary: Get all courses
+      description: Retrieves all courses in the system
+      tags:
+        - Course Management
+      responses:
+        '200':
+          description: All courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseSummaryResponse'
+
+  /api/v1/courses/public:
+    get:
+      summary: Get public courses
+      description: Retrieves all public courses for the landing page
+      tags:
+        - Course Management
+      responses:
+        '200':
+          description: Public courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseSummaryResponse'
+
+  /api/v1/courses/published:
+    get:
+      summary: Get published courses
+      description: Retrieves all public and published courses for the landing page
+      tags:
+        - Course Management
+      responses:
+        '200':
+          description: Published courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseSummaryResponse'
+
+  /api/v1/courses/{courseId}:
+    get:
+      summary: Get course by ID
+      description: Retrieves a specific course by its ID
+      tags:
+        - Course Management
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    put:
+      summary: Update course
+      description: Updates an existing course with new information
+      tags:
+        - Course Management
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseRequest'
+      responses:
+        '200':
+          description: Course updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    patch:
+      summary: Update course partially
+      description: Updates specific fields of an existing course (partial update)
+      tags:
+        - Course Management
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourseUpdateRequest'
+      responses:
+        '200':
+          description: Course updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    delete:
+      summary: Delete course
+      description: Permanently deletes a course
+      tags:
+        - Course Management
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course deleted successfully
+        '404':
+          description: Course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/{courseId}/enroll/{userId}:
+    post:
+      summary: Enroll user in course
+      description: Enrolls a user in a specific course
+      tags:
+        - Course Enrollment
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User enrolled in course successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          description: Course or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    delete:
+      summary: Unenroll user from course
+      description: Removes a user from a course enrollment
+      tags:
+        - Course Enrollment
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User unenrolled from course successfully
+        '404':
+          description: Course or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/{courseId}/complete/{userId}:
+    post:
+      summary: Mark course as completed for user
+      description: Marks a course as completed for a specific user
+      tags:
+        - Course Progress
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course marked as completed successfully
+        '404':
+          description: Course or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/user/{userId}/enrolled:
+    get:
+      summary: Get user's enrolled courses
+      description: Retrieves all courses that a user is enrolled in
+      tags:
+        - Course Enrollment
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User's enrolled courses retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnrolledUserInfoResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/{courseId}/bookmark/{userId}:
+    post:
+      summary: Bookmark course for user
+      description: Adds a course to a user's bookmarked courses
+      tags:
+        - Course Bookmarks
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course bookmarked successfully
+        '404':
+          description: Course or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    
+    delete:
+      summary: Unbookmark course for user
+      description: Removes a course from a user's bookmarked courses
+      tags:
+        - Course Bookmarks
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          description: The unique identifier of the course
+          schema:
+            type: string
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Course unbookmarked successfully
+        '404':
+          description: Course or user not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/search:
+    get:
+      summary: Advanced course search
+      description: Search courses with multiple filter criteria
+      tags:
+        - Course Search
+      parameters:
+        - name: instructor
+          in: query
+          required: false
+          description: Filter by instructor name
+          schema:
+            type: string
+        - name: level
+          in: query
+          required: false
+          description: Filter by course level
+          schema:
+            $ref: '#/components/schemas/Level'
+        - name: language
+          in: query
+          required: false
+          description: Filter by course language
+          schema:
+            $ref: '#/components/schemas/Language'
+        - name: skill
+          in: query
+          required: false
+          description: Filter by skill taught
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          description: Filter by course category
+          schema:
+            type: string
+        - name: title
+          in: query
+          required: false
+          description: Filter by course title
+          schema:
+            type: string
+        - name: isPublished
+          in: query
+          required: false
+          description: Filter by published status
+          schema:
+            type: boolean
+        - name: isPublic
+          in: query
+          required: false
+          description: Filter by public status
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Courses found successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/instructor/{instructor}:
+    get:
+      summary: Get courses by instructor
+      description: Retrieves all courses by a specific instructor
+      tags:
+        - Course Search
+      parameters:
+        - name: instructor
+          in: path
+          required: true
+          description: The instructor name to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Courses by instructor retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/level/{level}:
+    get:
+      summary: Get courses by level
+      description: Retrieves all courses of a specific level
+      tags:
+        - Course Search
+      parameters:
+        - name: level
+          in: path
+          required: true
+          description: The course level to filter by
+          schema:
+            $ref: '#/components/schemas/Level'
+      responses:
+        '200':
+          description: Courses by level retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/language/{language}:
+    get:
+      summary: Get courses by language
+      description: Retrieves all courses in a specific language
+      tags:
+        - Course Search
+      parameters:
+        - name: language
+          in: path
+          required: true
+          description: The course language to filter by
+          schema:
+            $ref: '#/components/schemas/Language'
+      responses:
+        '200':
+          description: Courses by language retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/skill/{skillName}:
+    get:
+      summary: Get courses by skill
+      description: Retrieves all courses that teach a specific skill
+      tags:
+        - Course Search
+      parameters:
+        - name: skillName
+          in: path
+          required: true
+          description: The skill name to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Courses by skill retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/category/{categoryName}:
+    get:
+      summary: Get courses by category
+      description: Retrieves all courses in a specific category
+      tags:
+        - Course Search
+      parameters:
+        - name: categoryName
+          in: path
+          required: true
+          description: The category name to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Courses by category retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/search/title/{title}:
+    get:
+      summary: Search courses by title
+      description: Searches for courses by title using fuzzy matching
+      tags:
+        - Course Search
+      parameters:
+        - name: title
+          in: path
+          required: true
+          description: The title to search for
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Courses by title retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CourseResponse'
+
+  /api/v1/courses/generate/learning_path/{userId}:
+    post:
+      summary: Generate course for user
+      description: Generates a brand-new course via GenAI + RAG for a specific user
+      tags:
+        - Course Generation
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPathRequest'
+      responses:
+        '200':
+          description: Course generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseRequest'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/generate/learning_path/{userId}/confirm:
+    post:
+      summary: Confirm generated course
+      description: Confirms the generation of a course from a Learning Path request
+      tags:
+        - Course Generation
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: The unique identifier of the user
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Course generation confirmed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourseResponse'
+        '404':
+          description: Generated course not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/generate/prompt:
+    post:
+      summary: Generate response from prompt
+      description: Generates a response to a given prompt using GenAI
+      tags:
+        - Course Generation
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: The prompt to generate a response for
+      responses:
+        '200':
+          description: Response generated successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/v1/courses/crawl/url:
+    post:
+      summary: Crawl web URL for course content
+      description: Embeds a URL into the GenAI service for future retrieval
+      tags:
+        - Course Generation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+              properties:
+                url:
+                  type: string
+                  description: The URL to crawl and embed
+                  example: "https://example.com"
+      responses:
+        '200':
+          description: URL crawled and embedded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedResult'
+        '502':
+          description: Bad gateway - crawling failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmbedResult'
+
+components:
+  schemas:
+    CourseRequest:
+      type: object
+      required:
+        - title
+        - description
+        - instructor
+        - language
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the course (auto-generated)
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Course title
+          example: "Advanced Spring Boot Development"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Course description
+          example: "Learn advanced Spring Boot concepts including security, testing, and deployment"
+        instructor:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Course instructor name
+          example: "John Doe"
+        skills:
+          type: array
+          items:
+            type: string
+          description: Skills that can be learned in this course
+          example: ["Spring Boot", "Java", "REST API", "Security"]
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleRequest'
+          description: Modules in this course
+        enrolledUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrolledUserInfoRequest'
+          description: List of enrolled users (optional on creation)
+        numberOfEnrolledUsers:
+          type: integer
+          minimum: 0
+          description: Number of users enrolled in the course
+          example: 25
+        categories:
+          type: array
+          items:
+            type: string
+          description: Course categories
+          example: ["Programming", "Backend Development", "Java"]
+        level:
+          $ref: '#/components/schemas/Level'
+          description: Course difficulty level
+        thumbnailUrl:
+          type: string
+          description: URL to course thumbnail image
+          example: "https://example.com/thumbnail.jpg"
+        published:
+          type: boolean
+          description: Whether the course is published
+          example: true
+        isPublic:
+          type: boolean
+          description: Whether the course is publicly accessible
+          example: true
+        language:
+          $ref: '#/components/schemas/Language'
+          description: Course language
+        rating:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+          description: Course rating (0-5)
+          example: 4.5
+
+    CourseUpdateRequest:
+      type: object
+      description: Request object for partial course updates (all fields are optional)
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the course (auto-generated)
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Course title
+          example: "Advanced Spring Boot Development"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Course description
+          example: "Learn advanced Spring Boot concepts including security, testing, and deployment"
+        instructor:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: Course instructor name
+          example: "John Doe"
+        skills:
+          type: array
+          items:
+            type: string
+          description: Skills that can be learned in this course
+          example: ["Spring Boot", "Java", "REST API", "Security"]
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleRequest'
+          description: Modules in this course
+        enrolledUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrolledUserInfoRequest'
+          description: List of enrolled users
+        numberOfEnrolledUsers:
+          type: integer
+          minimum: 0
+          description: Number of users enrolled in the course
+          example: 25
+        categories:
+          type: array
+          items:
+            type: string
+          description: Course categories
+          example: ["Programming", "Backend Development", "Java"]
+        level:
+          $ref: '#/components/schemas/Level'
+          description: Course difficulty level
+        thumbnailUrl:
+          type: string
+          description: URL to course thumbnail image
+          example: "https://example.com/thumbnail.jpg"
+        published:
+          type: boolean
+          description: Whether the course is published
+          example: true
+        isPublic:
+          type: boolean
+          description: Whether the course is publicly accessible
+          example: true
+        language:
+          $ref: '#/components/schemas/Language'
+          description: Course language
+        rating:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 5
+          description: Course rating (0-5)
+          example: 4.5
+
+    CourseResponse:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the course
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          description: Course title
+          example: "Advanced Spring Boot Development"
+        description:
+          type: string
+          description: Course description
+          example: "Learn advanced Spring Boot concepts including security, testing, and deployment"
+        instructor:
+          type: string
+          description: Course instructor name
+          example: "John Doe"
+        skills:
+          type: array
+          items:
+            type: string
+          description: Skills that can be learned in this course
+          example: ["Spring Boot", "Java", "REST API", "Security"]
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModuleResponse'
+          description: Modules in this course
+        numberOfEnrolledUsers:
+          type: integer
+          description: Number of users enrolled in the course
+          example: 25
+        categories:
+          type: array
+          items:
+            type: string
+          description: Course categories
+          example: ["Programming", "Backend Development", "Java"]
+        level:
+          $ref: '#/components/schemas/Level'
+          description: Course difficulty level
+        thumbnailUrl:
+          type: string
+          description: URL to course thumbnail image
+          example: "https://example.com/thumbnail.jpg"
+        published:
+          type: boolean
+          description: Whether the course is published
+          example: true
+        isPublic:
+          type: boolean
+          description: Whether the course is publicly accessible
+          example: true
+        language:
+          $ref: '#/components/schemas/Language'
+          description: Course language
+        rating:
+          type: number
+          format: double
+          description: Course rating (0-5)
+          example: 4.5
+        enrolledUsers:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnrolledUserInfo'
+          description: List of enrolled users
+
+    CourseSummaryResponse:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the course
+          example: "507f1f77bcf86cd799439011"
+        title:
+          type: string
+          description: Course title
+          example: "Advanced Spring Boot Development"
+        description:
+          type: string
+          description: Course description
+          example: "Learn advanced Spring Boot concepts including security, testing, and deployment"
+        instructor:
+          type: string
+          description: Course instructor name
+          example: "John Doe"
+        skills:
+          type: array
+          items:
+            type: string
+          description: Skills that can be learned in this course
+          example: ["Spring Boot", "Java", "REST API", "Security"]
+        numberOfEnrolledUsers:
+          type: integer
+          description: Number of users enrolled in the course
+          example: 25
+        categories:
+          type: array
+          items:
+            type: string
+          description: Course categories
+          example: ["Programming", "Backend Development", "Java"]
+        level:
+          $ref: '#/components/schemas/Level'
+          description: Course difficulty level
+        thumbnailUrl:
+          type: string
+          description: URL to course thumbnail image
+          example: "https://example.com/thumbnail.jpg"
+        published:
+          type: boolean
+          description: Whether the course is published
+          example: true
+        isPublic:
+          type: boolean
+          description: Whether the course is publicly accessible
+          example: true
+        language:
+          $ref: '#/components/schemas/Language'
+          description: Course language
+        rating:
+          type: number
+          format: double
+          description: Course rating (0-5)
+          example: 4.5
+
+    ModuleRequest:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Module title
+          example: "Spring Security Basics"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: Module description
+          example: "Learn the fundamentals of Spring Security"
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonRequest'
+          description: Lessons in this module
+
+    ModuleResponse:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          description: Module title
+          example: "Spring Security Basics"
+        description:
+          type: string
+          description: Module description
+          example: "Learn the fundamentals of Spring Security"
+        lessons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LessonResponse'
+          description: Lessons in this module
+
+    LessonRequest:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Lesson title
+          example: "Introduction to Spring Security"
+        content:
+          type: string
+          minLength: 1
+          maxLength: 10000
+          description: Lesson content
+          example: "Spring Security is a powerful framework for securing Spring applications..."
+
+    LessonResponse:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: Lesson title
+          example: "Introduction to Spring Security"
+        content:
+          type: string
+          description: Lesson content
+          example: "Spring Security is a powerful framework for securing Spring applications..."
+
+    EnrolledUserInfoRequest:
+      type: object
+      required:
+        - userId
+        - enrolledAt
+      properties:
+        userId:
+          type: string
+          description: Unique identifier of the enrolled user
+          example: "507f1f77bcf86cd799439012"
+        enrolledAt:
+          type: string
+          format: date-time
+          description: When the user enrolled in the course
+          example: "2024-01-15T10:30:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          description: When the user completed the course (if completed)
+          example: "2024-02-15T14:30:00Z"
+
+    EnrolledUserInfoResponse:
+      type: object
+      required:
+        - userId
+        - enrolledAt
+      properties:
+        userId:
+          type: string
+          description: Unique identifier of the enrolled user
+          example: "507f1f77bcf86cd799439012"
+        enrolledAt:
+          type: string
+          format: date-time
+          description: When the user enrolled in the course
+          example: "2024-01-15T10:30:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          description: When the user completed the course (if completed)
+          example: "2024-02-15T14:30:00Z"
+
+    EnrolledUserInfo:
+      type: object
+      required:
+        - userId
+        - enrolledAt
+      properties:
+        userId:
+          type: string
+          description: Unique identifier of the enrolled user
+          example: "507f1f77bcf86cd799439012"
+        enrolledAt:
+          type: string
+          format: date-time
+          description: When the user enrolled in the course
+          example: "2024-01-15T10:30:00Z"
+        completedAt:
+          type: string
+          format: date-time
+          description: When the user completed the course (if completed)
+          example: "2024-02-15T14:30:00Z"
+
+    LearningPathRequest:
+      type: object
+      required:
+        - title
+        - description
+        - skills
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Learning path title
+          example: "Full Stack Web Development"
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: Learning path description
+          example: "Complete path to become a full stack web developer"
+        skills:
+          type: array
+          items:
+            type: string
+          description: Skills to be learned in this path
+          example: ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
+
+    EmbedResult:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether the embedding operation was successful
+          example: true
+        message:
+          type: string
+          description: Result message
+          example: "URL successfully embedded"
+        url:
+          type: string
+          description: The URL that was embedded
+          example: "https://example.com"
+
+    Level:
+      type: string
+      enum: [BEGINNER, INTERMEDIATE, ADVANCED, EXPERT]
+      description: Course difficulty level
+      example: "INTERMEDIATE"
+
+    Language:
+      type: string
+      enum: [EN, ES, FR, DE, IT, PT, RU, ZH, JA, KO]
+      description: Course language
+      example: "EN"
+
+    ApiError:
+      type: object
+      required:
+        - status
+        - error
+        - message
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp of the error occurrence
+          example: "2024-01-15T10:30:00Z"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+        error:
+          type: string
+          description: HTTP error reason
+          example: "Bad Request"
+        message:
+          type: string
+          description: Detailed error message
+          example: "Validation failed for field 'title'"
+        path:
+          type: string
+          description: Request path that caused the error
+          example: "/api/v1/courses"
+        details:
+          type: array
+          items:
+            type: string
+          description: Field-specific validation error messages
+          example: ["Title must not be blank"]
+
+tags:
+  - name: Course Management
+    description: Course CRUD operations and basic management
+  - name: Course Enrollment
+    description: User enrollment and unenrollment in courses
+  - name: Course Progress
+    description: Course completion tracking
+  - name: Course Bookmarks
+    description: Course bookmarking functionality
+  - name: Course Search
+    description: Course search and filtering operations
+  - name: Course Generation
+    description: AI-powered course generation and content crawling 
