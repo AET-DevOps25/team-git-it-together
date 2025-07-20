@@ -59,8 +59,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/users/login").permitAll()
                         // docs endpoints
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/user-openapi.yaml").permitAll()
+                        .requestMatchers("/docs/**", "/docs").permitAll()
+                        .requestMatchers("/api/v1/users/docs/**").permitAll()
+                        .requestMatchers("/user-openapi.yaml").permitAll()
                         .requestMatchers(
                                 "/api/v1/users/docs/**",
                                 "/docs/**",
