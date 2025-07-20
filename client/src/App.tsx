@@ -13,6 +13,7 @@ import Courses from '@/pages/Courses';
 import CourseDetail from '@/pages/CourseDetail';
 import LessonPage from '@/pages/LessonPage';
 import AiCenter from '@/pages/AiCenter';
+import ChatPage from '@/pages/ChatPage';
 import About from '@/pages/About';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import TermsOfService from '@/pages/TermsOfService';
@@ -44,6 +45,7 @@ const AppRoutes = () => (
     {/* PROTECTED */}
     <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
     <Route path="/ai-center" element={<RequireAuth><AiCenter /></RequireAuth>} />
+    <Route path="/chat" element={<RequireAuth><ChatPage /></RequireAuth>} />
     <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />  
 
     <Route path="/courses/:courseId" element={<RequireAuth><CourseDetail /></RequireAuth>} />

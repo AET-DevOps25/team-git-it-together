@@ -12,6 +12,7 @@ import type {
   UserRegisterResponse,
 } from '@/types';
 import { parseErrorResponse } from '@/utils/response.utils.ts';
+import { chatService } from './chat.service';
 
 const BASE_URL = `${API_BASE_URL}/users`;
 
@@ -24,6 +25,8 @@ let authToken: string | null = null;
  */
 export function setAuthToken(token: string | null) {
   authToken = token;
+  // Also set the auth token for the chat service
+  chatService.setAuthToken(token);
 }
 
 /**

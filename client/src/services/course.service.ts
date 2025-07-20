@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '@/constants/app.ts';
 import type { CourseResponse, CourseSummaryResponse, Level, Language, CoursePayload } from '@/types';
 import { parseErrorResponse } from '@/utils/response.utils.ts';
+import { chatService } from './chat.service';
 
 const BASE_URL = `${API_BASE_URL}/courses`;
 
@@ -13,6 +14,8 @@ let authToken: string | null = null;
  */
 export function setAuthToken(token: string | null) {
   authToken = token;
+  // Also set the auth token for the chat service
+  chatService.setAuthToken(token);
 }
 
 /**

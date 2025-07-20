@@ -256,11 +256,16 @@ const Dashboard = () => {
 
               {/* AI Chat Assistant */}
               <AIChatAssistant 
+                className="h-[500px]"
                 userSkills={[
                 ...(dashboardData.skillsInProgress || []),
                 ...(dashboardData.currentSkills || [])
                 ]} 
                 disableCourseGeneration={true}
+                title="AI Learning Assistant"
+                description="Chat with your AI assistant that remembers your conversation context"
+                useNewChatService={true}
+                showConversationHistory={false}
               />
             </div>
           </TabsContent>

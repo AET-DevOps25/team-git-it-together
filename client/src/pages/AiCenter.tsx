@@ -81,8 +81,8 @@ const AiCenter = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6">
           <div className="flex items-center space-x-3 mb-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-r from-purple-100 to-blue-100">
               <Sparkles className="h-6 w-6 text-purple-600" />
@@ -94,7 +94,7 @@ const AiCenter = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="chat" className="space-y-6">
+        <Tabs defaultValue="chat" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="chat" className="flex items-center space-x-2">
               <MessageSquare className="h-4 w-4" />
@@ -112,10 +112,51 @@ const AiCenter = () => {
           </TabsList>
 
           {/* AI Chat Tab */}
-          <TabsContent value="chat" className="space-y-4">
-            <AIChatAssistant
-              height="h-96"
-              showHeader={true}
+          <TabsContent value="chat" className="space-y-3">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5 text-blue-600" />
+                  <span>Context-Aware AI Chat</span>
+                </CardTitle>
+                <CardDescription>
+                  Chat with our AI assistant that remembers your conversation history and maintains context across messages.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium">Conversation History</p>
+                      <p className="text-muted-foreground">View and switch between your previous conversations</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium">Context Memory</p>
+                      <p className="text-muted-foreground">AI remembers previous messages and maintains context</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
+                    <div>
+                      <p className="font-medium">Manage Conversations</p>
+                      <p className="text-muted-foreground">Delete individual conversations or clear all history</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <AIChatAssistant 
+              className="h-[800px]"
+              title="Context-Aware AI Chat"
+              description="Chat with our AI assistant that remembers your conversation history and maintains context across messages."
+              placeholder="Ask questions, get explanations, or generate courses..."
+              useNewChatService={true}
+              disableCourseGeneration={false}
+              showConversationHistory={true}
             />
           </TabsContent>
 
