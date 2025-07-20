@@ -66,7 +66,7 @@ CORS_ALLOW_ORIGINS=*
 LLM_PROVIDER=llmstudio
 OPENAI_API_BASE=http://127.0.0.1:1234/v1
 OPENAI_API_KEY=whateveveryouwant
-OPENAI_MODEL=qwen/qwen3-8b
+OPENAI_MODEL=qwen1.5-7b-chat
 
 # For OpenAI (uncomment to use)
 # LLM_PROVIDER=openai
@@ -168,3 +168,64 @@ docker-compose up -d skillforge-genai skillforge-weaviate
 - `GET /api/v1/scheduler/status` - Get scheduler status
 - `POST /api/v1/scheduler/control` - Control scheduler
 - `POST /api/v1/scheduler/run-now` - Run scheduled jobs immediately
+
+
+## 🚀 Using a Local LLM (LM Studio)
+
+_If you only need chat/Q‑A or embeddings, you can run everything locally via LM Studio._
+
+1. **Install LM Studio**  
+   - Download & install from https://lmstudio.ai  
+2. **Download & load the model**  
+   - In LM Studio go to **Models → Download** and pick `qwen1.5-7b-chat` (≈ 4.8 GB)  
+   - Click **Load** and wait for the green “Running” status  
+
+3. **Enable the HTTP‑API**  
+   - In the **Developer** tab confirm:  
+     ```
+     Status: Running
+     Reachable at: http://127.0.0.1:1234
+     ```
+4. **Uncomment the LM‑Studio block in `.env`**  
+   ```dotenv
+   ##### Local LM‑Studio configuration #####
+   LLM_PROVIDER=lmstudio
+   OPENAI_API_BASE=http://host.docker.internal:1234/v1
+   OPENAI_API_KEY=local-key          # any non‑empty string
+   OPENAI_MODEL=qwen1.5-7b-chat      # exact ID from /v1/models
+
+   ##### OpenAI Cloud (commented out) #####
+   # LLM_PROVIDER=openai
+   # OPENAI_API_BASE=https://api.openai.com/v1
+   # OPENAI_API_KEY=sk-…
+   # OPENAI_MODEL=gpt-4o-mini
+
+5. **(When switching providers) Reset Weaviate schema**
+   OpenAI embeddings = 1536 dims vs BGE embeddings = 384 dims.
+
+   ```bash
+   curl -X DELETE http://localhost:8088/v1/schema/DocumentChunk
+   ```
+
+   *Or in PowerShell:*
+
+   ```powershell
+   Invoke-RestMethod -Uri "http://localhost:8088/v1/schema/DocumentChunk" -Method Delete
+   ```
+
+6. **Restart GenAI container**
+
+   ```bash
+   docker compose up -d --no-deps --force-recreate skillforge-genai
+   ```
+
+**What works locally:**
+
+* Chat / Q‑A
+* Embeddings & semantic search
+
+**Limitation (when using LM Studio):**
+
+* Course generation – requires structured JSON output, which LM Studio currently cannot reliably provide.
+
+
