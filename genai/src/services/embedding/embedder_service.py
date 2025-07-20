@@ -4,6 +4,7 @@ import logging
 from typing import List
 import numpy as np
 from langchain_openai import OpenAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores.weaviate import Weaviate
 from .weaviate_service import get_weaviate_client, DOCUMENT_CLASS_NAME
@@ -41,7 +42,8 @@ def embed_and_store_text(text: str, source_url: str) -> int:
     Includes retry logic for Weaviate connection issues.
     """
     logger.info(f"Embedding and storing text for URL: {source_url}")
-    if not os.getenv("OPENAI_API_KEY"):
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    if provider == "openai" and not os.getenv("OPENAI_API_KEY"):
         raise ValueError("OPENAI_API_KEY environment variable not set.")
     
     # Wait for Weaviate to be ready before proceeding
@@ -56,7 +58,13 @@ def embed_and_store_text(text: str, source_url: str) -> int:
         return 0
     
     metadatas = [{"source_url": source_url} for _ in chunks]
-    embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small", base_url="https://api.openai.com/v1")
+    
+    if provider == "openai":
+        embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    else:  # lmstudio → local HF model
+        embeddings_model = HuggingFaceEmbeddings(
+            model_name="BAAI/bge-small-en-v1.5"
+        )
 
     # Retry logic for Weaviate.from_texts with exponential backoff
     max_retries = 3
@@ -112,7 +120,15 @@ def query_similar_chunks(query_text: str, limit: int = 3) -> QueryResponse:
     Stateless helper – identical logic to the /query endpoint but callable in-process.
     """
     client = get_weaviate_client()
-    embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    provider = os.getenv("LLM_PROVIDER", "openai").lower()
+    
+    if provider == "openai":
+        embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+    else:  # lmstudio → local HF model
+        embeddings_model = HuggingFaceEmbeddings(
+            model_name="BAAI/bge-small-en-v1.5"
+        )
+    
     vector = embeddings_model.embed_query(query_text)
 
     result = (
@@ -126,7 +142,13 @@ def query_similar_chunks(query_text: str, limit: int = 3) -> QueryResponse:
     return QueryResponse(query=query_text, results=docs)
 
 
-_embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+provider = os.getenv("LLM_PROVIDER", "openai").lower()
+if provider == "openai":
+    _embeddings_model = OpenAIEmbeddings(model="text-embedding-3-small")
+else:  # lmstudio → local HF model
+    _embeddings_model = HuggingFaceEmbeddings(
+        model_name="BAAI/bge-small-en-v1.5"
+    )
 
 def embed_text(text: str) -> List[float]:
     """Generate a single embedding vector from raw text."""
