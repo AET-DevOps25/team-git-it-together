@@ -42,9 +42,10 @@ public class GatewayConfig {
                                 .rewritePath("/api/v1/users/docs/(?<segment>.*)", "/swagger-ui/${segment}")
                                 .rewritePath("/api/v1/users/docs", "/swagger-ui/index.html"))
                         .uri(userServiceUri))
-                .route("user-service-swagger-ui", r -> r.path("/swagger-ui/**")
+                .route("user-service-swagger-ui", r -> r.path("/api/v1/users/swagger-ui/**")
                         .uri(userServiceUri))
-                .route("user-service-openapi", r -> r.path("/user-openapi.yaml")
+                .route("user-service-openapi", r -> r.path("/api/v1/users/user-openapi.yaml")
+                        .filters(f -> f.rewritePath("/api/v1/users/user-openapi.yaml", "/user-openapi.yaml"))
                         .uri(userServiceUri))
                 // Course service documentation routes
                 .route("course-service-docs", r -> r.path("/api/v1/courses/docs", "/api/v1/courses/docs/**")

@@ -78,6 +78,7 @@ rate:
 ### Implementation
 
 - **Redis Rate Limiter**: Uses Spring Cloud Gateway's built-in `RedisRateLimiter`
+- **Redis Connection**: Spring Cloud Gateway manages Redis connections internally using the configured `ReactiveRedisConnectionFactory`
 - **Token Bucket Algorithm**: Implements token bucket with configurable replenish rate and burst capacity
 - **Key Resolution**: Rate limiting keys are resolved by:
   1. `X-Client-ID` header (if provided)
