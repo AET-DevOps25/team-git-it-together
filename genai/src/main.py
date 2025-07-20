@@ -4,7 +4,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(name
 
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
 from fastapi.responses import JSONResponse
 import httpx
 from contextlib import asynccontextmanager
@@ -19,7 +19,8 @@ from .services.embedding import embedder_service
 from .services.embedding.schemas import EmbedRequest, EmbedResponse, QueryRequest, QueryResponse, DocumentResult
 from .services.embedding.weaviate_service import get_weaviate_client, ensure_schema_exists, DOCUMENT_CLASS_NAME
 from .services.llm import llm_service
-from .services.llm.schemas import GenerateRequest, GenerateResponse
+from .services.llm.schemas import GenerateRequest, GenerateResponse, ChatRequest, ChatResponse
+from .services.llm.chat_service import chat_service
 from .services.rag.schemas import CourseGenerationRequest, Course
 from .services.rag import course_generator
 from .utils.error_schema import ErrorResponse
@@ -294,6 +295,85 @@ async def generate_completion(request: GenerateRequest):
     except Exception as e:
         logging.error(f"ERROR during text generation: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate text: {str(e)}")
+
+@app.post(f"{API_PREFIX}/chat", response_model=ChatResponse, tags=["LLM"])
+async def chat_with_ai(request: ChatRequest):
+    """Chat with AI while maintaining conversation context and user isolation."""
+    try:
+        response = chat_service.chat(request)
+        return response
+    except Exception as e:
+        logger.error(f"ERROR during chat: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to process chat: {str(e)}")
+
+@app.get(f"{API_PREFIX}/chat/conversations/{{user_id}}", tags=["LLM"])
+async def get_user_conversations(user_id: str):
+    """Get all conversations for a specific user."""
+    try:
+        conversations = chat_service.get_user_conversations(user_id)
+        return conversations
+    except Exception as e:
+        logger.error(f"ERROR getting user conversations: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get conversations: {str(e)}")
+
+@app.get(f"{API_PREFIX}/chat/history/{{conversation_id}}/{{user_id}}", tags=["LLM"])
+async def get_conversation_history(conversation_id: str, user_id: str):
+    """Get the full conversation history for a specific conversation."""
+    try:
+        history = chat_service.get_conversation_history(conversation_id, user_id)
+        return history
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"ERROR getting conversation history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to get conversation history: {str(e)}")
+
+@app.delete(f"{API_PREFIX}/chat/conversation/{{conversation_id}}/{{user_id}}", tags=["LLM"])
+async def delete_conversation(conversation_id: str, user_id: str):
+    """Delete a specific conversation for a user."""
+    try:
+        success = chat_service.delete_conversation(conversation_id, user_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="Conversation not found or access denied")
+        return {"message": "Conversation deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"ERROR deleting conversation: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
+
+from pydantic import BaseModel
+
+class RenameRequest(BaseModel):
+    new_name: str
+
+@app.put(f"{API_PREFIX}/chat/conversation/{{conversation_id}}/{{user_id}}/rename", tags=["LLM"])
+async def rename_conversation(conversation_id: str, user_id: str, request: RenameRequest):
+    """Rename a conversation for a user."""
+    try:
+        success = chat_service.rename_conversation(conversation_id, user_id, request.new_name)
+        if not success:
+            raise HTTPException(status_code=404, detail="Conversation not found or access denied")
+        return {"message": "Conversation renamed successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"ERROR renaming conversation: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to rename conversation: {str(e)}")
+
+@app.delete(f"{API_PREFIX}/chat/conversations/{{user_id}}", tags=["LLM"])
+async def clear_user_conversations(user_id: str):
+    """Clear all conversations for a user."""
+    try:
+        success = chat_service.clear_user_conversations(user_id)
+        if not success:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {"message": "All conversations cleared successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"ERROR clearing user conversations: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to clear conversations: {str(e)}")
   
 
 # ──────────────────────────────────────────────────────────────────────────
